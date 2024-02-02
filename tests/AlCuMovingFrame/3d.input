@@ -18,7 +18,6 @@ Visit {
 }
 
 ModelParameters {
-   H_parameter = -1
    
    Temperature {
       type = "heat"
@@ -35,8 +34,10 @@ ModelParameters {
       latent_heat = 10.71e3 // [J/mol]
    }
 
-   moving_frame_velocity = 5.6e3
-   adapt_frame = TRUE
+   MovingFrame{
+      velocity = 5.6e3
+      adapt = TRUE
+   }
  
    epsilon_phi = 0.2   // [(pJ/um)^1/2]
    PhaseMobility{

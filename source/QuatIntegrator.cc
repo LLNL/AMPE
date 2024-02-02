@@ -1990,15 +1990,21 @@ void QuatIntegrator::initialize(
                                            d_temperature_scratch_id, d_cp_id));
 
    if (d_model_parameters.inMovingFrame()) {
-      d_movingframe_phi.reset(new MovingFrameRHS(d_phase_scratch_id));
+      d_movingframe_phi.reset(
+          new MovingFrameRHS(d_phase_scratch_id,
+                             d_model_parameters.useUpwindScheme()));
       d_adapt_moving_frame.reset(new AdaptMovingFrame(d_grid_geometry,
                                                       d_quat_model,
                                                       d_frame_velocity));
       if (d_with_concentration) {
-         d_movingframe_conc.reset(new MovingFrameRHS(d_conc_scratch_id));
+         d_movingframe_conc.reset(
+             new MovingFrameRHS(d_conc_scratch_id,
+                                d_model_parameters.useUpwindScheme()));
       }
       if (d_with_unsteady_temperature) {
-         d_movingframe_temp.reset(new MovingFrameRHS(d_temperature_scratch_id));
+         d_movingframe_temp.reset(
+             new MovingFrameRHS(d_temperature_scratch_id,
+                                d_model_parameters.useUpwindScheme()));
       }
    }
 }
