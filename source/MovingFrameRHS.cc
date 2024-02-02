@@ -13,14 +13,10 @@
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
 
-MovingFrameRHS::MovingFrameRHS(const int phase_scratch_id)
-    : d_phase_scratch_id(phase_scratch_id)
-{
-}
+MovingFrameRHS::MovingFrameRHS(const int data_id) : d_data_id(data_id) {}
 
 void MovingFrameRHS::addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                            const int ydot_phase_id,
-                            const double frame_velocity)
+                            const int ydot_id, const double frame_velocity)
 {
    // add component related to moving frame if moving velocity!=0
    for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
@@ -40,29 +36,29 @@ void MovingFrameRHS::addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         std::shared_ptr<pdat::CellData<double> > phase(
+         std::shared_ptr<pdat::CellData<double> > data(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_phase_scratch_id)));
-         assert(phase);
+                 patch->getPatchData(d_data_id)));
+         assert(data);
 
-         std::shared_ptr<pdat::CellData<double> > phase_rhs(
+         std::shared_ptr<pdat::CellData<double> > data_rhs(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(ydot_phase_id)));
-         assert(phase_rhs);
-         assert(phase->getGhostCellWidth()[0] > 0);
-         assert(phase->getDepth() == phase_rhs->getDepth());
+                 patch->getPatchData(ydot_id)));
+         assert(data_rhs);
+         assert(data->getGhostCellWidth()[0] > 0);
+         assert(data->getDepth() == data_rhs->getDepth());
 
-         const short nphases = phase->getDepth();
-         // std::cout<<"ADDVDPHIDX for "<<nphases<<" phases"<<std::endl;
+         const short nfield = data->getDepth();
+         // std::cout<<"ADDVDPHIDX for "<<ndatas<<" datas"<<std::endl;
 
-         for (short i = 0; i < nphases; i++)
+         for (short i = 0; i < nfield; i++)
             ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                        ifirst(2), ilast(2),
 #endif
-                       dx, phase->getPointer(i), phase->getGhostCellWidth()[0],
-                       frame_velocity, phase_rhs->getPointer(i),
-                       phase_rhs->getGhostCellWidth()[0]);
+                       dx, data->getPointer(i), data->getGhostCellWidth()[0],
+                       frame_velocity, data_rhs->getPointer(i),
+                       data_rhs->getGhostCellWidth()[0]);
       }
    }
 }
