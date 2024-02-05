@@ -14,7 +14,6 @@ TimerManager {
 }
 
 ModelParameters {
-   H_parameter = -1.
    
    temperature        = 873. // [K]
    
@@ -23,7 +22,6 @@ ModelParameters {
    phi_mobility     = 1.
    
    phi_well_scale = 0.0625  // 1./16.
-   phi_well_func_type = "double"
 
    phi_interp_func_type ="pbg"
    
