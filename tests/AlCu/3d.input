@@ -41,7 +41,6 @@ ModelParameters {  // required block
    // f(phi) = scale_energy_well*g(phi)
    // where g is a double well potential
    phi_well_scale = 0.3 // [pJ/um^3]
-   phi_well_func_type = "double"
 
    Temperature{
       type = "scalar"

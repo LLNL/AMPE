@@ -18,8 +18,6 @@ Visit {
 }
 
 ModelParameters {
-   H_parameter    = -1
-   epsilon_orient = 0.3125
    
    Temperature {
       type = "scalar"
@@ -31,10 +29,8 @@ ModelParameters {
    epsilon_phi = 0.25   // [(pJ/um)^1/2]
 
    phi_mobility = 6.4
-   orient_mobility = 0.64
  
    phi_well_scale = 2.5  //  [pJ/um^3]
-   phi_well_func_type = "double"
    phi_interp_func_type ="pbg"
 
    avg_func_type = "arithmetic"

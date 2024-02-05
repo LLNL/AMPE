@@ -17,7 +17,6 @@ Visit {
 }
 
 ModelParameters {
-   H_parameter    = -1
 
    Temperature {
       type = "gaussian"
@@ -35,7 +34,6 @@ ModelParameters {
    phi_mobility = 6.4
  
    phi_well_scale = 2.5  //  [pJ/um^3]
-   phi_well_func_type = "double"
    phi_interp_func_type ="pbg"
 
    avg_func_type = "arithmetic"

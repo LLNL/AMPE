@@ -32,7 +32,6 @@ ModelParameters {
    PhaseMobility{
       type = "kim"
    }
-   phi_well_func_type = "double"
 
    phi_interp_func_type ="pbg" // or "lin" for linearized model
    conc_interp_func_type = "l"

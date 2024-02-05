@@ -13,7 +13,6 @@ FreeEnergyDiagnostics{
 }
 
 ModelParameters {
-   H_parameter = -1
    
    Temperature {
       type = "heat"
@@ -40,7 +39,6 @@ ModelParameters {
    }
 
    phi_well_scale = 0.3 // [pJ/um^3]
-   phi_well_func_type = "double"
    phi_interp_func_type ="pbg"
    conc_interp_func_type = "l"
    diffusion_interp_func_type = "l"

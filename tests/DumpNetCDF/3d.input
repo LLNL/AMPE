@@ -23,7 +23,6 @@ ModelParameters {
    orient_mobility = 0.64
    
    phi_well_scale = 2.5  // 6.6/16. [pJ/um^3]
-   phi_well_func_type = "double"
    phi_interp_func_type ="pbg"
 
    avg_func_type = "arithmetic"

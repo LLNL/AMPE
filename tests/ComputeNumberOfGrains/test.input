@@ -28,7 +28,6 @@ ModelParameters {
    orient_mobility = 0.64
  
    phi_well_scale = 2.5  //  [pJ/um^3]
-   phi_well_func_type = "double"
 
    ConcentrationModel {
       model    = "calphad"

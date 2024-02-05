@@ -35,7 +35,6 @@ ModelParameters {
       type = "kim"
    }
    phi_well_scale = 6. // [pJ/um^3]
-   phi_well_func_type = "double"
 
    phi_interp_func_type ="pbg" // or "lin" for linearized model
    conc_interp_func_type = "l"

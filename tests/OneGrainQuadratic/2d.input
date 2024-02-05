@@ -21,7 +21,6 @@ TimerManager {
 }
 
 ModelParameters {
-   H_parameter = -1
    
    temperature = 873.
    dtemperaturedt     = -20.

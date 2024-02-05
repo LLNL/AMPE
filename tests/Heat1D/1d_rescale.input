@@ -23,8 +23,6 @@ TimerManager {
 
 ModelParameters {  // required block
 
-   H_parameter    = -0.01 // turn off quaternion
-
    Temperature{
       type = "heat"
       equation_type = "unsteady"

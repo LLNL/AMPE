@@ -20,9 +20,7 @@ Visit {
 }
 
 TimerManager {
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
-                 "QuatLevelSolver::*","QuatSysSolver::*",
-                 "QuatUnsplitIntegrator::*","EllipticFACOps::*"
+    timer_list = "solv::*::*","PFModel::*"
     print_threshold = 0.0
 }
 
@@ -38,7 +36,6 @@ ModelParameters {
    phi_mobility     = 200.
    
    phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
-   phi_well_func_type = "double"
    phi_interp_func_type ="hbsm"
    
    free_energy_liquid = 0.
