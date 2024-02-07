@@ -22,7 +22,7 @@ ModelParameters {
       velocity = 5.
       adapt = TRUE
    }
-   
+
    Temperature{
       type = "scalar"
       meltingT = 921.12
@@ -35,7 +35,6 @@ ModelParameters {
    phi_mobility = 1.985 // muk*Tm/(6.*delta*L)
 
    phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
-   phi_well_func_type = "double"
 
    phi_interp_func_type ="h"
 

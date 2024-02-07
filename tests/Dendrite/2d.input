@@ -47,7 +47,6 @@ ModelParameters {
    // f(phi) = scale_energy_well*g(phi)
    // where g is a double well potential
    phi_well_scale = 0.25
-   phi_well_func_type = "double"
 
    phi_interp_func_type ="p"
 

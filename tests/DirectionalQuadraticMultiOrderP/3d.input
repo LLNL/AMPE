@@ -38,8 +38,6 @@ ModelParameters {
       value = 1.e4
    }
 
-   phi_well_func_type = "double"
-
    phi_interp_func_type ="p"
    conc_interp_func_type = "l"
    diffusion_interp_func_type = "l"

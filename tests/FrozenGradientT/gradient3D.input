@@ -26,8 +26,6 @@ TimerManager {
 
 ModelParameters {  // required block
 
-   H_parameter = -0.001
-
    epsilon_phi = 1.77669990185572 // sqrt(6.*delta*L*Gamma/Tm)
 
    phi_mobility = 1.985e-3 // muk*Tm/(6.*delta*L)
@@ -48,7 +46,6 @@ ModelParameters {  // required block
    }
 
    phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
-   phi_well_func_type = "double"
    
    BoundaryConditions {
       Phase{

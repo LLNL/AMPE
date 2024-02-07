@@ -13,7 +13,6 @@ Visit {
 }
 
 ModelParameters {
-   H_parameter = -1
    
    Temperature {
       type = "scalar"
@@ -29,8 +28,6 @@ ModelParameters {
       type = "kim"
       kinetics_coefficient = 2.e-5 // beta = 20 K*s/m
    }
-
-   phi_well_func_type = "double"
 
    phi_interp_func_type ="h"
    conc_interp_func_type = "l"
