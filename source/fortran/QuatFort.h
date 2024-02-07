@@ -131,9 +131,17 @@ void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
 #if (NDIM == 3)
                 const int& ifirst2, const int& ilast2,
 #endif
-                const double* dx, const double* phase_flux0,
-                const int& ngphaseflux, const double& vel, const double* rhs,
-                const int& ngrhs);
+                const double* dx, const double* phase, const int& ngphase,
+                const double& vel, const double* rhs, const int& ngrhs);
+
+void ADDVDPHIDX_UPWIND3(const int& ifirst0, const int& ilast0,
+                        const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                        const int& ifirst2, const int& ilast2,
+#endif
+                        const double* dx, const double* phase,
+                        const int& ngphase, const double& vel,
+                        const double* rhs, const int& ngrhs, const int& bc);
 
 void COMPUTERHSTEMP(const int& ifirst0, const int& ilast0, const int& ifirst1,
                     const int& ilast1,

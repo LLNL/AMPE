@@ -16,7 +16,9 @@ Visit {
 ModelParameters {
    norderp = 2
 
-   moving_frame_velocity = 2.e3
+   MovingFrame{
+      velocity = 2.e3
+   }
 
    Temperature {
       type = "frozen"

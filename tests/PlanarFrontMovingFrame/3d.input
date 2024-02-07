@@ -17,8 +17,11 @@ TimerManager {
 }
 
 ModelParameters {
-   moving_frame_velocity = 5.
-   adapt_frame = TRUE
+
+   MovingFrame{
+      velocity = 5.
+      adapt = TRUE
+   }
 
    Temperature{
       type = "scalar"

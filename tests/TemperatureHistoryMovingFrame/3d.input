@@ -13,8 +13,11 @@ Visit {
 }
 
 ModelParameters {
-   moving_frame_velocity = 2.e3
-   adapt_frame = TRUE
+
+   MovingFrame{
+      velocity = 2.e3
+      adapt = TRUE
+   }
 
    Interface {
       sigma = 0.37  // pJ/um^2 = J/m^2

@@ -276,9 +276,10 @@ class QuatModelParameters
    {
       return d_ebs_stencil_type.compare("order4") == 0;
    }
+   bool useUpwindScheme() const { return d_moving_frame_upwind; }
    int nghosts_required() const
    {
-      if (useEBS4thOrderStencil())
+      if (useEBS4thOrderStencil() || useUpwindScheme())
          return 2;
       else
          return 1;
@@ -421,7 +422,9 @@ class QuatModelParameters
 
    double movingVelocity() const { return d_moving_frame_velocity; }
 
-   bool adaptMovingFrame() const { return d_adapt_moving_frame; }
+   bool adaptMovingFrame() const { return d_moving_frame_adapt; }
+
+   bool upwindMovingFrame() const { return d_moving_frame_upwind; }
 
    double zetaFactorLA(const double temp) const
    {
@@ -616,7 +619,8 @@ class QuatModelParameters
    bool d_init_phase_conc_eq;
 
    double d_moving_frame_velocity;
-   bool d_adapt_moving_frame;
+   bool d_moving_frame_adapt;
+   bool d_moving_frame_upwind;
 
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
 };

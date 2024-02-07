@@ -1187,4 +1187,61 @@ c
       enddo
 
       end
+c***********************************************************************
+c
+      subroutine addvdphidx_upwind3(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   dx,
+     &   phase, ngphase,
+     &   vel,
+     &   rhs, ngrhs,
+     &   physb)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
 
+      double precision dx(3), vel
+      integer ngphase, ngrhs
+      integer physb
+c
+c variables in 3d cell indexed
+      double precision phase(CELL3d(ifirst,ilast,ngphase))
+      double precision rhs(CELL3d(ifirst,ilast,ngrhs))
+
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2, imax0
+      double precision dxinv, diff_term_x
+
+      dxinv = vel / (6.d0*dx(1))
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            if( physb .eq. 1) then
+c use regular 2nd order at right boundary since 2nd ghost value
+c typically not filled with physical boundar value
+               imax0 = ilast0-1
+               diff_term_x = 3.d0*dxinv *
+     &            (phase(ilast0+1,ic1,ic2)-phase(ilast0-1,ic1,ic2))
+               rhs(ilast0,ic1,ic2) = rhs(ilast0,ic1,ic2) + diff_term_x
+            else
+               imax0 = ilast0
+            endif
+            do ic0 = ifirst0, imax0
+
+               diff_term_x = dxinv *
+     &           (-2.d0*phase(ic0-1,ic1,ic2) -3.d0*phase(ic0,ic1,ic2)
+     &            +6.d0*phase(ic0+1,ic1,ic2) - phase(ic0+2,ic1,ic2))
+
+               rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2)
+     &                      + diff_term_x
+
+            enddo
+         enddo
+      enddo
+
+      end

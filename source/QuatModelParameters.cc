@@ -941,9 +941,15 @@ void QuatModelParameters::readModelParameters(
 
    d_with_three_phases = model_db->getBoolWithDefault("three_phases", false);
 
-   d_moving_frame_velocity =
-       model_db->getDoubleWithDefault("moving_frame_velocity", 0.);
-   d_adapt_moving_frame = model_db->getBoolWithDefault("adapt_frame", false);
+   if (model_db->keyExists("MovingFrame")) {
+      std::shared_ptr<tbox::Database> db(model_db->getDatabase("MovingFrame"));
+
+      d_moving_frame_velocity = db->getDoubleWithDefault("velocity", 0.);
+      d_moving_frame_adapt = db->getBoolWithDefault("adapt", false);
+      d_moving_frame_upwind = db->getBoolWithDefault("upwind", false);
+   } else {
+      d_moving_frame_velocity = 0.;
+   }
 
    if (with_third_phase()) initializeEta(model_db);
 
