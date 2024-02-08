@@ -2,8 +2,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
-
 max_timesteps       = 500
 end_time            = 0.25
 

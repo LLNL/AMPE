@@ -543,133 +543,137 @@ void QuatModelParameters::readTemperatureModel(
 void QuatModelParameters::initializeOrientation(
     std::shared_ptr<tbox::Database> model_db)
 {
-
-   if (model_db->keyExists("orient_mobility")) {
-      d_quat_mobility = model_db->getDouble("orient_mobility");
-   } else if (model_db->keyExists("quat_mobility")) {
-      d_quat_mobility = model_db->getDouble("quat_mobility");
-      printDeprecated("quat_mobility", "orient_mobility");
-   } else if (model_db->keyExists("tau_quat")) {
-      double tau = model_db->getDouble("tau_quat");
-      d_quat_mobility = 1. / tau;
-      printDeprecated("tau_quat", "orient_mobility");
-   } else {
-      TBOX_ERROR("Error: quaternion mobility not specified");
-   }
-
-   d_min_quat_mobility = 1.e-6;
-   if (model_db->keyExists("min_orient_mobility")) {
-      d_min_quat_mobility = model_db->getDouble("min_orient_mobility");
-   } else if (model_db->keyExists("min_quat_mobility")) {
-      d_min_quat_mobility = model_db->getDouble("min_quat_mobility");
-      printDeprecated("min_quat_mobility", "min_orient_mobility");
-   }
-
-   if (model_db->keyExists("epsilon_orient")) {
-      d_epsilon_q = model_db->getDouble("epsilon_orient");
-   } else if (model_db->keyExists("epsilon_q")) {
-      d_epsilon_q = model_db->getDouble("epsilon_q");
-      printDeprecated("epsilon_q", "epsilon_orient");
-   } else if (model_db->keyExists("epsilon_quat")) {
-      d_epsilon_q = model_db->getDouble("epsilon_quat");
-      printDeprecated("epsilon_quat", "epsilon_orient");
-   } else {
-      TBOX_ERROR("Error: epsilon_quat not specified");
-   }
-
    if (model_db->keyExists("noise_amplitude")) {
       d_noise_amplitude = model_db->getDouble("noise_amplitude");
    } else {
       d_noise_amplitude = 0.;
    }
 
-   d_quat_grad_floor =
-       model_db->getDoubleWithDefault("orient_grad_floor", 1.e-2);
-   if (!model_db->keyExists("orient_grad_floor"))
-      if (model_db->keyExists("quat_grad_floor")) {
-         d_quat_grad_floor = model_db->getDouble("quat_grad_floor");
-         printDeprecated("quat_grad_floor", "orient_grad_floor");
+   if (d_H_parameter > 0.) {
+      if (model_db->keyExists("orient_mobility")) {
+         d_quat_mobility = model_db->getDouble("orient_mobility");
+      } else if (model_db->keyExists("quat_mobility")) {
+         d_quat_mobility = model_db->getDouble("quat_mobility");
+         printDeprecated("quat_mobility", "orient_mobility");
+      } else if (model_db->keyExists("tau_quat")) {
+         double tau = model_db->getDouble("tau_quat");
+         d_quat_mobility = 1. / tau;
+         printDeprecated("tau_quat", "orient_mobility");
+      } else {
+         TBOX_ERROR("Error: quaternion mobility not specified");
       }
 
-   // options for "smooth floor" are: 1./|grad(q)| =...
-   // "max": max( 1./|grad(q)|, 1./d_quat_grad_floor )
-   // "tanh": tanh(grad_norm/d_quat_grad_floor)/ grad_norm
-   // "sqrt": 1./sqrt( |grad(q)|**2+d_quat_grad_floor**2 )
-   d_quat_grad_floor_type =
-       model_db->getStringWithDefault("orient_grad_floor_type", "max");
-   if (model_db->keyExists("quat_smooth_floor")) {
-      printDeprecated("quat_smooth_floor", "orient_grad_floor_type");
-   }
-   if (model_db->keyExists("orient_smooth_floor")) {
-      printDeprecated("quat_smooth_floor", "orient_grad_floor_type");
-   }
-
-   d_quat_grad_modulus_type =
-       model_db->getStringWithDefault("quat_grad_modulus_type", "cells");
-
-   if (model_db->keyExists("diff_interp_func_type")) {
-      d_orient_interp_func_type1 = model_db->getString("diff_interp_func_type");
-      printDeprecated("diff_interp_func_type", "orient_interp_func_type");
-   } else if (model_db->keyExists("orient_interp_func_type")) {
-      d_orient_interp_func_type1 =
-          model_db->getString("orient_interp_func_type");
-      printDeprecated("orient_interp_func_type", "orient_interp_func_type1");
-   } else {
-      d_orient_interp_func_type1 =
-          model_db->getStringWithDefault("orient_interp_func_type1",
-                                         "quadratic");
-   }
-   d_orient_interp_func_type2 =
-       model_db->getStringWithDefault("orient_interp_func_type2", "constant");
-   if (d_orient_interp_func_type1[0] != 'q' &&
-       d_orient_interp_func_type1[0] != 'w' &&
-       d_orient_interp_func_type1[0] != 'p' &&
-       d_orient_interp_func_type1[0] != 'l' &&
-       d_orient_interp_func_type1[0] != 't' &&
-       d_orient_interp_func_type1[0] != 's' &&
-       d_orient_interp_func_type1[0] != '3' &&
-       d_orient_interp_func_type1[0] != 'c') {
-      TBOX_ERROR("Error: invalid value for orient_interp_func_type1");
-   }
-
-   if (model_db->keyExists("quat_mobility_func_type")) {
-      d_quat_mobility_func_type =
-          model_db->getString("quat_mobility_func_type");
-      printDeprecated("quat_mobility_func_type",
-                      "orient_mobility_func_"
-                      "type");
-   } else {
-      d_quat_mobility_func_type =
-          model_db->getStringWithDefault("orient_mobility_func_type", "pbg");
-   }
-   if (d_quat_mobility_func_type[0] != 'p' &&
-       d_quat_mobility_func_type[0] != 'i' &&
-       d_quat_mobility_func_type[0] != 'e') {
-      TBOX_ERROR("Error: invalid value for orient_mobility_func_type");
-   }
-
-   if (d_quat_mobility_func_type[0] == 'i') {
-      d_max_quat_mobility = 1.e6;
-      if (model_db->keyExists("max_orient_mobility")) {
-         d_max_quat_mobility = model_db->getDouble("max_orient_mobility");
-      } else if (model_db->keyExists("max_quat_mobility")) {
-         d_max_quat_mobility = model_db->getDouble("max_quat_mobility");
-         printDeprecated("max_quat_mobility", "max_orient_mobility");
+      d_min_quat_mobility = 1.e-6;
+      if (model_db->keyExists("min_orient_mobility")) {
+         d_min_quat_mobility = model_db->getDouble("min_orient_mobility");
+      } else if (model_db->keyExists("min_quat_mobility")) {
+         d_min_quat_mobility = model_db->getDouble("min_quat_mobility");
+         printDeprecated("min_quat_mobility", "min_orient_mobility");
       }
-   }
 
-   if (d_quat_mobility_func_type[0] == 'e' ||
-       d_quat_mobility_func_type[0] == 'E') {
-      d_exp_scale_quat_mobility = 1.e6;
-      if (model_db->keyExists("exp_scale_orient_mobility")) {
-         d_exp_scale_quat_mobility =
-             model_db->getDouble("exp_scale_orient_mobility");
-      } else if (model_db->keyExists("exp_scale_quat_mobility")) {
-         d_exp_scale_quat_mobility =
-             model_db->getDouble("exp_scale_quat_mobility");
-         printDeprecated("exp_scale_quat_mobility",
-                         "exp_scale_orient_"
-                         "mobility");
+      if (model_db->keyExists("epsilon_orient")) {
+         d_epsilon_q = model_db->getDouble("epsilon_orient");
+      } else if (model_db->keyExists("epsilon_q")) {
+         d_epsilon_q = model_db->getDouble("epsilon_q");
+         printDeprecated("epsilon_q", "epsilon_orient");
+      } else if (model_db->keyExists("epsilon_quat")) {
+         d_epsilon_q = model_db->getDouble("epsilon_quat");
+         printDeprecated("epsilon_quat", "epsilon_orient");
+      } else {
+         TBOX_ERROR("Error: epsilon_quat not specified");
+      }
+
+      d_quat_grad_floor =
+          model_db->getDoubleWithDefault("orient_grad_floor", 1.e-2);
+      if (!model_db->keyExists("orient_grad_floor"))
+         if (model_db->keyExists("quat_grad_floor")) {
+            d_quat_grad_floor = model_db->getDouble("quat_grad_floor");
+            printDeprecated("quat_grad_floor", "orient_grad_floor");
+         }
+
+      // options for "smooth floor" are: 1./|grad(q)| =...
+      // "max": max( 1./|grad(q)|, 1./d_quat_grad_floor )
+      // "tanh": tanh(grad_norm/d_quat_grad_floor)/ grad_norm
+      // "sqrt": 1./sqrt( |grad(q)|**2+d_quat_grad_floor**2 )
+      d_quat_grad_floor_type =
+          model_db->getStringWithDefault("orient_grad_floor_type", "max");
+      if (model_db->keyExists("quat_smooth_floor")) {
+         printDeprecated("quat_smooth_floor", "orient_grad_floor_type");
+      }
+      if (model_db->keyExists("orient_smooth_floor")) {
+         printDeprecated("quat_smooth_floor", "orient_grad_floor_type");
+      }
+
+      d_quat_grad_modulus_type =
+          model_db->getStringWithDefault("quat_grad_modulus_type", "cells");
+
+      if (model_db->keyExists("diff_interp_func_type")) {
+         d_orient_interp_func_type1 =
+             model_db->getString("diff_interp_func_type");
+         printDeprecated("diff_interp_func_type", "orient_interp_func_type");
+      } else if (model_db->keyExists("orient_interp_func_type")) {
+         d_orient_interp_func_type1 =
+             model_db->getString("orient_interp_func_type");
+         printDeprecated("orient_interp_func_type", "orient_interp_func_type1");
+      } else {
+         d_orient_interp_func_type1 =
+             model_db->getStringWithDefault("orient_interp_func_type1",
+                                            "quadratic");
+      }
+      d_orient_interp_func_type2 =
+          model_db->getStringWithDefault("orient_interp_func_type2",
+                                         "constan"
+                                         "t");
+      if (d_orient_interp_func_type1[0] != 'q' &&
+          d_orient_interp_func_type1[0] != 'w' &&
+          d_orient_interp_func_type1[0] != 'p' &&
+          d_orient_interp_func_type1[0] != 'l' &&
+          d_orient_interp_func_type1[0] != 't' &&
+          d_orient_interp_func_type1[0] != 's' &&
+          d_orient_interp_func_type1[0] != '3' &&
+          d_orient_interp_func_type1[0] != 'c') {
+         TBOX_ERROR("Error: invalid value for orient_interp_func_type1");
+      }
+
+      if (model_db->keyExists("quat_mobility_func_type")) {
+         d_quat_mobility_func_type =
+             model_db->getString("quat_mobility_func_type");
+         printDeprecated("quat_mobility_func_type",
+                         "orient_mobility_func_"
+                         "type");
+      } else {
+         d_quat_mobility_func_type =
+             model_db->getStringWithDefault("orient_mobility_func_type", "pbg");
+      }
+      if (d_quat_mobility_func_type[0] != 'p' &&
+          d_quat_mobility_func_type[0] != 'i' &&
+          d_quat_mobility_func_type[0] != 'e') {
+         TBOX_ERROR("Error: invalid value for orient_mobility_func_type");
+      }
+
+      if (d_quat_mobility_func_type[0] == 'i') {
+         d_max_quat_mobility = 1.e6;
+         if (model_db->keyExists("max_orient_mobility")) {
+            d_max_quat_mobility = model_db->getDouble("max_orient_mobility");
+         } else if (model_db->keyExists("max_quat_mobility")) {
+            d_max_quat_mobility = model_db->getDouble("max_quat_mobility");
+            printDeprecated("max_quat_mobility", "max_orient_mobility");
+         }
+      }
+
+      if (d_quat_mobility_func_type[0] == 'e' ||
+          d_quat_mobility_func_type[0] == 'E') {
+         d_exp_scale_quat_mobility = 1.e6;
+         if (model_db->keyExists("exp_scale_orient_mobility")) {
+            d_exp_scale_quat_mobility =
+                model_db->getDouble("exp_scale_orient_mobility");
+         } else if (model_db->keyExists("exp_scale_quat_mobility")) {
+            d_exp_scale_quat_mobility =
+                model_db->getDouble("exp_scale_quat_mobility");
+            printDeprecated("exp_scale_quat_mobility",
+                            "exp_scale_orient_"
+                            "mobility");
+         }
       }
    }
 }
@@ -773,6 +777,8 @@ void QuatModelParameters::readModelParameters(
 
    d_epsilon_anisotropy =
        model_db->getDoubleWithDefault("epsilon_anisotropy", -1.);
+   // we need quaternions to define anisotropy
+   if (d_epsilon_anisotropy > 0. && d_H_parameter < 0.) d_H_parameter = 0.;
 
    d_q0_phase_mobility = model_db->getDoubleWithDefault("q0_phi_mobility", 0.0);
 

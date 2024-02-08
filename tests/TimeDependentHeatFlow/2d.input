@@ -2,8 +2,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
-
 end_time = 3000.0  // required
 max_timesteps = 100  // optional, default is INT_MAX (alias: max_cycles)
 
@@ -18,7 +16,7 @@ Visit {
 }
 
 TimerManager {
-    timer_list = "solv::*::*","AMPE::*::*"
+    timer_list = "AMPE::*::*"
     print_threshold = 0.0
 }
 

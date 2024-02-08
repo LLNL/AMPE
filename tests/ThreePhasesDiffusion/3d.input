@@ -1,6 +1,4 @@
 // Input file
-model_type = "Quat"
-
 end_time            = 4000.
 max_timesteps       = 100
 

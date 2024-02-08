@@ -25,8 +25,6 @@ ModelParameters {  // required block
 
    epsilon_anisotropy = 0.03 //delta
 
-   H_parameter = 0. // we need quaternions to define anisotropy
-
    epsilon_phi = 0.2   // [(pJ/um)^1/2]
 
    PhaseMobility{
@@ -35,9 +33,6 @@ ModelParameters {  // required block
       // quadratic polynomial fit for zeta
       zeta = 0.0542766657143, -0.003043532, 1.59828571429e-06
    }
-
-   orient_mobility = 1.
-   epsilon_orient = 1.e3 // to avoid negative diffusion for q
 
    // free energy parameters:
    // f(phi) = scale_energy_well*g(phi)
@@ -68,7 +63,6 @@ ModelParameters {  // required block
 
    phi_interp_func_type ="pbg"
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
    BoundaryConditions {
       Phase{

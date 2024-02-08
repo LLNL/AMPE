@@ -3,7 +3,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
 
 end_time            = 3.e-3
 max_timesteps       = 1000
@@ -46,7 +45,6 @@ ModelParameters {
    phi_well_scale = 0.3 // [pJ/um^3]
    phi_interp_func_type ="pbg"
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
    avg_func_type = "arithmetic"
    

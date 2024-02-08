@@ -2,8 +2,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
-
 end_time = 800.  // required
 max_timesteps = 50  // optional, default is INT_MAX (alias: max_cycles)
 

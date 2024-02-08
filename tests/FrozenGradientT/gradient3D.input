@@ -3,8 +3,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
-
 end_time = 1500.  // required
 max_timesteps = 5000  // optional, default is INT_MAX (alias: max_cycles)
 
@@ -18,9 +16,7 @@ Visit {
 }
 
 TimerManager {
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
-                 "QuatLevelSolver::*","QuatSysSolver::*",
-                 "QuatIntegrator::*","EllipticFACOps::*"
+    timer_list = "AMPE::*::*"
     print_threshold = 0.0
 }
 

@@ -40,7 +40,6 @@ ModelParameters {
 
    phi_interp_func_type ="p"
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
    avg_func_type = "arithmetic"
    

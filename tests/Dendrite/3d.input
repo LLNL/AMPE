@@ -1,5 +1,3 @@
-model_type = "Quat"
-
 end_time = 40.  // required
 max_timesteps = 200  // optional, default is INT_MAX
 
@@ -21,15 +19,10 @@ ModelParameters {
 
    epsilon_anisotropy = 0.05
 
-   H_parameter = 0.0 // we need quaternions to define anisotropy
-
    epsilon_phi = 2.
 
    phi_mobility = 0.25
    
-   orient_mobility = 1.
-   epsilon_orient = 1.
-
    Temperature{
       type = "heat"
       equation_type = "unsteady"
