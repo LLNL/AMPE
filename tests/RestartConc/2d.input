@@ -1,6 +1,4 @@
 // Input file
-model_type = "KWCcomplex"
-
 end_time            = 140.
 max_delta_cycles    = 375
 

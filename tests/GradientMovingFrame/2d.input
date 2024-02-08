@@ -2,8 +2,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
-
 end_time            = 0.022
 max_timesteps       = 1600
 
@@ -37,9 +35,7 @@ ModelParameters {
    }
 
    phi_interp_func_type ="p"
-
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
    avg_func_type = "arithmetic"
    

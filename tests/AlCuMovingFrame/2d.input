@@ -43,7 +43,6 @@ ModelParameters {
    phi_well_scale = 0.3 // [pJ/um^3]
    phi_interp_func_type ="pbg"
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
    avg_func_type = "arithmetic"
    

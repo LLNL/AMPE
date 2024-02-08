@@ -31,7 +31,6 @@ ModelParameters {
 
    phi_interp_func_type ="h"
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
    avg_func_type = "arithmetic"
    
@@ -75,8 +74,6 @@ ScalarDiagnostics {
 
 Integrator {
    atol = 1.e-5
-   Preconditioner {  // optional block
-   }
 }
 
 InitialConditions {
@@ -91,7 +88,7 @@ Geometry{
    x_up         =  0.5,  0.0005 // [um]
 }
 
-TimerManager {    // optional block, see SAMRAI docs
-    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+TimerManager {    // optional block
+    timer_list = "AMPE::*::*"
     print_exclusive = TRUE
 }

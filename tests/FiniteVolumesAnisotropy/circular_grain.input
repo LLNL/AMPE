@@ -3,9 +3,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
-//model_type = "KWCcomplex"
-
 max_timesteps       = 2
 end_time            = 1.
 

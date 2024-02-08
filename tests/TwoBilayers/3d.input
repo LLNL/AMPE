@@ -3,7 +3,6 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "Quat"
 
 end_time            = 0.04
 max_timesteps       = 500
@@ -114,7 +113,7 @@ Geometry{
    x_up         =  0.8,  0.025,  0.025 // [um]
 }
 
-TimerManager {    // optional block, see SAMRAI docs
-    timer_list = "PFModel::*", "QuatIntegrator::*"
+TimerManager {    // optional block
+    timer_list = "AMPE::*"
     print_threshold = 0.0
 }
