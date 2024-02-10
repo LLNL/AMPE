@@ -2473,116 +2473,6 @@ void QuatIntegrator::evaluatePhaseRHS(
 
 //-----------------------------------------------------------------------
 
-#ifndef HAVE_THERMO4PFM
-void QuatIntegrator::evaluateEtaRHS(
-    const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int phase_id, const int eta_id, const int conc_id, const int quat_id,
-    const int eta_rhs_id, const int temperature_id)
-{
-   assert(d_eta_mobility_id >= 0);
-   assert(phase_id >= 0);
-   assert(eta_id >= 0);
-   assert(eta_rhs_id >= 0);
-   assert(temperature_id >= 0);
-
-   t_eta_rhs_timer->start();
-
-   math::PatchCellDataBasicOps<double> mathops;
-
-   const char interpf = energyInterpChar(d_energy_interp_func_type);
-
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      d_phase_flux_strategy->computeFluxes(level, eta_id, quat_id, d_flux_id);
-
-      // Coarsen flux data from next finer level so that
-      // the computed flux becomes the composite grid flux.
-      if (ln < hierarchy->getFinestLevelNumber()) {
-         d_flux_coarsen_schedule[ln]->coarsenData();
-      }
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ++ip) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         d_free_energy_strategy->computeFreeEnergySolidB(
-             *patch, d_temperature_scratch_id, d_f_b_id, false);
-
-         const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                    hier::PatchGeometry>(
-                 patch->getPatchGeometry()));
-         const double* dx = patch_geom->getDx();
-
-         std::shared_ptr<pdat::CellData<double> > phase(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(phase_id)));
-         assert(phase);
-
-         std::shared_ptr<pdat::CellData<double> > eta(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(eta_id)));
-         assert(eta);
-
-         std::shared_ptr<pdat::CellData<double> > eta_rhs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(eta_rhs_id)));
-         assert(eta_rhs);
-
-         std::shared_ptr<pdat::CellData<double> > temperature(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(temperature_id)));
-         assert(temperature);
-
-         std::shared_ptr<pdat::SideData<double> > eta_flux(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(d_flux_id)));
-
-         const hier::Box& pbox = patch->getBox();
-         const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast = pbox.upper();
-
-         assert(eta_rhs->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), 0));
-
-         COMPUTERHSETA(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       dx, eta_flux->getPointer(0), eta_flux->getPointer(1),
-#if (NDIM == 3)
-                       eta_flux->getPointer(2),
-#endif
-                       eta_flux->getGhostCellWidth()[0],
-                       temperature->getPointer(),
-                       temperature->getGhostCellWidth()[0], d_eta_well_scale,
-                       phase->getPointer(), phase->getGhostCellWidth()[0],
-                       eta->getPointer(), eta->getGhostCellWidth()[0],
-                       eta_rhs->getPointer(), 0, d_eta_well_func_type.c_str(),
-                       &interpf);
-
-         // d_free_energy_strategy->addDrivingForceEta(time, *patch,
-         //                                           temperature_id, phase_id,
-         //                                           eta_id, conc_id, d_f_l_id,
-         //                                           d_f_a_id, d_f_b_id,
-         //                                           eta_rhs_id);
-
-         std::shared_ptr<pdat::CellData<double> > eta_mobility(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_eta_mobility_id)));
-         assert(eta_mobility);
-
-         mathops.multiply(eta_rhs, eta_mobility, eta_rhs, pbox);
-      }
-   }
-
-   t_eta_rhs_timer->stop();
-}
-#endif
-
-//-----------------------------------------------------------------------
-
 void QuatIntegrator::evaluateTemperatureRHS(
     std::shared_ptr<hier::PatchHierarchy> hierarchy, const int temperature_id,
     const int phase_rhs_id, const int temperature_rhs_id, const bool visit_flag)
@@ -3283,18 +3173,6 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
    // math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
    // const double norm_ydot_phase_id = mathops.L2Norm( ydot_phase_id );
    // tbox::plog<<"L2 Norm ydot_phase_id="<<norm_ydot_phase_id<<endl;
-
-   // Set the eta component of the RHS
-#ifndef HAVE_THERMO4PFM
-   if (d_with_third_phase) {
-      const int ydot_eta_id =
-          y_dot_samvect->getComponentDescriptorIndex(d_eta_component_index);
-
-      evaluateEtaRHS(time, hierarchy, d_phase_scratch_id, d_eta_scratch_id,
-                     d_conc_scratch_id, d_quat_scratch_id, ydot_eta_id,
-                     d_temperature_scratch_id);
-   }
-#endif
 
    // Set the quaternion component of the RHS
    if (d_evolve_quat) {

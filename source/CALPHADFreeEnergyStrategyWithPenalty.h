@@ -11,7 +11,7 @@
 #ifndef included_CALPHADFreeEnergyStrategyWithPenalty
 #define included_CALPHADFreeEnergyStrategyWithPenalty
 
-#ifndef HAVE_THERMO4PFM
+#if 0
 
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"

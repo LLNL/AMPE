@@ -20,11 +20,7 @@
 #include <vector>
 
 using namespace SAMRAI;
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 class FreeEnergyStrategy
 {
@@ -94,11 +90,6 @@ class FreeEnergyStrategy
    virtual void computeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true) = 0;
-#ifndef HAVE_THERMO4PFM
-   virtual void computeSecondDerivativeEnergyPhaseB(
-       const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true) = 0;
-#endif
    virtual void preRunDiagnostics(const double temperature) = 0;
 
  private:

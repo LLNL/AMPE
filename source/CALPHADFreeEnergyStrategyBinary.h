@@ -31,11 +31,7 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 {
  public:
    CALPHADFreeEnergyStrategyBinary(
-#ifdef HAVE_THERMO4PFM
        boost::property_tree::ptree calphad_db,
-#else
-       std::shared_ptr<tbox::Database> input_db,
-#endif
        std::shared_ptr<tbox::Database> newton_db,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
@@ -44,13 +40,8 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 
    virtual ~CALPHADFreeEnergyStrategyBinary(){};
 
-   virtual void setup(
-#ifdef HAVE_THERMO4PFM
-       boost::property_tree::ptree calphad_db,
-#else
-       std::shared_ptr<tbox::Database> calphad_db,
-#endif
-       std::shared_ptr<tbox::Database> newton_db);
+   virtual void setup(boost::property_tree::ptree calphad_db,
+                      std::shared_ptr<tbox::Database> newton_db);
 
    void computeDerivFreeEnergyLiquid(hier::Patch& patch,
                                      const int temperature_id, const int fl_id);
@@ -108,18 +99,6 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
       //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase A
       //   for c="<<c[0]<<"!!!"<<std::endl;
    }
-#ifndef HAVE_THERMO4PFM
-   virtual void computeSecondDerivativeEnergyPhaseB(
-       const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true)
-   {
-      defaultComputeSecondDerivativeEnergyPhaseB(temperature, c, d2fdc2,
-                                                 use_internal_units);
-      // if( d2fdc2[0]<0. )
-      //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase B
-      //   for c="<<c[0]<<"!!!"<<std::endl;
-   }
-#endif
 
    void computeSecondDerivativeEnergyPhase(const char phase, const double temp,
                                            const std::vector<double>& c,
@@ -137,13 +116,6 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
                                                 use_internal_units);
             break;
 
-#ifndef HAVE_THERMO4PFM
-         case 'b':
-            computeSecondDerivativeEnergyPhaseB(temp, c, d2fdc2,
-                                                use_internal_units);
-            break;
-#endif
-
          default:
             tbox::pout << "undefined phase=" << phase << "!!!" << std::endl;
             tbox::SAMRAI_MPI::abort();
@@ -158,11 +130,7 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
    bool computeCeqT(const double temperature, const PhaseIndex pi0,
                     const PhaseIndex pi1, double* ceq)
    {
-      return d_calphad_fenergy->computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                                            pi0, pi1,
-#endif
-                                            &ceq[0], 50, true);
+      return d_calphad_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
    }
 
    void energyVsPhiAndC(const double temperature, const double* const ceq,
@@ -171,11 +139,7 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
                         const int npts_c)
    {
       d_calphad_fenergy->energyVsPhiAndC(temperature, ceq, found_ceq,
-                                         phi_well_scale,
-#ifndef HAVE_THERMO4PFM
-                                         phi_well_type,
-#endif
-                                         npts_phi, npts_c);
+                                         phi_well_scale, npts_phi, npts_c);
    }
 
  protected:
@@ -185,11 +149,6 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
    void defaultComputeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units);
-#ifndef HAVE_THERMO4PFM
-   void defaultComputeSecondDerivativeEnergyPhaseB(
-       const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units);
-#endif
 
    MolarVolumeStrategy* d_mv_strategy;
 

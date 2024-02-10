@@ -25,11 +25,7 @@ class MolarVolumeStrategy;
 #include <string>
 #include <vector>
 
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 class CALPHADFreeEnergyStrategyTernary : public ConcFreeEnergyStrategy
 {
@@ -145,11 +141,7 @@ class CALPHADFreeEnergyStrategyTernary : public ConcFreeEnergyStrategy
    bool computeCeqT(const double temperature, const PhaseIndex pi0,
                     const PhaseIndex pi1, double* ceq)
    {
-      return d_calphad_fenergy->computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                                            pi0, pi1,
-#endif
-                                            &ceq[0], 50, true);
+      return d_calphad_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
    }
 
    void energyVsPhiAndC(const double temperature, const double* const ceq,
@@ -158,11 +150,7 @@ class CALPHADFreeEnergyStrategyTernary : public ConcFreeEnergyStrategy
                         const int npts_c)
    {
       d_calphad_fenergy->energyVsPhiAndC(temperature, ceq, found_ceq,
-                                         phi_well_scale,
-#ifndef HAVE_THERMO4PFM
-                                         phi_well_type,
-#endif
-                                         npts_phi, npts_c);
+                                         phi_well_scale, npts_phi, npts_c);
    }
 
  protected:

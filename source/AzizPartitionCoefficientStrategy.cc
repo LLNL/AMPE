@@ -19,10 +19,8 @@
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
-#endif
 
 template <>
 AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsBinary>::
@@ -50,26 +48,15 @@ AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsBinary>::
    std::shared_ptr<tbox::Database> newton_db;
    if (conc_db->isDatabase("NewtonSolver"))
       newton_db = conc_db->getDatabase("NewtonSolver");
-#ifdef HAVE_THERMO4PFM
    pt::ptree calphad_pt;
    copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
    copyDatabase(newton_db, newton_pt);
-#endif
 
    d_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsBinary>(
-       new CALPHADFreeEnergyFunctionsBinary(
-#ifdef HAVE_THERMO4PFM
-           calphad_pt, newton_pt,
-#else
-           calphad_db, newton_db,
-#endif
-           energy_interp_func_type, conc_interp_func_type
-#ifndef HAVE_THERMO4PFM
-           ,
-           false  // no 3rd phase
-#endif
-           ));
+       new CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
+                                            energy_interp_func_type,
+                                            conc_interp_func_type));
 }
 
 template <>
@@ -98,21 +85,15 @@ AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsTernary>::
    std::shared_ptr<tbox::Database> newton_db;
    if (conc_db->isDatabase("NewtonSolver"))
       newton_db = conc_db->getDatabase("NewtonSolver");
-#ifdef HAVE_THERMO4PFM
    pt::ptree calphad_pt;
    copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
    copyDatabase(newton_db, newton_pt);
-#endif
 
    d_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsTernary>(
-       new CALPHADFreeEnergyFunctionsTernary(
-#ifdef HAVE_THERMO4PFM
-           calphad_pt, newton_pt,
-#else
-           calphad_db, newton_db,
-#endif
-           energy_interp_func_type, conc_interp_func_type));
+       new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
+                                             energy_interp_func_type,
+                                             conc_interp_func_type));
 }
 
 template <>
@@ -130,17 +111,11 @@ AzizPartitionCoefficientStrategy<KKSFreeEnergyFunctionDiluteBinary>::
 {
    assert(d_inv_vd == d_inv_vd);
 
-#ifdef HAVE_THERMO4PFM
    pt::ptree conc_pt;
    copyDatabase(conc_db, conc_pt);
    d_fenergy = std::unique_ptr<KKSFreeEnergyFunctionDiluteBinary>(
        new KKSFreeEnergyFunctionDiluteBinary(conc_pt, energy_interp_func_type,
                                              conc_interp_func_type));
-#else
-   d_fenergy = std::unique_ptr<KKSFreeEnergyFunctionDiluteBinary>(
-       new KKSFreeEnergyFunctionDiluteBinary(conc_db, energy_interp_func_type,
-                                             conc_interp_func_type));
-#endif
 }
 
 template <class FreeEnergyType>
@@ -178,11 +153,7 @@ double AzizPartitionCoefficientStrategy<FreeEnergyType>::computeKeq(
    if (d_keq > 0.) return d_keq;
 
    double ceq[2] = {0.5, 0.5};
-   bool flag = d_fenergy->computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                                      PhaseIndex::phaseL, PhaseIndex::phaseA,
-#endif
-                                      &ceq[0], 20);
+   bool flag = d_fenergy->computeCeqT(temperature, &ceq[0], 20);
 
    assert(flag);
 

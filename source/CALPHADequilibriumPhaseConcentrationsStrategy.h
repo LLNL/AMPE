@@ -16,11 +16,7 @@
 
 #include "SAMRAI/tbox/InputManager.h"
 
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 template <class FreeEnergyType>
 class CALPHADequilibriumPhaseConcentrationsStrategy
@@ -33,12 +29,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        const int conc_b_ref_id,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
-       const bool with_third_phase,
-#ifdef HAVE_THERMO4PFM
-       boost::property_tree::ptree calphad_pt,
-#else
-       std::shared_ptr<tbox::Database> calphad_db,
-#endif
+       const bool with_third_phase, boost::property_tree::ptree calphad_pt,
        std::shared_ptr<tbox::Database> newton_d, const unsigned ncompositions);
 
    ~CALPHADequilibriumPhaseConcentrationsStrategy() {}

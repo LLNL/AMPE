@@ -13,9 +13,7 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "KKStools.h"
-#ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
-#endif
 
 #include <iomanip>
 
@@ -57,12 +55,7 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 
    this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
-#ifdef HAVE_THERMO4PFM
-                                                      d_d2fdc2.data()
-#else
-                                                      d_d2fdc2
-#endif
-   );
+                                                      d_d2fdc2.data());
 
    // std::cout<<std::setprecision(15);
    // std::cout<<"c="<<phaseconc[0]<<", d2fdc2="<<d_d2fdc2[0]<<std::endl;
@@ -92,7 +85,5 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
 template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsBinary>;
 template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsTernary>;
 template class KimMobilityStrategyInfMob<KKSFreeEnergyFunctionDiluteBinary>;
-#ifdef HAVE_THERMO4PFM
 template class KimMobilityStrategyInfMob<
     CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
-#endif

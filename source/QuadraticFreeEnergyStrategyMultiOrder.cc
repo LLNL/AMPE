@@ -8,8 +8,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifdef HAVE_THERMO4PFM
-
 #include "QuadraticFreeEnergyStrategyMultiOrder.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -608,5 +606,3 @@ void QuadraticFreeEnergyStrategyMultiOrder::
    d2fdc2[0] = 2. * d_A_solid_A;
    if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_A;
 }
-
-#endif

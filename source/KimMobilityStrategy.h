@@ -23,11 +23,7 @@ class QuatModel;
 #include <string>
 
 using namespace SAMRAI;
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 /*
  * Based on S.G. Kim, Acta Mat. 55 (2007), p. 4391-4399

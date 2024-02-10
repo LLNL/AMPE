@@ -16,11 +16,9 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "FuncFort.h"
 
-#ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
-#endif
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -38,12 +36,7 @@ using namespace SAMRAI;
 template <class FreeEnergyFunctionType>
 CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     CALPHADFreeEnergyStrategyBinary(
-#ifdef HAVE_THERMO4PFM
-        pt::ptree calphad_db,
-#else
-        std::shared_ptr<tbox::Database> calphad_db,
-#endif
-        std::shared_ptr<tbox::Database> newton_db,
+        pt::ptree calphad_db, std::shared_ptr<tbox::Database> newton_db,
         const EnergyInterpolationType energy_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
@@ -73,25 +66,13 @@ CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
 
 template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::setup(
-#ifdef HAVE_THERMO4PFM
-    pt::ptree calphad_pt,
-#else
-    std::shared_ptr<tbox::Database> calphad_db,
-#endif
-    std::shared_ptr<tbox::Database> newton_db)
+    pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db)
 {
-#ifdef HAVE_THERMO4PFM
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
    d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_pt, newton_pt,
                                                       d_energy_interp_func_type,
                                                       d_conc_interp_func_type));
-#else
-   d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_db, newton_db,
-                                                      d_energy_interp_func_type,
-                                                      d_conc_interp_func_type,
-                                                      d_with_third_phase));
-#endif
 }
 
 //=======================================================================
@@ -910,12 +891,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
                                                         PhaseIndex::phaseL,
-#ifdef HAVE_THERMO4PFM
-                                                        d2fdc2.data()
-#else
-                                                        d2fdc2
-#endif
-   );
+                                                        d2fdc2.data());
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
@@ -933,40 +909,15 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
                                                         PhaseIndex::phaseA,
-#ifdef HAVE_THERMO4PFM
-                                                        d2fdc2.data()
-#else
-                                                        d2fdc2
-#endif
-   );
+                                                        d2fdc2.data());
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
                                                         PhaseIndex::phaseA);
 }
 
-//=======================================================================
-#ifndef HAVE_THERMO4PFM
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
-    defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
-                                               const std::vector<double>& c_b,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
-{
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
-                                                        PhaseIndex::phaseB,
-                                                        d2fdc2);
-
-   if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
-                                                        PhaseIndex::phaseB);
-}
-#endif
 
 template class CALPHADFreeEnergyStrategyBinary<
     CALPHADFreeEnergyFunctionsBinary>;
-#ifdef HAVE_THERMO4PFM
 template class CALPHADFreeEnergyStrategyBinary<
     CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
-#endif

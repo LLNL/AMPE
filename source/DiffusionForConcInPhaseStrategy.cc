@@ -95,19 +95,6 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
       assert(d_local_dmat[i] == d_local_dmat[i]);
 }
 
-#ifndef HAVE_THERMO4PFM
-void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
-    const double temperature, const std::vector<double>& c)
-{
-   d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(temperature, c,
-                                                               d_d2f, false);
-   d_mobilities_strategy->computeDiffusionMobilityPhaseB(c, temperature,
-                                                         d_mobmat);
-
-   small_mat_mult(d_ncompositions, &d_mobmat[0], &d_d2f[0], &d_local_dmat[0]);
-}
-#endif
-
 void DiffusionForConcInPhaseStrategy::setDiffusion(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int phase_id, const int eta_id)

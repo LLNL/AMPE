@@ -11,8 +11,6 @@
 #ifndef included_CALPHADFreeEnergyStrategyBinaryThreePhase
 #define included_CALPHADFreeEnergyStrategyBinaryThreePhase
 
-#ifdef HAVE_THERMO4PFM
-
 #include "ConcFreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
@@ -203,7 +201,5 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi);
 };
-
-#endif
 
 #endif

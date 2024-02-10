@@ -23,11 +23,7 @@ using namespace SAMRAI;
 #include <string>
 #include <vector>
 
-#ifdef HAVE_THERMO4PFM
 const double gas_constant = GASCONSTANT_R_JPKPMOL;
-#else
-const double gas_constant = ampe_thermo::gas_constant_R_JpKpmol;
-#endif
 
 // to store coefficients of linear polynomial
 typedef std::pair<double, double> double_pair;

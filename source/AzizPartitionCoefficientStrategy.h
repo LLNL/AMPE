@@ -17,11 +17,7 @@
 
 #include <memory>
 
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 template <class FreeEnergyType>
 class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy

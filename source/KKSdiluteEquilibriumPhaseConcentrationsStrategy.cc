@@ -15,9 +15,7 @@
 
 #include "Database2JSON.h"
 
-#ifdef HAVE_THERMO4PFM
 namespace pt = boost::property_tree;
-#endif
 
 KKSdiluteEquilibriumPhaseConcentrationsStrategy::
     KKSdiluteEquilibriumPhaseConcentrationsStrategy(
@@ -33,17 +31,11 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id)
 {
-#ifdef HAVE_THERMO4PFM
    pt::ptree troot;
    copyDatabase(conc_db, troot);
    d_fenergy =
        new KKSFreeEnergyFunctionDiluteBinary(troot, energy_interp_func_type,
                                              conc_interp_func_type);
-#else
-   d_fenergy =
-       new KKSFreeEnergyFunctionDiluteBinary(conc_db, energy_interp_func_type,
-                                             conc_interp_func_type);
-#endif
 }
 
 int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
@@ -170,13 +162,7 @@ int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
             x[1] = cd_ca->getPointer(0)[idx_ci];
 
             // compute cL, cS
-            nits += d_fenergy->computePhaseConcentrations(temp, &c,
-#ifdef HAVE_THERMO4PFM
-                                                          &phi,
-#else
-                                                          phi, 0.,
-#endif
-                                                          x);
+            nits += d_fenergy->computePhaseConcentrations(temp, &c, &phi, x);
             //            std::cout<<"cl, cs = "<<x[0]<<","<<x[1]<<std::endl;
 
             // set cell values with cL and cS just computed
