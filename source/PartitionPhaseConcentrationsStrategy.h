@@ -14,11 +14,7 @@
 #include "PhaseConcentrationsStrategy.h"
 #include "InterpolationType.h"
 
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 // compute c_l, c_s using partition coefficient
 class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy

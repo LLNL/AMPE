@@ -15,13 +15,8 @@
 #include <iomanip>
 #include <cmath>
 
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
 typedef float jacobian_dtype;
-#else
-using namespace ampe_thermo;
-typedef double jacobian_dtype;
-#endif
 
 int main(int argc, char* argv[])
 {
@@ -35,11 +30,7 @@ int main(int argc, char* argv[])
 
    double cA = 0.1;
    double cB = 0.2;
-#ifdef HAVE_THERMO4PFM
    CALPHADTieLineConcSolverTernary solver;
-#else
-   CALPHADTieLineConcSolverTernary solver(cA, cB);
-#endif
 
    // energies of 3 species, in two phase each
    double fA[2] = {2.3, 4.5};
@@ -60,13 +51,8 @@ int main(int argc, char* argv[])
 
    double RTinv = 10.;
 
-#ifdef HAVE_THERMO4PFM
    solver.setup(cA, cB, RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S, L_BC_S,
                 L_ABC_L, L_ABC_S, fA, fB, fC);
-#else
-   solver.setup(RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S, L_BC_S, L_ABC_L,
-                L_ABC_S, fA, fB, fC);
-#endif
 
    double fvec1[5];
    double fvec2[5];

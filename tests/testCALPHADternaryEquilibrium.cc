@@ -26,13 +26,9 @@
 
 using namespace SAMRAI;
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -88,18 +84,13 @@ int main(int argc, char *argv[])
          maxits = newton_db->getIntegerWithDefault("max_its", 20);
       }
 
-#ifdef HAVE_THERMO4PFM
       pt::ptree calphad_pt;
       pt::ptree newton_pt;
       copyDatabase(calphad_db, calphad_pt);
       copyDatabase(newton_db, newton_pt);
-#endif
+
       CALPHADFreeEnergyFunctionsTernary cafe(
-#ifdef HAVE_THERMO4PFM
           calphad_pt, newton_pt,
-#else
-          calphad_db, newton_db,
-#endif
           energy_interp_func_type, conc_interp_func_type);
 
 
@@ -113,17 +104,9 @@ int main(int argc, char *argv[])
                         init_guess[2], init_guess[3],  // solid
                         init_guess[4]};
 
-#ifdef HAVE_THERMO4PFM
       bool found_ceq = cafe.computeTieLine(temperature, nominalc[0],
                                            nominalc[1], &lceq[0], maxits);
-#else
-      // choose pair of phases: phaseL, phaseA
-      const PhaseIndex pi0 = PhaseIndex::phaseL;
-      const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-      bool found_ceq = cafe.computeCeqT(temperature, pi0, pi1, nominalc[0],
-                                        nominalc[1], &lceq[0], maxits);
-#endif
       if (lceq[0] != lceq[0]) found_ceq = false;
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;

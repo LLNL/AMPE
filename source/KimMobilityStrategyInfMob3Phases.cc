@@ -8,8 +8,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifdef HAVE_THERMO4PFM
-
 #include "KimMobilityStrategyInfMob3Phases.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "AMPE_internal.h"
@@ -121,5 +119,3 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
 
 template class KimMobilityStrategyInfMob3Phases<
     CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
-
-#endif

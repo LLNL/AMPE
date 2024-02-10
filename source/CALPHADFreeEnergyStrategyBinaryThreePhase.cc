@@ -8,8 +8,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifdef HAVE_THERMO4PFM
-
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
@@ -770,4 +768,3 @@ template class CALPHADFreeEnergyStrategyBinaryThreePhase<
     CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingFolchPlapp2005>;
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
     CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingMoelans2011>;
-#endif

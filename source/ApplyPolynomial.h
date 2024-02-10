@@ -16,11 +16,7 @@
 #include "SAMRAI/hier/PatchLevel.h"
 
 using namespace SAMRAI;
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 class ApplyPolynomial
 {

@@ -25,13 +25,9 @@
 
 using namespace SAMRAI;
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 int main(int argc, char* argv[])
 {
@@ -118,20 +114,13 @@ int main(int argc, char* argv[])
 
       bool with_third_phase = false;
 
-#ifdef HAVE_THERMO4PFM
       pt::ptree calphad_pt;
       pt::ptree newton_pt;
       copyDatabase(calphad_db, calphad_pt);
       copyDatabase(newton_db, newton_pt);
-#endif
-      CALPHADFreeEnergyFunctionsBinary cafe(
-#ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
-#else
-          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
-          false  // no 3rd phase
-#endif
-      );
+      CALPHADFreeEnergyFunctionsBinary cafe(calphad_pt, newton_pt,
+                                            energy_interp_func_type,
+                                            conc_interp_func_type);
 
       // initial guesses
       double c_init0 = 0.5;
@@ -142,13 +131,7 @@ int main(int argc, char* argv[])
       // compute concentrations satisfying KKS equations
       double conc = model_db->getDouble("concentration");
       double phi = model_db->getDouble("phi");
-      cafe.computePhaseConcentrations(temperature, &conc,
-#ifdef HAVE_THERMO4PFM
-                                      &phi,
-#else
-                                      phi, 0.,
-#endif
-                                      &sol[0]);
+      cafe.computePhaseConcentrations(temperature, &conc, &phi, &sol[0]);
 
       tbox::pout << "-------------------------------" << std::endl;
       tbox::pout << "Temperature = " << temperature << std::endl;

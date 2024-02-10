@@ -11,12 +11,9 @@
 #ifndef included_FreeEnergyStrategyFactory
 #define included_FreeEnergyStrategyFactory
 
-#ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "CALPHADFunctions.h"
-#endif
-
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -29,7 +26,6 @@
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "TiltingFolchPlapp2005.h"
 #include "TiltingMoelans2011.h"
-#include "thermo/InterpolationType.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -76,7 +72,6 @@ class FreeEnergyStrategyFactory
             }
 
             if (ncompositions == 1) {
-#ifdef HAVE_THERMO4PFM
                if (conc_b_scratch_id >= 0) {
                   tbox::pout << "Use CALPHADFreeEnergyStrategyBinaryThreePhase"
                              << std::endl;
@@ -134,10 +129,7 @@ class FreeEnergyStrategyFactory
                                 conc_a_scratch_id, conc_b_scratch_id));
                   }
                   // conc_b_scratch_id<0
-               } else
-#endif
-               {
-#ifdef HAVE_THERMO4PFM
+               } else {
                   // check if sublattice parameters are in CALPHAD database
                   bool subl = checkSublattice(calphad_pt);
                   if (subl) {
@@ -152,16 +144,10 @@ class FreeEnergyStrategyFactory
                              mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
                              conc_b_scratch_id, false));
                   } else
-#endif
                      free_energy_strategy.reset(
                          new CALPHADFreeEnergyStrategyBinary<
                              CALPHADFreeEnergyFunctionsBinary>(
-#ifdef HAVE_THERMO4PFM
-                             calphad_pt,
-#else
-                          calphad_db,
-#endif
-                             newton_db,
+                             calphad_pt, newton_db,
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
                              mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
@@ -176,25 +162,6 @@ class FreeEnergyStrategyFactory
                    model_parameters.conc_interp_func_type(), mvstrategy,
                    conc_l_scratch_id, conc_a_scratch_id));
             }
-#ifndef HAVE_THERMO4PFM
-            if (!calphad_file_is_json) {
-               if (calphad_db->keyExists("PenaltyPhaseL")) {
-                  tbox::plog << "QuatModel: "
-                             << "Adding penalty to CALPHAD energy" << std::endl;
-
-                  assert(ncompositions == 1);
-
-                  free_energy_strategy.reset(
-                      new CALPHADFreeEnergyStrategyWithPenalty(
-                          calphad_db, newton_db,
-                          model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(), mvstrategy,
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id, ncompositions,
-                          model_parameters.with_third_phase()));
-               }
-            }
-#endif
          }
          // not CALPHAD
          else if (model_parameters.isConcentrationModelKKSdilute()) {

@@ -12,9 +12,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
-#ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
-#endif
 
 template <class FreeEnergyType>
 KimMobilityStrategyFiniteMob<FreeEnergyType>::KimMobilityStrategyFiniteMob(
@@ -41,7 +39,5 @@ KimMobilityStrategyFiniteMob<FreeEnergyType>::KimMobilityStrategyFiniteMob(
 template class KimMobilityStrategyFiniteMob<CALPHADFreeEnergyFunctionsBinary>;
 template class KimMobilityStrategyFiniteMob<CALPHADFreeEnergyFunctionsTernary>;
 template class KimMobilityStrategyFiniteMob<KKSFreeEnergyFunctionDiluteBinary>;
-#ifdef HAVE_THERMO4PFM
 template class KimMobilityStrategyFiniteMob<
     CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
-#endif

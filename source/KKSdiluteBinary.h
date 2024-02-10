@@ -84,11 +84,6 @@ class KKSdiluteBinary : public FreeEnergyStrategy
    virtual void computeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true);
-#ifndef HAVE_THERMO4PFM
-   virtual void computeSecondDerivativeEnergyPhaseB(
-       const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true);
-#endif
    void computeSecondDerivativeEnergyPhase(const char phase, const double temp,
                                            const std::vector<double>& c,
                                            std::vector<double>& d2fdc2,
@@ -104,13 +99,6 @@ class KKSdiluteBinary : public FreeEnergyStrategy
             computeSecondDerivativeEnergyPhaseA(temp, c, d2fdc2,
                                                 use_internal_units);
             break;
-
-#ifndef HAVE_THERMO4PFM
-         case 'b':
-            computeSecondDerivativeEnergyPhaseB(temp, c, d2fdc2,
-                                                use_internal_units);
-            break;
-#endif
 
          default:
             tbox::pout << "undefined phase=" << phase << "!!!" << std::endl;

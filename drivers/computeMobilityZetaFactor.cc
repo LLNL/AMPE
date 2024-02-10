@@ -8,8 +8,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifdef HAVE_THERMO4PFM
-
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "CALPHADMobility.h"
@@ -154,4 +152,3 @@ int main(int argc, char *argv[])
 
    return (0);
 }
-#endif

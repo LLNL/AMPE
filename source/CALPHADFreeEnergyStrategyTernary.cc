@@ -14,10 +14,8 @@
 #include "MolarVolumeStrategy.h"
 #include "FuncFort.h"
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
-#endif
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -68,7 +66,6 @@ void CALPHADFreeEnergyStrategyTernary::setup(
     std::shared_ptr<tbox::Database> calphad_db,
     std::shared_ptr<tbox::Database> newton_db)
 {
-#ifdef HAVE_THERMO4PFM
    pt::ptree calphad_pt;
    copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
@@ -77,13 +74,6 @@ void CALPHADFreeEnergyStrategyTernary::setup(
        new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
                                              d_energy_interp_func_type,
                                              d_conc_interp_func_type);
-#else
-
-   d_calphad_fenergy =
-       new CALPHADFreeEnergyFunctionsTernary(calphad_db, newton_db,
-                                             d_energy_interp_func_type,
-                                             d_conc_interp_func_type);
-#endif
 }
 
 //=======================================================================
@@ -640,12 +630,7 @@ void CALPHADFreeEnergyStrategyTernary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
                                                         PhaseIndex::phaseL,
-#ifdef HAVE_THERMO4PFM
-                                                        d2fdc2.data()
-#else
-                                                        d2fdc2
-#endif
-   );
+                                                        d2fdc2.data());
 
    if (use_internal_units) {
       double voli = d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
@@ -665,12 +650,7 @@ void CALPHADFreeEnergyStrategyTernary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
                                                         PhaseIndex::phaseA,
-#ifdef HAVE_THERMO4PFM
-                                                        d2fdc2.data()
-#else
-                                                        d2fdc2
-#endif
-   );
+                                                        d2fdc2.data());
 
    if (use_internal_units) {
       double voli = d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],

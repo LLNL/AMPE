@@ -1,10 +1,6 @@
 include_directories( ${CMAKE_SOURCE_DIR}/source )
 
-if(${USE_THERMO4PFM})
-  set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
-else()
-  set(THERMOLIB ${internal_libs})
-endif(${USE_THERMO4PFM})
+set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
 
 add_executable(plotCALPHADbinary
                plotCALPHADbinary.cc
@@ -45,12 +41,10 @@ add_executable(convertDatabase2JSON
 target_link_libraries(convertDatabase2JSON
                       ${PROJECT_LINK_LIBS_SAMRAI})
 
-if(${USE_THERMO4PFM})
-  add_executable(computeMobilityZetaFactor
-                 ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
-                 ${CMAKE_SOURCE_DIR}/source/KKStools.cc
-                 computeMobilityZetaFactor.cc)
-  target_link_libraries(computeMobilityZetaFactor
-                        ${PROJECT_LINK_LIBS_SAMRAI}
-                        ${THERMOLIB})
-endif(${USE_THERMO4PFM})
+add_executable(computeMobilityZetaFactor
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
+               ${CMAKE_SOURCE_DIR}/source/KKStools.cc
+               computeMobilityZetaFactor.cc)
+target_link_libraries(computeMobilityZetaFactor
+                      ${PROJECT_LINK_LIBS_SAMRAI}
+                      ${THERMOLIB})

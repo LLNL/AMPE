@@ -370,23 +370,4 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
       os << std::fixed << conc[0] << "  " << std::scientific
          << amob[0] * d2f[0] / m2toum2 << std::endl;
    }
-
-#ifndef HAVE_THERMO4PFM
-   if (d_with_third_phase) {
-      os << std::endl;
-      os << "#Interdiffusion[m2/s]  vs. composition in phase B at T="
-         << temperature << std::endl;
-      for (int i = 0; i <= nc; i++) {
-         conc[0] = eps + i * dc;
-         d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(
-             temperature, conc, d2f, false);
-
-         computeDiffusionMobilityPhaseB(conc, temperature, amob);
-
-         assert(amob[0] > 0.);
-         os << std::fixed << conc[0] << "  " << std::scientific
-            << amob[0] * d2f[0] / m2toum2 << std::endl;
-      }
-   }
-#endif
 }

@@ -23,13 +23,9 @@
 
 using namespace SAMRAI;
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 int main(int argc, char* argv[])
 {
@@ -89,16 +85,10 @@ int main(int argc, char* argv[])
       std::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
 
-#ifdef HAVE_THERMO4PFM
       pt::ptree conc_pt;
       copyDatabase(conc_db, conc_pt);
-#endif
       KKSFreeEnergyFunctionDiluteBinary cafe(
-#ifdef HAVE_THERMO4PFM
           conc_pt,
-#else
-          conc_db,
-#endif
           energy_interp_func_type, conc_interp_func_type);
 
       const double tol = 1.e-5;
@@ -112,9 +102,6 @@ int main(int argc, char* argv[])
       // compute equilibrium compositions
       double ceq[2];
       cafe.computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                       pi0, pi1,
-#endif
                        &ceq[0]);
       tbox::pout << "   ceL = " << ceq[0] << std::endl;
       tbox::pout << "   ceS = " << ceq[1] << std::endl;
@@ -152,21 +139,13 @@ int main(int argc, char* argv[])
       // compute second derivatives for info only
       std::vector<double> d2fdc2(1);
       cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[0], pi0,
-#ifdef HAVE_THERMO4PFM
                                              d2fdc2.data()
-#else
-                                             d2fdc2
-#endif
       );
       tbox::pout << "-------------------------------" << std::endl;
       tbox::pout << "Second derivatives" << std::endl;
       tbox::pout << "At ceL: " << d2fdc2[0] << std::endl;
       cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[1], pi1,
-#ifdef HAVE_THERMO4PFM
                                              d2fdc2.data()
-#else
-                                             d2fdc2
-#endif
       );
       tbox::pout << "At ceS: " << d2fdc2[0] << std::endl;
 

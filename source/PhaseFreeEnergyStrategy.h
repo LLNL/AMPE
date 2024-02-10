@@ -14,11 +14,7 @@
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
-#ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 class PhaseFreeEnergyStrategy : public FreeEnergyStrategy
 {
@@ -52,12 +48,6 @@ class PhaseFreeEnergyStrategy : public FreeEnergyStrategy
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2,
        const bool use_internal_units = true) override;
-#ifndef HAVE_THERMO4PFM
-   void computeSecondDerivativeEnergyPhaseB(
-       const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2,
-       const bool use_internal_units = true) override;
-#endif
 
    void preRunDiagnostics(const double temperature) override{};
 

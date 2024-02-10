@@ -50,13 +50,8 @@
 #include "computeQDiffs.h"
 #include "HierarchyStencilOps.h"
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
-#else
-#include "CALPHADFreeEnergyStrategyWithPenalty.h"
-#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
-#endif
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -71,11 +66,7 @@ namespace pt = boost::property_tree;
 #include <set>
 #include <map>
 
-#ifdef HAVE_THERMO4PFM
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
-#else
-using namespace ampe_thermo;
-#endif
 
 const double um2tom2 = 1.e-12;
 
@@ -361,33 +352,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
       }
 
       d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
-
-      // setup free energy strategy first since it may be needed
-      // to setup d_composition_rhs_strategy
-      if (d_model_parameters.isConcentrationModelCALPHAD()) {
-
-#ifndef HAVE_THERMO4PFM
-         std::string calphad_filename = d_calphad_db->getString("filename");
-         calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
-         tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                          calphad_db);
-         if (calphad_db->keyExists("PenaltyPhaseL")) {
-            tbox::plog << "QuatModel: "
-                       << "Adding penalty to CALPHAD energy" << std::endl;
-
-            assert(d_ncompositions == 1);
-
-            d_free_energy_strategy_for_diffusion.reset(
-                new CALPHADFreeEnergyStrategyBinary<
-                    CALPHADFreeEnergyFunctionsBinary>(
-                    calphad_db, newton_db,
-                    d_model_parameters.energy_interp_func_type(),
-                    d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                    d_conc_l_id, d_conc_a_id, d_conc_b_id,
-                    d_model_parameters.with_third_phase()));
-         }
-#endif
-      }
 
       d_phase_conc_strategy = PhaseConcentrationsStrategyFactory::create(
           d_model_parameters, d_conc_l_id, d_conc_a_id, d_conc_b_id,

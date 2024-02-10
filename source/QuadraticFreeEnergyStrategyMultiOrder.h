@@ -11,8 +11,6 @@
 #ifndef included_QuadraticFreeEnergyStrategyMultiOrder
 #define included_QuadraticFreeEnergyStrategyMultiOrder
 
-#ifdef HAVE_THERMO4PFM
-
 #include "ConcFreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
@@ -166,7 +164,5 @@ class QuadraticFreeEnergyStrategyMultiOrder : public FreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
 };
-
-#endif
 
 #endif

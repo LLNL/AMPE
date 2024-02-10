@@ -184,24 +184,11 @@ foreach(file ${M4FILESDIM})
 endforeach()
 
 set(MAIN ampe${NDIM}d)
-if(${USE_THERMO4PFM})
-  add_executable(${MAIN} ${SOURCES} ${SOURCES_FORTRAN}
-                         ${SOURCES_FORTRAN_DIM}
-                         ${SOURCES_Database2JSON})
-else()
-  add_executable(${MAIN} ${SOURCES}
-                         ${SOURCES_WPENALTY}
-                         ${SOURCES_FORTRAN}
-                         ${SOURCES_FORTRAN_DIM}
-                         ${SOURCES_Database2JSON})
-endif(${USE_THERMO4PFM})
+add_executable(${MAIN} ${SOURCES} ${SOURCES_FORTRAN}
+                       ${SOURCES_FORTRAN_DIM}
+                       ${SOURCES_Database2JSON})
 
-if(${USE_THERMO4PFM})
-  set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
-else()
-  add_subdirectory(thermo)
-  set(THERMOLIB ${internal_libs})
-endif(${USE_THERMO4PFM})
+set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
 
 target_link_libraries(${MAIN} ${THERMOLIB})
 

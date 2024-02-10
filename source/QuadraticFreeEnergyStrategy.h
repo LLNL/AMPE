@@ -52,12 +52,6 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2,
        const bool use_internal_units = true) override;
-#ifndef HAVE_THERMO4PFM
-   void computeSecondDerivativeEnergyPhaseB(
-       const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2,
-       const bool use_internal_units = true) override;
-#endif
 
    double computeLiquidConcentration(const double temp, const double hphi,
                                      const double c) const;

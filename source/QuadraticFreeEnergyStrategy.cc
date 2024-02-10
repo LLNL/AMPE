@@ -653,14 +653,3 @@ void QuadraticFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
    d2fdc2[0] = 2. * d_A_solid_A;
    if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_A;
 }
-
-//=======================================================================
-
-#ifndef HAVE_THERMO4PFM
-void QuadraticFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const std::vector<double>& c_b,
-    std::vector<double>& d2fdc2, const bool use_internal_units)
-{
-   (void)temp;
-}
-#endif

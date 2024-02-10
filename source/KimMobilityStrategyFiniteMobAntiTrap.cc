@@ -13,9 +13,7 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "KKStools.h"
-#ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
-#endif
 
 template <class FreeEnergyType>
 KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
@@ -60,12 +58,7 @@ double KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::evaluateMobility(
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 
    this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
-#ifdef HAVE_THERMO4PFM
-                                                      d_d2fdc2.data()
-#else
-                                                      d_d2fdc2
-#endif
-   );
+                                                      d_d2fdc2.data());
 
    const double* const cl = &phaseconc[0];
    const double* const cs = &phaseconc[this->d_ncompositions];
@@ -92,7 +85,5 @@ template class KimMobilityStrategyFiniteMobAntiTrap<
     CALPHADFreeEnergyFunctionsTernary>;
 template class KimMobilityStrategyFiniteMobAntiTrap<
     KKSFreeEnergyFunctionDiluteBinary>;
-#ifdef HAVE_THERMO4PFM
 template class KimMobilityStrategyFiniteMobAntiTrap<
     CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
-#endif

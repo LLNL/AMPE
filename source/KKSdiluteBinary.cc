@@ -19,10 +19,8 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
-#endif
 
 #include <cassert>
 
@@ -60,17 +58,11 @@ KKSdiluteBinary::KKSdiluteBinary(
 
 void KKSdiluteBinary::setup(std::shared_ptr<tbox::Database> conc_db)
 {
-#ifdef HAVE_THERMO4PFM
    pt::ptree troot;
    copyDatabase(conc_db, troot);
    d_kksdilute_fenergy =
        new KKSFreeEnergyFunctionDiluteBinary(troot, d_energy_interp_func_type,
                                              d_conc_interp_func_type);
-#else
-   d_kksdilute_fenergy =
-       new KKSFreeEnergyFunctionDiluteBinary(conc_db, d_energy_interp_func_type,
-                                             d_conc_interp_func_type);
-#endif
 }
 
 //=======================================================================
@@ -673,12 +665,7 @@ void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseL(
 {
    d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
                                                           PhaseIndex::phaseL,
-#ifdef HAVE_THERMO4PFM
-                                                          d2fdc2.data()
-#else
-                                                          d2fdc2
-#endif
-   );
+                                                          d2fdc2.data());
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
@@ -693,31 +680,9 @@ void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseA(
 {
    d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
                                                           PhaseIndex::phaseA,
-#ifdef HAVE_THERMO4PFM
-                                                          d2fdc2.data()
-#else
-                                                          d2fdc2
-#endif
-   );
+                                                          d2fdc2.data());
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
                                                         PhaseIndex::phaseA);
 }
-
-//=======================================================================
-
-#ifndef HAVE_THERMO4PFM
-void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const std::vector<double>& c_b,
-    std::vector<double>& d2fdc2, const bool use_internal_units)
-{
-   d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
-                                                          PhaseIndex::phaseB,
-                                                          d2fdc2);
-
-   if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
-                                                        PhaseIndex::phaseB);
-}
-#endif

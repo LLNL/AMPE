@@ -11,11 +11,7 @@
 #include "QuatModelParameters.h"
 #include "PhysicalConstants.h"
 
-#ifdef HAVE_THERMO4PFM
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
-#else
-using namespace ampe_thermo;
-#endif
 
 static double def_val = tbox::IEEE::getSignalingNaN();
 

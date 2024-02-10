@@ -18,11 +18,7 @@ set( fortran_dir ${CMAKE_SOURCE_DIR}/source/fortran )
 set( SOURCE_FORTRAN_DIM_DIR ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d )
 set( TEST_DIR ${CMAKE_SOURCE_DIR}/tests )
 
-if(${USE_THERMO4PFM})
-  set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
-else()
-  set(THERMOLIB ${internal_libs})
-endif(${USE_THERMO4PFM})
+set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
 
 
 set(M4FILESDIM ellipticfacops
@@ -457,55 +453,53 @@ add_test(NAME FeNbNiOrder4
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
-if(${USE_THERMO4PFM})
-  add_test(NAME ThreePhases
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
-           )
-  add_test(NAME ThreePhasesCALPHAD
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
-           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
-           )
-  add_test(NAME ThreePhasesDiffusion
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/${NDIM}d.input
-           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion
-           )
-  add_test(NAME 3Ph2Sl
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/${NDIM}d.input
-           ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl
-           )
-  add_test(NAME 2Ph1Sl
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/${NDIM}d.input
-           ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl
-           )
-  add_test(NAME Restart
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Restart/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/Restart/${NDIM}d.input
-           )
-  add_test(NAME RestartConc
-           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/test${NDIM}d.py
-           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-           ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/${NDIM}d.input
-           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
-           )
-endif()
+add_test(NAME ThreePhases
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
+         )
+add_test(NAME ThreePhasesCALPHAD
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
+         )
+add_test(NAME ThreePhasesDiffusion
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion
+         )
+add_test(NAME 3Ph2Sl
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl
+         )
+add_test(NAME 2Ph1Sl
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl
+         )
+add_test(NAME Restart
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Restart/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/Restart/${NDIM}d.input
+         )
+add_test(NAME RestartConc
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
+         )
 add_test(NAME DumpNetCDF
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
@@ -556,9 +550,7 @@ target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      ${THERMOLIB}
                                      )
-if(${USE_THERMO4PFM})
-  target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_THERMO4PFM})
-endif()
+target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_THERMO4PFM})
 target_link_libraries(testKKSdiluteBinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      ${THERMOLIB}

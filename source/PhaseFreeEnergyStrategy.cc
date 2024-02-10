@@ -174,14 +174,3 @@ void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 {
    d2fdc2.assign(d2fdc2.size(), 0.);
 }
-
-//=======================================================================
-
-#ifndef HAVE_THERMO4PFM
-void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const std::vector<double>& c_b,
-    std::vector<double>& d2fdc2, const bool use_internal_units)
-{
-   d2fdc2.assign(d2fdc2.size(), 0.);
-}
-#endif

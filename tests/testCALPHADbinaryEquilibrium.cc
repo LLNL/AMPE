@@ -21,13 +21,9 @@
 
 using namespace SAMRAI;
 
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -82,21 +78,14 @@ int main(int argc, char *argv[])
 
       bool with_third_phase = false;
 
-#ifdef HAVE_THERMO4PFM
       pt::ptree calphad_pt;
       pt::ptree newton_pt;
       copyDatabase(calphad_db, calphad_pt);
       copyDatabase(newton_db, newton_pt);
-#endif
 
-      CALPHADFreeEnergyFunctionsBinary cafe(
-#ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
-#else
-          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
-          with_third_phase
-#endif
-      );
+      CALPHADFreeEnergyFunctionsBinary cafe(calphad_pt, newton_pt,
+                                            energy_interp_func_type,
+                                            conc_interp_func_type);
 
       // choose pair of phases: phaseL, phaseA, phaseB
       const PhaseIndex pi0 = PhaseIndex::phaseL;
@@ -109,11 +98,7 @@ int main(int argc, char *argv[])
       double lceq[2] = {init_guess[0], init_guess[1]};
 
       // compute equilibrium concentrations in each phase
-      bool found_ceq = cafe.computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                                        pi0, pi1,
-#endif
-                                        &lceq[0]);
+      bool found_ceq = cafe.computeCeqT(temperature, &lceq[0]);
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;
       if (lceq[1] > 1.) found_ceq = false;

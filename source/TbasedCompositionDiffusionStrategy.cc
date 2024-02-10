@@ -17,11 +17,7 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 
-#ifdef HAVE_THERMO4PFM
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
-#else
-using namespace ampe_thermo;
-#endif
 
 TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
     const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,

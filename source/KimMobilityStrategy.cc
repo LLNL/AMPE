@@ -14,11 +14,9 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "QuatModel.h"
-#ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
-#endif
 
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -61,31 +59,18 @@ KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
       calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
       tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                        calphad_db);
-#ifdef HAVE_THERMO4PFM
       copyDatabase(calphad_db, calphad_pt);
-#endif
    }
 
    std::shared_ptr<tbox::Database> newton_db;
    if (conc_db->isDatabase("NewtonSolver"))
       newton_db = conc_db->getDatabase("NewtonSolver");
-#ifdef HAVE_THERMO4PFM
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
-#endif
 
-   d_fenergy = new FreeEnergyType(
-#ifdef HAVE_THERMO4PFM
-       calphad_pt, newton_pt,
-#else
-       calphad_db, newton_db,
-#endif
-       energy_interp_func_type, conc_interp_func_type
-#ifndef HAVE_THERMO4PFM
-       ,
-       false  // no 3rd phase
-#endif
-   );
+   d_fenergy =
+       new FreeEnergyType(calphad_pt, newton_pt, energy_interp_func_type,
+                          conc_interp_func_type);
 }
 
 template <>
@@ -121,20 +106,14 @@ KimMobilityStrategy<CALPHADFreeEnergyFunctionsTernary>::KimMobilityStrategy(
    std::shared_ptr<tbox::Database> newton_db;
    if (conc_db->isDatabase("NewtonSolver"))
       newton_db = conc_db->getDatabase("NewtonSolver");
-#ifdef HAVE_THERMO4PFM
    pt::ptree calphad_pt;
    copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
-#endif
 
-   d_fenergy = new CALPHADFreeEnergyFunctionsTernary(
-#ifdef HAVE_THERMO4PFM
-       calphad_pt, newton_pt,
-#else
-       calphad_db, newton_db,
-#endif
-       energy_interp_func_type, conc_interp_func_type);
+   d_fenergy = new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
+                                                     energy_interp_func_type,
+                                                     conc_interp_func_type);
 }
 
 template <>
@@ -159,17 +138,11 @@ KimMobilityStrategy<KKSFreeEnergyFunctionDiluteBinary>::KimMobilityStrategy(
    t_compute = tbox::TimerManager::getManager()->getTimer(
        "AMPE::KimMobilityStrategy::compute");
 
-#ifdef HAVE_THERMO4PFM
    pt::ptree conc_pt;
    copyDatabase(conc_db, conc_pt);
    d_fenergy =
        new KKSFreeEnergyFunctionDiluteBinary(conc_pt, energy_interp_func_type,
                                              conc_interp_func_type);
-#else
-   d_fenergy =
-       new KKSFreeEnergyFunctionDiluteBinary(conc_db, energy_interp_func_type,
-                                             conc_interp_func_type);
-#endif
 }
 
 template <class FreeEnergyType>
@@ -332,7 +305,5 @@ void KimMobilityStrategy<FreeEnergyType>::update(
 }
 
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>;
-#ifdef HAVE_THERMO4PFM
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
-#endif
