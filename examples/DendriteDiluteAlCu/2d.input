@@ -1,47 +1,32 @@
 // Units are:
 //   length: um = 10^-6 m
+//   time  : seconds
 //   energy: pJ = 10^-12 J
 //
-model_type = "KWCcomplex"
-
-end_time = 1.e-2  // required
-max_timesteps = 5000  // optional, default is INT_MAX (alias: max_cycles)
-
-Verbosity {  // optional, block
-   level = 1  // optional, default=1
-}
+end_time      = 1.e-2  // required
+max_timesteps = 1500   // optional, default is INT_MAX (alias: max_cycles)
 
 Visit {
-   interval = 1.e-4
+   interval = 1.e-4 // s
    interval_type = "time"
-}
-
-TimerManager {
-    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
-    print_threshold = 0.0
 }
 
 ModelParameters {  // required block
 
+   Interface {
+      sigma = 0.1    // J/mol
+      delta = 0.0625 // um
+   }
+
    epsilon_anisotropy = 0.03 //delta
 
-   H_parameter = 0. // we need quaternions to define anisotropy
-
-   epsilon_phi = 0.2   // [(pJ/um)^1/2]
-
-   phi_mobility_type = "kim"
-   //phi_mobility = 1.e3
-
-   orient_mobility = 1.
-   epsilon_orient = 1.e3 // to avoid negative diffusion for q
-
-   // free energy parameters:
-   // f(phi) = scale_energy_well*g(phi)
-   // where g is a double well potential
-   phi_well_scale = 0.3 // [pJ/um^3]
-   phi_well_func_type = "double"
+   PhaseMobility{
+      type = "kim"
+   }
 
    Temperature{
+      // specify a uniform and constant scalar field
+      type = "scalar"
       temperature = 915.
    }
 
@@ -51,21 +36,24 @@ ModelParameters {  // required block
       rhs_form = "ebs"
       molar_volume = 1.095e-5
 
-      liquidus_slope = -640 // K
+      // phase diagram information
+      liquidus_slope = -640 // K / atomic fraction
       meltingT = 933. // K
       keq      = 0.14
 
+      // D = D_phase * exp( -Q0_phase / (R*T) )
       diffusion_type = "temperature_dependent"
       D_solid  =  3.e-1 //um**2/s
       D_liquid  = 3.e3  //um**2/s
       Q0_solid  = 0.    // [J/mol]
-      Q0_liquid = 0.    // [J/mol]
    }
 
+   // interpolation polynomials
    phi_interp_func_type ="pbg"
    conc_interp_func_type = "l"
-   diffusion_interp_func_type = "l"
 
+   // boundary conditions for non-periodic directions
+   // options are "slope" or "value"
    BoundaryConditions {
       Phase{
          boundary_0 = "slope", "0"
@@ -89,22 +77,30 @@ ModelParameters {  // required block
 }
 
 InitialConditions {
+   // phase field and composition
    filename = "512x512.nc"  // required
-   init_q   = 1., 0.
+   // quaternion field rotated by 45 deg around z-axis
+   // q = (cos(angle/2), nx*sin(angle/2),  ny*sin(angle/2), nz*sin(angle/2))
+   init_q   = 0.924, 0., 0., 0.383
 }
 
 ScalarDiagnostics {
    interval = 1.e-4
    interval_type = "time"
-}   
+}
 
 Integrator {
    atol = 1.e-5
 }
 
 Geometry{
+   // periodic BC: 1, non-periodic BC: 0
    periodic_dimension = 0, 0
    coarsest_level_resolution = 512, 512  // required
-   x_lo         = 0., 0. // lower end of computational domain.
+   x_lo         = 0.,   0.   // lower end of computational domain.
    x_up         = 32.0, 32.0 // upper end of computational domain.
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
 }
