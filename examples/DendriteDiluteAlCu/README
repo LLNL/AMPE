@@ -1,0 +1,19 @@
+### 2D ###
+
+#Generate initial conditions:
+#One solid grain of radius 15 cells in the middle of a domain 512 x 512 cells
+python make_nuclei.py --nx 512 --ny 512 -z 1 -r 15 \
+   --concentration-in 0.003 --concentration-out 0.02 \
+   --center "256,256,1" 512x512.nc
+
+#Run AMPE with 4 MPI tasks
+mpirun -np 4 ../../build/source/ampe2d 2d.input
+
+##############################
+### 3D ###
+python make_nuclei.py --nx 256 --ny 256 -z 256 -r 15 \
+   --concentration-in 0.003 --concentration-out 0.02 \
+   --center "128,128,128" 256x256x256.nc
+
+mpirun -np 32../../build/source/ampe3d 3d.input
+

@@ -1,0 +1,119 @@
+// Units are:
+//   length: um = 10^-6 m
+//   time  : seconds
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time      = 1.4e-3  // required
+max_timesteps = 500   // optional, default is INT_MAX (alias: max_cycles)
+
+Visit {
+   interval = 1.e-4 // s
+   interval_type = "time"
+}
+
+ModelParameters {  // required block
+
+   Interface {
+      sigma = 0.1
+      delta = 0.0625
+   }
+
+   epsilon_anisotropy = 0.03 //delta
+
+   // we need quaternions to define anisotropy
+   H_parameter = 0. // H=0. means q will not evolve
+   orient_mobility = 1.
+   epsilon_orient = 1.e3 // to avoid negative diffusion for q
+
+   PhaseMobility{
+      type = "kim"
+   }
+
+   Temperature{
+      // specify a uniform and constant scalar field
+      type = "scalar"
+      temperature = 915.
+   }
+
+   ConcentrationModel {
+      model = "dilute"
+      //antitrapping = TRUE
+      rhs_form = "ebs"
+      molar_volume = 1.095e-5
+
+      // phase diagram information
+      liquidus_slope = -640 // K / atomic fraction
+      meltingT = 933. // K
+      keq      = 0.14
+
+      // D = D_phase * exp( -Q0_phase / (R*T) )
+      diffusion_type = "temperature_dependent"
+      D_solid  =  3.e-1 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+   }
+
+   // interpolation polynomials
+   phi_interp_func_type ="pbg"
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   // boundary conditions for non-periodic directions
+   // options are "slope" or "value"
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+InitialConditions {
+   // phase field and composition
+   filename = "256x256x256.nc"  // required
+   // quaternion field rotated by 45 deg around z-axis
+   init_q   = 0.924, 0., 0., 0.383
+}
+
+ScalarDiagnostics {
+   interval = 1.e-4
+   interval_type = "time"
+}
+
+Integrator {
+   atol = 1.e-5
+}
+
+Geometry{
+   // periodic BC: 1, non-periodic BC: 0
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 256, 256, 256  // required
+   x_lo         = 0.,  0.,  0.  // lower end of computational domain.
+   x_up         = 16., 16., 16. // upper end of computational domain.
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+}
