@@ -2,7 +2,7 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-max_timesteps       = 300
+max_timesteps       = 150
 end_time            = 0.25
 
 Verbosity {  // optional, block
@@ -10,7 +10,7 @@ Verbosity {  // optional, block
 }
 
 Visit {
-   interval = 10
+   interval = 25
    interval_type = "step"
 }
 
@@ -59,8 +59,10 @@ ModelParameters {
 
 Integrator {
    atol = 1.e-4
-   Preconditioner{
-     enabled = FALSE
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+      coarse_solver_max_iterations = 5
+      coarse_solver_tolerance      = -1. // to get a fixed number of sweeps
+      coarse_solver_choice = "redblack"
    }
 }
 
@@ -71,13 +73,6 @@ ScalarDiagnostics {
    include_last_step  = TRUE
    extra_energy_detail = TRUE
 }   
-
-GrainDiagnostics {  // optional block
-   interval = 0.05  // optional, default=0.0
-   interval_type = "time"  // optional, default="step"
-   include_first_step = FALSE  // optional
-   phase_threshold = 0.85  // optional
-}
 
 InitialConditions {
    filename = "2spheres.nc"

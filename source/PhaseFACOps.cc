@@ -36,6 +36,7 @@ void PhaseFACOps::setOperatorCoefficients(
     const std::string phase_well_func_type)
 {
    assert(phase_mobility_id >= 0);
+   assert(epsilon_phase > 0.);
 
    t_setcoeffs_timer->start();
 

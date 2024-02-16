@@ -1082,10 +1082,13 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
 
    const int nphases = d_model_parameters.norderp();
 
+   // d_phase_sol and d_phase_rhs are used as temporary arrays for
+   // preconditioner preconditioning is done one depth at a time, so a depth of
+   // 1 is sufficient
    d_phase_sol_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                                         d_name + "_QI_phase_"
                                                                  "sol_",
-                                                        nphases));
+                                                        1));
    d_phase_sol_id = variable_db->registerVariableAndContext(
        d_phase_sol_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 1));
    assert(d_phase_sol_id >= 0);
@@ -1094,7 +1097,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
    d_phase_rhs_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                                         d_name + "_QI_phase_"
                                                                  "rhs_",
-                                                        nphases));
+                                                        1));
    d_phase_rhs_id = variable_db->registerVariableAndContext(
        d_phase_rhs_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_phase_rhs_id >= 0);
@@ -3238,10 +3241,12 @@ int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
    setCoefficients(t, y_samvect, true);
 
    if (d_with_phase && d_phase_sys_solver) {
+      const double phase_well_scale =
+          d_model_parameters.norderp() > 1 ? 0. : d_phase_well_scale;
       d_phase_sys_solver->setOperatorCoefficients(d_phase_scratch_id,
                                                   d_phase_mobility_id,
                                                   d_epsilon_phase, gamma,
-                                                  d_phase_well_scale,
+                                                  phase_well_scale,
                                                   d_phase_well_func_type);
    }
 
@@ -3323,6 +3328,7 @@ int QuatIntegrator::PhasePrecondSolve(
 #endif
 
    if (d_precond_has_dPhidT) {
+      assert(d_model_parameters.norderp() == 1);
       std::shared_ptr<DeltaTemperatureFreeEnergyStrategy> free_energy_strategy =
           std::dynamic_pointer_cast<DeltaTemperatureFreeEnergyStrategy>(
               d_free_energy_strategy);
@@ -3334,28 +3340,29 @@ int QuatIntegrator::PhasePrecondSolve(
       // Add -1.*gamma times the just computed product to the right-hand side
       cellops.axpy(d_phase_rhs_id, -1. * gamma, d_phase_rhs_id, r_phase_id,
                    false);
-
-   } else {
-
-      // Copy the right-hand side (r_phase_id) to the temporary right-hand side
-      // array (d_phase_rhs_id)
-      cellops.copyData(d_phase_rhs_id, r_phase_id, false);
    }
-
-   // Zero out the initial guess in the temporary solution array
-   cellops.setToScalar(d_phase_sol_id, 0., false);
 
    // Set the tolerance for the FAC solve as requested by integrator
    d_phase_sys_solver->setResidualTolerance(delta);
 
-   // Solve the phase block system
-   bool converged =
-       d_phase_sys_solver->solveSystem(d_phase_sol_id, d_phase_rhs_id);
+   int nconverged = 0;
+   // solve for one depth at a time
+   for (int depth = 0; depth < d_model_parameters.norderp(); depth++) {
+      if (!d_precond_has_dPhidT)
+         copyDepthCellData(hierarchy, d_phase_rhs_id, 0, r_phase_id, depth);
 
-   int retcode = converged ? 0 : 1;
+      // Zero out the initial guess in the temporary solution array
+      cellops.setToScalar(d_phase_sol_id, 0., false);
 
-   // Copy solution from the local temporary to the output array (z_phase_id)
-   cellops.copyData(z_phase_id, d_phase_sol_id, false);
+      // Solve the phase block system
+      bool converged =
+          d_phase_sys_solver->solveSystem(d_phase_sol_id, d_phase_rhs_id);
+      if (converged) nconverged++;
+
+      // Copy solution from the local temporary to the output array (z_phase_id)
+      copyDepthCellData(hierarchy, z_phase_id, depth, d_phase_sol_id, 0);
+   }
+   int retcode = (nconverged == d_model_parameters.norderp()) ? 0 : 1;
 
    t_phase_precond_timer->stop();
 
