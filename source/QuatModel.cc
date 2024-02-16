@@ -2388,7 +2388,15 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
 
 //-----------------------------------------------------------------------
 
-void QuatModel::postRunDiagnostics(void) { d_integrator->printSolverTotals(); }
+void QuatModel::postRunDiagnostics(void)
+{
+   if (d_scalar_diag_interval->includeFinal(d_time)) {
+
+      printScalarDiagnostics();
+   }
+
+   d_integrator->printSolverTotals();
+}
 
 //-----------------------------------------------------------------------
 
