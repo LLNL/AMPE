@@ -89,9 +89,9 @@ int main(int argc, char *argv[])
       copyDatabase(calphad_db, calphad_pt);
       copyDatabase(newton_db, newton_pt);
 
-      CALPHADFreeEnergyFunctionsTernary cafe(
-          calphad_pt, newton_pt,
-          energy_interp_func_type, conc_interp_func_type);
+      CALPHADFreeEnergyFunctionsTernary cafe(calphad_pt, newton_pt,
+                                             energy_interp_func_type,
+                                             conc_interp_func_type);
 
 
       // initial guesses

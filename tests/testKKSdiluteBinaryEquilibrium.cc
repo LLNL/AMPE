@@ -87,9 +87,8 @@ int main(int argc, char* argv[])
 
       pt::ptree conc_pt;
       copyDatabase(conc_db, conc_pt);
-      KKSFreeEnergyFunctionDiluteBinary cafe(
-          conc_pt,
-          energy_interp_func_type, conc_interp_func_type);
+      KKSFreeEnergyFunctionDiluteBinary cafe(conc_pt, energy_interp_func_type,
+                                             conc_interp_func_type);
 
       const double tol = 1.e-5;
 
@@ -101,8 +100,7 @@ int main(int argc, char* argv[])
 
       // compute equilibrium compositions
       double ceq[2];
-      cafe.computeCeqT(temperature,
-                       &ceq[0]);
+      cafe.computeCeqT(temperature, &ceq[0]);
       tbox::pout << "   ceL = " << ceq[0] << std::endl;
       tbox::pout << "   ceS = " << ceq[1] << std::endl;
 
@@ -139,14 +137,12 @@ int main(int argc, char* argv[])
       // compute second derivatives for info only
       std::vector<double> d2fdc2(1);
       cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[0], pi0,
-                                             d2fdc2.data()
-      );
+                                             d2fdc2.data());
       tbox::pout << "-------------------------------" << std::endl;
       tbox::pout << "Second derivatives" << std::endl;
       tbox::pout << "At ceL: " << d2fdc2[0] << std::endl;
       cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[1], pi1,
-                                             d2fdc2.data()
-      );
+                                             d2fdc2.data());
       tbox::pout << "At ceS: " << d2fdc2[0] << std::endl;
 
       input_db.reset();
