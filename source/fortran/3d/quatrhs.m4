@@ -550,15 +550,13 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1, ic2
-      integer ip, ip1, ip2
+      integer ip, jp, ip1, ip2
       double precision diff_term_x, diff_term_y, diff_term_z
       double precision diff_term
 
-      double precision g, g_prime, h_prime, p_prime
-      double precision deriv_interp_func
+      double precision g_prime
       double precision deriv_triple_well_func
-      double precision dxinv, dyinv, dzinv
-
+      double precision dxinv, dyinv, dzinv, fac, dsum
 c
       dxinv = 1.d0 / dx(1)
       dyinv = 1.d0 / dx(2)
@@ -595,6 +593,23 @@ c  Phase energy well
                rhs(ic0,ic1,ic2,ip) = rhs(ic0,ic1,ic2,ip) -
      &            phi_well_scale * g_prime
 
+               enddo
+            enddo
+         enddo
+      enddo
+
+c enforce constraint sum components = 0
+      fac = 1.d0/3.d0
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               dsum = 0.d0
+               do jp = 1, 3
+                 dsum = dsum +  rhs(ic0,ic1,ic2,jp)
+               enddo
+               dsum = dsum * fac
+               do jp = 1, 3
+                  rhs(ic0,ic1,ic2,jp) = rhs(ic0,ic1,ic2,jp) - dsum
                enddo
             enddo
          enddo

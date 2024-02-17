@@ -54,12 +54,13 @@ c
       double precision dsum, g_prime
       double precision deriv_interp_func
       double precision deriv_triple_well_func
-      double precision dxinv, dyinv, dzinv
+      double precision dxinv, dyinv, dzinv, fac
 
 c
       dxinv = 1.d0 / dx(1)
       dyinv = 1.d0 / dx(2)
       dzinv = 1.d0 / dx(3)
+      fac = 1.d0 / norder
 c
       do ip = 1, norder
          do ic2 = ifirst2, ilast2
@@ -92,6 +93,22 @@ c  Phase energy well
 
                   rhs(ic0,ic1,ic2,ip) = rhs(ic0,ic1,ic2,ip) - m*g_prime
 
+               enddo
+            enddo
+         enddo
+      enddo
+
+c enforce constraint
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               dsum = 0.d0
+               do jp = 1, norder
+                 dsum = dsum +  rhs(ic0,ic1,ic2,jp)
+               enddo
+               dsum = dsum * fac
+               do jp = 1, norder
+                  rhs(ic0,ic1,ic2,jp) = rhs(ic0,ic1,ic2,jp) - dsum
                enddo
             enddo
          enddo

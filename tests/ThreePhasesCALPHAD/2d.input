@@ -1,5 +1,5 @@
 // Input file
-end_time            = 140.
+end_time            = 130.
 max_timesteps       = 750
 
 run_name = "test"

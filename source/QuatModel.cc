@@ -2469,7 +2469,7 @@ void QuatModel::printScalarDiagnostics(void)
                        << vphi / vol << std::endl;
          }
       } else if (d_model_parameters.norderp() > 1) {
-         for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
+         for (int i = 0; i < d_model_parameters.norderp(); i++) {
             vphi = evaluatePhaseFraction(d_patch_hierarchy, d_phase_id, i);
             tbox::pout << "  Volume fraction of phase " << i << " = "
                        << vphi / vol << std::endl;

@@ -3,7 +3,7 @@
 //   energy: pJ = 10^-12 J
 //
 end_time            = 2.e-2
-max_timesteps       = 2000
+max_timesteps       = 2200
 
 Visit {
    //extra_output          = TRUE

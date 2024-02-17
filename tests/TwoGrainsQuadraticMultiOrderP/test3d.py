@@ -33,8 +33,9 @@ lines=output.split(b'\n')
 volfractions=[]
 
 end_reached = False
+end_time = 0.08
 for line in lines:
-  if line.count(b'phase') and line.count(b'Volume'):
+  if (line.count(b'phase 0') or line.count(b'phase 1') ) and line.count(b'Volume'):
     print(line)
     words=line.split()
     volume=eval(words[6])
@@ -44,7 +45,7 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time>0.1:
+    if time > end_time:
       end_reached = True
 
 minv=1.
@@ -60,7 +61,7 @@ if abs(maxv-expected_value)>0.003:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.005
+expected_value=0.001
 if abs(minv-expected_value)>0.001:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)

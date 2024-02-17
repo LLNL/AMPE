@@ -71,7 +71,7 @@ if abs(f2-0.24)>tol:
   sys.exit(1)
 
 #check target time is reached
-if time<140.:
+if time<130.:
   print("Final time not reached")
   sys.exit(1)
 

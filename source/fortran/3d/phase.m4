@@ -67,8 +67,10 @@ c
       double precision err(CELL3d(ifirst,ilast,nge),depth)
 
 c     local variables:
-      double precision fac
+      double precision fac, avg
       integer i, j, k, m
+
+      avg = 1.d0/depth
 
       do k = ifirst2, ilast2
          do j = ifirst1, ilast1
@@ -80,11 +82,22 @@ c           consists in adding a correction in the direction (1,1,1)
                do m = 1, depth
                   fac = fac + phi(i,j,k,m)
                enddo
-               fac = (fac - 1.d0)/3.d0
+               fac = (fac - 1.d0) * avg
 
 c              Store the projection in the correction array for now
                do m = 1, depth
                   corr(i,j,k,m) = phi(i,j,k,m) - fac
+               enddo
+c
+               fac = 0.d0
+               do m = 1, depth
+                  fac = fac + err(i,j,k,m)
+               enddo
+               fac = fac * avg
+
+c              Subtract the error component in the (1,1,1) direction
+               do m = 1, depth
+                  err(i,j,k,m) = err(i,j,k,m) - fac
                enddo
 
 c              Finalize the correction: phi + corr is on the constraint

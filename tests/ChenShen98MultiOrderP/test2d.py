@@ -41,11 +41,11 @@ for line in lines:
     words=line.split()
     if eval(words[6])>300.:
       end_reached = True
-  if line.count(b'fraction'):
+  if line.count(b'fraction') and line.count(b'phase 0'):
     print(line)
     if end_reached:
       words=line.split()
-      if abs(eval(words[6])-0.07)>1.e-2:
+      if abs(eval(words[6])-0.11)>1.e-2:
         print("Wrong solid fraction")
         sys.exit(1)
 

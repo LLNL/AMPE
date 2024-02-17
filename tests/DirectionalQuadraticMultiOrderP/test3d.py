@@ -43,9 +43,18 @@ for line in lines: ## loop over lines of file
     words = line.split()
     time = eval(words[6])
 
-  if line.count(b'Volume fraction'):
+  if line.count(b'Volume fraction') and line.count(b'phase 0'):
     words = line.split()
     fs = eval(words[6])
+
+  if line.count(b'Max') and line.count(b'concentration'):
+    words = line.split()
+    cmax = eval(words[3])
+
+target_cmax = 0.163
+if abs(cmax-target_cmax)>0.002:
+  print("Wrong cmax {}, expected {}".format(cmax,target_cmax))
+  sys.exit(1)
 
 target_vol_fraction = 0.513
 print("Solid fraction : {}".format(fs))

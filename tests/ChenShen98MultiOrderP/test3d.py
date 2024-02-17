@@ -41,7 +41,7 @@ for line in lines:
     words=line.split()
     if eval(words[6])>120.:
       end_reached = True
-  if line.count(b'fraction'):
+  if line.count(b'fraction') and line.count(b'phase 0'):
     print(line)
     if end_reached:
       words=line.split()
