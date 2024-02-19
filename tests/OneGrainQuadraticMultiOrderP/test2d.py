@@ -34,6 +34,7 @@ lines=output.split(b'\n')
 volumes=[]
 
 end_reached = False
+target_sf = 0.19
 for line in lines:
 
   if line.count(b'cycle'):
@@ -43,13 +44,14 @@ for line in lines:
     if time>0.25:
       end_reached = True
 
-  if line.count(b'fraction'):
+  if line.count(b'fraction')  and line.count(b'phase 0'):
     print(line)
     if end_reached:
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-0.19)>1.e-2:
-        print("Wrong solid fraction")
+      if abs(sfraction-target_sf)>1.e-2:
+        print("Wrong solid fraction:")
+        print("found {}, expected {}".format(sfraction-target_sf, sfraction-target_sf))
         sys.exit(1)
 
 os.remove(initfilename)
@@ -58,5 +60,5 @@ os.unlink(data)
 if end_reached:
   sys.exit(0)
 else:
+  print("End time not reached")
   sys.exit(1)
-

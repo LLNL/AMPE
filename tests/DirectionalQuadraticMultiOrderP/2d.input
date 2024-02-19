@@ -4,11 +4,10 @@
 //
 model_type = "KWCcomplex"
 
-end_time            = 3.e-2
+end_time            = 2.e-2
 max_timesteps       = 2200
 
 Visit {
-   //extra_output          = TRUE
    interval = 1.e-3
    interval_type = "time"
 }
@@ -98,7 +97,6 @@ Integrator {
 
 InitialConditions {
    filename = "512x4.nc"  // required
-   //init_c   = 0.14
 }
 
 Geometry{

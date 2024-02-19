@@ -1,5 +1,5 @@
 end_time            = 120.
-max_timesteps       = 300
+max_timesteps       = 400
 
 Visit {
    interval = 10.

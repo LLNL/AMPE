@@ -39,20 +39,30 @@ fs = 0.
 time = 0.
 for line in lines: ## loop over lines of file
   if line.count(b'cycle #'):
+    print(line)
     words = line.split()
     time = eval(words[6])
 
-  if line.count(b'Volume fraction'):
+  if line.count(b'Volume fraction') and line.count(b'phase 0'):
     words = line.split()
     fs = eval(words[6])
 
-target_vol_fraction = 0.513
-print("Solid fraction : {}".format(fs))
-if abs(fs-target_vol_fraction)>0.005:
-  print("Wrong solid fraction {}".format(fs))
+  if line.count(b'Max') and line.count(b'concentration'):
+    words = line.split()
+    cmax = eval(words[3])
+
+target_cmax = 0.163
+if abs(cmax-target_cmax)>0.002:
+  print("Wrong cmax {}, expected {}".format(cmax,target_cmax))
   sys.exit(1)
 
-target_time = 3.e-2
+target_vol_fraction = 0.51
+print("Solid fraction : {}".format(fs))
+if abs(fs-target_vol_fraction)>0.005:
+  print("Wrong solid fraction {}, expected {}".format(fs,target_vol_fraction))
+  sys.exit(1)
+
+target_time = 2.e-2
 print("Time reached : {}".format(time))
 if time<target_time:
   print("Target time {} not reached!".format(target_time))

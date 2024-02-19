@@ -66,8 +66,10 @@ c
       double precision err(CELL2d(ifirst,ilast,nge),depth)
 
 c     local variables:
-      double precision fac
+      double precision fac, avg
       integer i, j, m
+
+      avg = 1.d0/depth
 
       do j = ifirst1, ilast1
          do i = ifirst0, ilast0
@@ -78,7 +80,7 @@ c           consists in adding a correction in the direction (1,1,1)
             do m = 1, depth
                fac = fac + phi(i,j,m)
             enddo
-            fac = (fac - 1.d0)/3.d0
+            fac = (fac - 1.d0) * avg
 
 c           Store the projection in the correction array for now
             do m = 1, depth
@@ -90,7 +92,7 @@ c
             do m = 1, depth
                fac = fac + err(i,j,m)
             enddo
-            fac = fac / depth;
+            fac = fac * avg
 
 c           Subtract the error component in the (1,1,1) direction
             do m = 1, depth

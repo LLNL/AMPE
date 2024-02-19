@@ -1,5 +1,5 @@
 // Input file
-end_time            = 140.
+end_time            = 130.
 max_delta_cycles    = 375
 
 run_name = "test"
