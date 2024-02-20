@@ -13,6 +13,8 @@
 
 #include "PhaseFluxStrategy.h"
 
+#include "SAMRAI/tbox/PIO.h"
+
 class PhaseFluxStrategySimple : public PhaseFluxStrategy
 {
  public:
@@ -20,6 +22,8 @@ class PhaseFluxStrategySimple : public PhaseFluxStrategy
        : d_epsilon_phase(epsilon_phase)
    {
       assert(d_epsilon_phase > 0.);
+      tbox::plog << "PhaseFluxStrategySimple with epsilon = " << d_epsilon_phase
+                 << std::endl;
    }
 
    void computeFluxes(const std::shared_ptr<hier::PatchLevel> level,

@@ -1,5 +1,5 @@
 end_time            = 120.
-max_timesteps       = 400
+max_timesteps       = 300
 
 Visit {
    interval = 10.
@@ -53,10 +53,11 @@ ScalarDiagnostics {
 }   
 
 Integrator {
-   atol = 3.e-5
-   Preconditioner{
-      enabled = FALSE
-      precondition_phase = FALSE
+   atol = 1.e-4
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+      coarse_solver_max_iterations = 5
+      coarse_solver_tolerance      = -1. // to get a fixed number of sweeps
+      coarse_solver_choice = "redblack"
    }
 }
 

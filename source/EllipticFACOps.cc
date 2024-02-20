@@ -846,6 +846,7 @@ void EllipticFACOps::setM(const int m_id)
          std::shared_ptr<pdat::CellData<double> > dst(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(d_m_id)));
+         assert(src->getDepth() == dst->getDepth());
 #ifdef DEBUG_CHECK_ASSERTIONS
          double l2 = ops.L2Norm(src, src->getBox());
          assert(l2 == l2);

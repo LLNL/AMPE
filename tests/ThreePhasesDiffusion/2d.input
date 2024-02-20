@@ -1,6 +1,6 @@
 // Input file
 end_time            = 10000.
-max_timesteps       = 500
+max_timesteps       = 60
 
 run_name = "test"
 
@@ -70,13 +70,11 @@ ModelParameters {
 ScalarDiagnostics {
    interval = 25
    interval_type = "step"
+   include_last_step  = TRUE   // optional
 }   
 
 Integrator {
-   atol = 1.e-5
-   Preconditioner{
-     enabled = FALSE
-   }
+   atol = 1.e-4
 }
 
 InitialConditions {

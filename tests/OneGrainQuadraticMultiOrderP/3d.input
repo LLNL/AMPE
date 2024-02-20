@@ -2,7 +2,7 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-max_timesteps       = 300
+max_timesteps       = 100
 end_time            = 0.15
 
 Verbosity {  // optional, block
@@ -57,10 +57,11 @@ ModelParameters {
 }
 
 Integrator {
-   atol = 1.e-5
-   Preconditioner{
-      enabled = FALSE
-      precondition_phase = FALSE
+   atol = 1.e-4
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+       coarse_solver_max_iterations = 5
+       coarse_solver_tolerance      = -1. // to get a fixed number of sweeps
+       coarse_solver_choice = "redblack"
    }
 }
 

@@ -1,6 +1,6 @@
 // Input file
 end_time            = 240.
-max_timesteps       = 300
+max_timesteps       = 150
 
 run_name = "test"
 
@@ -49,10 +49,7 @@ ScalarDiagnostics {
 }   
 
 Integrator {
-   atol = 1.e-5
-   Preconditioner{
-     enabled = FALSE
-   }
+   atol = 1.e-4
 }
 
 InitialConditions {

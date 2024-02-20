@@ -3463,6 +3463,8 @@ void QuatModel::computePhaseDiffs(
                     patch->getPatchData(d_phase_diffs_cell_id)));
             assert(cell_diffs_data);
 
+            assert( diff_data->getDepth()==cell_diffs_data->getDepth());
+
             pdat::CellIterator iend(pdat::CellGeometry::end(box));
             for (pdat::CellIterator i(pdat::CellGeometry::begin(box));
                  i != iend; ++i) {
