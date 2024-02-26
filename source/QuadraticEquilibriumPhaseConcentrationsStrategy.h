@@ -13,7 +13,7 @@
 
 #include "PhaseConcentrationsStrategy.h"
 #include "QuatModelParameters.h"
-#include "QuadraticFreeEnergyStrategy.h"
+#include "QuadraticFreeEnergyFunctionsBinary.h"
 
 #include <string>
 
@@ -26,7 +26,7 @@ class QuadraticEquilibriumPhaseConcentrationsStrategy
        const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db);
 
-   ~QuadraticEquilibriumPhaseConcentrationsStrategy() { delete d_fenergy; }
+   ~QuadraticEquilibriumPhaseConcentrationsStrategy() {}
 
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -41,7 +41,7 @@ class QuadraticEquilibriumPhaseConcentrationsStrategy
  private:
    ConcInterpolationType d_conc_interp_func_type;
 
-   QuadraticFreeEnergyStrategy* d_fenergy;
+   std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary> d_fenergy;
 };
 
 #endif

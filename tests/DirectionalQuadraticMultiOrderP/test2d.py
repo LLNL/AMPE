@@ -41,6 +41,7 @@ for line in lines: ## loop over lines of file
   if line.count(b'cycle #'):
     print(line)
     words = line.split()
+    print(line)
     time = eval(words[6])
 
   if line.count(b'Volume fraction') and line.count(b'phase 0'):

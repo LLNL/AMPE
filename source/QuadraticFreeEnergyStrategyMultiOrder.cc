@@ -25,27 +25,29 @@ QuadraticFreeEnergyStrategyMultiOrder::QuadraticFreeEnergyStrategyMultiOrder(
     std::shared_ptr<tbox::Database> input_db,
     const EnergyInterpolationType energy_interp_func_type, const double vml,
     const double vma, const int conc_l_id, const int conc_a_id)
-    : d_vm_L(vml),
-      d_vm_A(vma),
-      d_energy_interp_func_type(energy_interp_func_type),
+    : d_energy_interp_func_type(energy_interp_func_type),
       d_conc_l_id(conc_l_id),
       d_conc_a_id(conc_a_id)
 {
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
 
-   d_energy_conv_factor_L = 1.e-6 / d_vm_L;
-   d_energy_conv_factor_A = 1.e-6 / d_vm_A;
+   d_energy_conv_factor_L = 1.e-6 / vml;
+   d_energy_conv_factor_A = 1.e-6 / vma;
 
-   d_Tref = input_db->getDouble("T_ref");
+   double Tref = input_db->getDouble("T_ref");
 
-   d_A_liquid = input_db->getDouble("A_liquid");
-   d_Ceq_liquid = input_db->getDouble("Ceq_liquid");
-   d_m_liquid = input_db->getDouble("m_liquid");
+   double A_liquid = input_db->getDouble("A_liquid");
+   double Ceq_liquid = input_db->getDouble("Ceq_liquid");
+   double m_liquid = input_db->getDouble("m_liquid");
 
-   d_A_solid_A = input_db->getDouble("A_solid");
-   d_Ceq_solid_A = input_db->getDouble("Ceq_solid");
-   d_m_solid = input_db->getDouble("m_solid");
+   double A_solid_A = input_db->getDouble("A_solid");
+   double Ceq_solid_A = input_db->getDouble("Ceq_solid");
+   double m_solid = input_db->getDouble("m_solid");
+
+   d_quadratic_fenergy.reset(new Thermo4PFM::QuadraticFreeEnergyFunctionsBinary(
+       Tref, A_liquid, Ceq_liquid, m_liquid, A_solid_A, Ceq_solid_A, m_solid,
+       energy_interp_func_type, Thermo4PFM::ConcInterpolationType::LINEAR));
 
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
@@ -60,32 +62,6 @@ QuadraticFreeEnergyStrategyMultiOrder::QuadraticFreeEnergyStrategyMultiOrder(
 
 //=======================================================================
 
-double evaluateDerivFreeEnergy(const double conc, const double A,
-                               const double Ceq, const double energy_factor)
-{
-   double mu = 2. * A * (conc - Ceq);
-
-   return mu * energy_factor;
-}
-
-//=======================================================================
-
-double evaluateFreeEnergy(const double conc, const double A, const double Ceq,
-                          const double energy_factor, const bool gp = false)
-{
-   double d = conc - Ceq;
-
-   double fe = A * d * d;
-   fe *= energy_factor;
-
-   // subtract -mu*c to get grand potential
-   if (gp) fe -= evaluateDerivFreeEnergy(conc, A, Ceq, energy_factor) * conc;
-
-   return fe;
-}
-
-//=======================================================================
-
 void QuadraticFreeEnergyStrategyMultiOrder ::computeFreeEnergyLiquid(
     hier::Patch& patch, const int temperature_id, const int fl_id,
     const bool gp)
@@ -94,8 +70,8 @@ void QuadraticFreeEnergyStrategyMultiOrder ::computeFreeEnergyLiquid(
    assert(temperature_id >= 0.);
    assert(d_conc_l_id >= 0);
 
-   computeFreeEnergy(patch, temperature_id, d_A_liquid, d_Ceq_liquid, d_Tref,
-                     d_m_liquid, fl_id, d_conc_l_id, d_energy_conv_factor_L);
+   computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
+                     Thermo4PFM::PhaseIndex::phaseL, d_energy_conv_factor_L);
 }
 
 //=======================================================================
@@ -108,16 +84,15 @@ void QuadraticFreeEnergyStrategyMultiOrder ::computeFreeEnergySolidA(
    assert(temperature_id >= 0.);
    assert(d_conc_a_id >= 0);
 
-   computeFreeEnergy(patch, temperature_id, d_A_solid_A, d_Ceq_solid_A, d_Tref,
-                     d_m_solid, fa_id, d_conc_a_id, d_energy_conv_factor_A);
+   computeFreeEnergy(patch, temperature_id, fa_id, d_conc_a_id,
+                     Thermo4PFM::PhaseIndex::phaseA, d_energy_conv_factor_A);
 }
 
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrder ::computeFreeEnergy(
-    hier::Patch& patch, const int temperature_id, const double A,
-    const double Ceq, const double Tref, const double m, const int f_id,
-    const int conc_i_id, const double energy_factor)
+    hier::Patch& patch, const int temperature_id, const int f_id,
+    const int conc_i_id, Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -137,15 +112,14 @@ void QuadraticFreeEnergyStrategyMultiOrder ::computeFreeEnergy(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeFreeEnergy(pbox, temperature, A, Ceq, Tref, m, f, c_i, energy_factor);
+   computeFreeEnergy(pbox, temperature, f, c_i, pi, energy_factor);
 }
 
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrder ::computeDerivFreeEnergy(
-    hier::Patch& patch, const int temperature_id, const double A,
-    const double Ceq, const double Tref, const double m, const int df_id,
-    const int conc_i_id, const double energy_factor)
+    hier::Patch& patch, const int temperature_id, const int df_id,
+    const int conc_i_id, Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -165,18 +139,16 @@ void QuadraticFreeEnergyStrategyMultiOrder ::computeDerivFreeEnergy(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeDerivFreeEnergy(pbox, temperature, A, Ceq, Tref, m, df, c_i,
-                          energy_factor);
+   computeDerivFreeEnergy(pbox, temperature, df, c_i, pi, energy_factor);
 }
 
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrder::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-    const double A, const double Ceq, const double Tref, const double m,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-    const double energy_factor)
+    Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -243,9 +215,8 @@ void QuadraticFreeEnergyStrategyMultiOrder::computeFreeEnergy(
 
             double c_i = ptr_c_i[idx_c_i];
 
-            double ceqT = Ceq + (t - Tref) * m;
-
-            ptr_f[idx_f] = evaluateFreeEnergy(c_i, A, ceqT, energy_factor);
+            ptr_f[idx_f] = d_quadratic_fenergy->computeFreeEnergy(t, &c_i, pi);
+            ptr_f[idx_f] *= energy_factor;
          }
       }
    }
@@ -255,10 +226,9 @@ void QuadraticFreeEnergyStrategyMultiOrder::computeFreeEnergy(
 
 void QuadraticFreeEnergyStrategyMultiOrder::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-    const double A, const double Ceq, const double Tref, const double m,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-    const double energy_factor)
+    Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -321,9 +291,10 @@ void QuadraticFreeEnergyStrategyMultiOrder::computeDerivFreeEnergy(
 
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
-            double ceqT = Ceq + (t - Tref) * m;
 
-            ptr_f[idx_f] = evaluateDerivFreeEnergy(c_i, A, ceqT, energy_factor);
+            double deriv;
+            d_quadratic_fenergy->computeDerivFreeEnergy(t, &c_i, pi, &deriv);
+            ptr_f[idx_f] = deriv * energy_factor;
          }
       }
    }
@@ -579,10 +550,13 @@ void QuadraticFreeEnergyStrategyMultiOrder::addDrivingForceOnPatch(
 double QuadraticFreeEnergyStrategyMultiOrder::computeMu(const double t,
                                                         const double c_l)
 {
-   double ceqT = d_Ceq_liquid + (t - d_Tref) * d_m_liquid;
+   double deriv;
+   double conc = c_l;
+   d_quadratic_fenergy->computeDerivFreeEnergy(t, &conc,
+                                               Thermo4PFM::PhaseIndex::phaseL,
+                                               &deriv);
 
-   return evaluateDerivFreeEnergy(c_l, d_A_liquid, ceqT,
-                                  d_energy_conv_factor_L);
+   return deriv * d_energy_conv_factor_L;
 }
 
 //=======================================================================
@@ -592,11 +566,11 @@ void QuadraticFreeEnergyStrategyMultiOrder::
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d2fdc2[0] = 2. * d_A_liquid;
-
-   if (use_internal_units) d2fdc2[0] *= d2fdc2[0] *= d_energy_conv_factor_L;
+   double c = c_l[0];
+   d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
+       0., &c, Thermo4PFM::PhaseIndex::phaseL, &d2fdc2[0]);
+   if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_L;
 }
-
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrder::
@@ -604,7 +578,8 @@ void QuadraticFreeEnergyStrategyMultiOrder::
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   assert(c_a.size() == 1);
-   d2fdc2[0] = 2. * d_A_solid_A;
+   double c = c_a[0];
+   d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
+       0., &c, Thermo4PFM::PhaseIndex::phaseA, &d2fdc2[0]);
    if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_A;
 }

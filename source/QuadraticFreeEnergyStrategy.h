@@ -14,6 +14,8 @@
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
+#include "QuadraticFreeEnergyFunctionsBinary.h"
+
 #include <string>
 
 class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
@@ -70,39 +72,26 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
                                  const double energy_factor) const;
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
-                          const double A, const double Ceq, const double Tref,
-                          const double m, const int f_id, const int c_i_id,
+                          const int f_id, const int c_i_id,
+                          Thermo4PFM::PhaseIndex pi,
                           const double energy_factor);
 
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
-                               const double A, const double Ceq,
-                               const double Tref, const double m,
                                const int f_id, const int c_i_id,
+                               Thermo4PFM::PhaseIndex pi,
                                const double energy_factor);
-
-   double computeLiquidConcentration(const double hphi, const double c,
-                                     const double Al, const double Aa,
-                                     const double Ceql,
-                                     const double CeqA) const;
-
-   double computeSolidAConcentration(const double hphi, const double c,
-                                     const double Al, const double Aa,
-                                     const double Ceql,
-                                     const double CeqA) const;
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       const double A, const double Ceq, const double Tref, const double m,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       const double energy_factor);
+       Thermo4PFM::PhaseIndex pi, const double energy_factor);
 
    void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       const double A, const double Ceq, const double Tref, const double m,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       const double energy_factor);
+       Thermo4PFM::PhaseIndex pi, const double energy_factor);
 
    void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
@@ -115,6 +104,9 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
 
    double computeMu(const double t, const double c);
 
+   std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary>
+       d_quadratic_fenergy;
+
    EnergyInterpolationType d_energy_interp_func_type;
 
    double d_vm_L;  // molar volume
@@ -124,15 +116,6 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
 
    double d_energy_conv_factor_L;  // molar volume
    double d_energy_conv_factor_A;  // molar volume
-
-   double d_A_liquid;
-   double d_A_solid_A;
-   double d_Ceq_liquid;
-   double d_Ceq_solid_A;
-
-   double d_Tref;
-   double d_m_liquid;
-   double d_m_solid;
 
    int d_conc_l_id;
    int d_conc_a_id;
