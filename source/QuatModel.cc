@@ -2259,18 +2259,6 @@ void QuatModel::preRunDiagnostics(void)
                                    PhaseIndex::phaseA, &ceq[0]);
          }
 
-         std::shared_ptr<ConcFreeEnergyStrategy> free_energy_strategy =
-             std::dynamic_pointer_cast<ConcFreeEnergyStrategy>(
-                 d_free_energy_strategy);
-
-         if (free_energy_strategy && found_ceq) {
-            if (phi_min < 0.1) {
-               free_energy_strategy->energyVsPhiAndC(
-                   temperature, &ceq[0], found_ceq,
-                   d_model_parameters.phase_well_scale(),
-                   d_model_parameters.phase_well_func_type(), 51, 50);
-            }
-         }
          mpi.Barrier();
 
          if (found_ceq && !d_is_from_restart) {
@@ -3463,7 +3451,7 @@ void QuatModel::computePhaseDiffs(
                     patch->getPatchData(d_phase_diffs_cell_id)));
             assert(cell_diffs_data);
 
-            assert( diff_data->getDepth()==cell_diffs_data->getDepth());
+            assert(diff_data->getDepth() == cell_diffs_data->getDepth());
 
             pdat::CellIterator iend(pdat::CellGeometry::end(box));
             for (pdat::CellIterator i(pdat::CellGeometry::begin(box));
