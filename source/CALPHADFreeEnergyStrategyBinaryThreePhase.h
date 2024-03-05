@@ -128,21 +128,6 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
       d_calphad_fenergy->preRunDiagnostics(temperature);
    }
 
-   bool computeCeqT(const double temperature, const PhaseIndex pi0,
-                    const PhaseIndex pi1, double* ceq)
-   {
-      return d_calphad_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
-   }
-
-   void energyVsPhiAndC(const double temperature, const double* const ceq,
-                        const bool found_ceq, const double phi_well_scale,
-                        const std::string& phi_well_type, const int npts_phi,
-                        const int npts_c)
-   {
-      d_calphad_fenergy->energyVsPhiAndC(temperature, ceq, found_ceq,
-                                         phi_well_scale, npts_phi, npts_c);
-   }
-
  private:
    int d_conc_l_id;
    int d_conc_a_id;
