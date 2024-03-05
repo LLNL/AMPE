@@ -69,7 +69,7 @@ void CALPHADFreeEnergyStrategyTernary::setup(
    pt::ptree calphad_pt;
    copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
-   copyDatabase(newton_db, newton_pt);
+   if (newton_db) copyDatabase(newton_db, newton_pt);
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
                                              d_energy_interp_func_type,
