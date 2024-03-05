@@ -6,9 +6,9 @@ import os
 print("Test moving frame with gradient given by T history...")
 
 #prepare initial conditions file
-initfilename="1000.nc"
+initfilename="500.nc"
 subprocess.call(["python3", "../../utils/make_bilayer.py",
-  "--nx", "1000", "--ny", "2", "--nz", "2", "-r", "500",
+  "--nx", "500", "--ny", "2", "--nz", "2", "-r", "250",
   "-d", "1", "--centerx", "0.",
   initfilename])
 
@@ -57,5 +57,6 @@ if time<target_time:
   sys.exit(1)
 
 os.remove(initfilename)
+os.unlink(T_data)
 
 sys.exit(0)

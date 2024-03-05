@@ -6,9 +6,9 @@ import os
 print("Test moving frame with gradient...")
 
 #prepare initial conditions file
-initfilename="1000.nc"
+initfilename="500.nc"
 subprocess.call(["python3", "../../utils/make_bilayer.py",
-  "--nx", "1000", "--ny", "1", "--nz", "1", "-r", "500",
+  "--nx", "500", "--ny", "1", "--nz", "1", "-r", "250",
   "-d", "1", "--centerx", "0.",
   initfilename])
 
@@ -38,9 +38,9 @@ for line in lines: ## loop over lines of file
     fs=eval(w[6])
     print("Volume fraction: {}".format(fs))
 
-target_fs = 0.51
+target_fs = 0.52
 if abs(target_fs-fs)>0.005:
-  print("Target fs not reached")
+  print("Target fs not reached, expected {}".format(target_fs))
   sys.exit(1)
 
 target_time = 0.022

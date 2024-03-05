@@ -24,7 +24,7 @@ ModelParameters {
  
    Temperature {
       type = "frozen"
-      center =   25., 0., 0.
+      center =   12.5, 0., 0.
       filename = "temperature.csv"
    }
 
@@ -84,15 +84,15 @@ Integrator {
 }
 
 InitialConditions {
-   filename = "1000.nc"
+   filename = "500.nc"
    init_c   = 0.05
 }
 
 Geometry{
    periodic_dimension = 0, 0, 0
-   coarsest_level_resolution = 1000, 2, 2
+   coarsest_level_resolution = 500, 2, 2
    x_lo         =  0.,  0.,   0.   // [um]
-   x_up         =  50., 0.1, 0.1 // [um]
+   x_up         =  25., 0.1, 0.1 // [um]
 }
 
 TimerManager {    // optional block, see SAMRAI docs
