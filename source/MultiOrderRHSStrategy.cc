@@ -22,8 +22,9 @@
 MultiOrderRHSStrategy::MultiOrderRHSStrategy(
     const QuatModelParameters& model_parameters, const int phase_scratch_id,
     const int conc_scratch_id, const int temperature_scratch_id,
-    const int f_l_id, const int f_a_id, const int phase_mobility_id,
-    const int flux_id, CVODESolver* sundials_solver,
+    const int f_l_id, const int f_a_id, const int f_b_id,
+    const int phase_mobility_id, const int flux_id,
+    CVODESolver* sundials_solver,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
@@ -34,6 +35,7 @@ MultiOrderRHSStrategy::MultiOrderRHSStrategy(
       d_temperature_scratch_id(temperature_scratch_id),
       d_f_l_id(f_l_id),
       d_f_a_id(f_a_id),
+      d_f_b_id(f_b_id),
       d_phase_mobility_id(phase_mobility_id),
       d_flux_id(flux_id),
       d_sundials_solver(sundials_solver),
@@ -219,11 +221,9 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
                                                       d_f_a_id, false);
 
       // then add component from chemical energy
-      d_free_energy_strategy->addDrivingForce(time, *patch,
-                                              d_temperature_scratch_id,
-                                              d_phase_scratch_id, -1,
-                                              d_conc_scratch_id, d_f_l_id,
-                                              d_f_a_id, -1, ydot_phase_id);
+      d_free_energy_strategy->addDrivingForce(
+          time, *patch, d_temperature_scratch_id, d_phase_scratch_id, -1,
+          d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id, ydot_phase_id);
    }
 
 #ifndef NDEBUG

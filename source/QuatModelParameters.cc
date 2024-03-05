@@ -33,6 +33,8 @@ static void readSpeciesCP(std::shared_ptr<tbox::Database> cp_db,
 QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
 {
    d_norderp = 1;
+   d_norderp_A = -1;
+   d_norderp_B = -1;
    d_gamma = 1.5;
    d_H_parameter = def_val;
    d_epsilon_phase = def_val;
@@ -722,6 +724,14 @@ void QuatModelParameters::readModelParameters(
    // phi, and define second phase as 1.-phi
    d_norderp = model_db->getIntegerWithDefault("norderp", 1);
    tbox::plog << "norderp = " << d_norderp << std::endl;
+
+   d_norderp_A = model_db->getIntegerWithDefault("norderp_A", -1);
+   if (d_norderp_A > 0) {
+      tbox::plog << "norderp_A = " << d_norderp_A << std::endl;
+      d_norderp_B = d_norderp - d_norderp_A - 1;
+      tbox::plog << "norderp_B = " << d_norderp_B << std::endl;
+   }
+
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
 

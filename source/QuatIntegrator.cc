@@ -1456,7 +1456,7 @@ void QuatIntegrator::RegisterWithVisit(
       if (d_with_phase) {
          assert(d_phase_rhs_visit_id >= 0);
          assert(d_driving_force_visit_id >= 0);
-         const int n = d_model_parameters.with_three_phases() ? 3 : 1;
+         const int n = d_model_parameters.norderp();
          for (int i = 0; i < n; i++) {
             visit_data_writer->registerPlotQuantity("phase_rhs" +
                                                         std::to_string(i),
@@ -1973,9 +1973,9 @@ void QuatIntegrator::initialize(
    else if (d_model_parameters.norderp() > 1)
       d_phase_rhs_strategy.reset(new MultiOrderRHSStrategy(
           d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-          d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_phase_mobility_id,
-          d_flux_id, d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
-          d_phase_flux_strategy));
+          d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
+          d_phase_mobility_id, d_flux_id, d_sundials_solver,
+          d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
    else
       d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
           d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,

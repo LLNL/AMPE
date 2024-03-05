@@ -1,0 +1,81 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+max_timesteps       = 5000
+end_time            = 0.5
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 100
+   interval_type = "step"
+}
+
+TimerManager {
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   norderp = 3
+   norderp_A = 1
+   
+   temperature = 1000.
+
+   epsilon_phi = 0.165   // [(pJ/um)^1/2]
+
+   phi_mobility     = 200.
+   
+   phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
+   phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
+   conc_interp_func_type = "lin"
+
+   ConcentrationModel{
+      nspecies = 3
+      rhs_form = "ebs"
+      model    = "quadratic"
+      diffusion_type = "temperature_dependent"
+      molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_liquid  = 1.5e-5 // [m^3/mol]
+      D_solid_A  =  1.e4
+      D_solid_B  =  1.e4
+      D_liquid  = 0.
+      Quadratic {
+         A_liquid  = 1.e4, 1.e4 
+         A_solid_A = 1.e4, 1.e4
+         A_solid_B = 1.e4, 1.e4
+         Ceq_liquid  = 0., 0.
+         Ceq_solid_A = 1., 0.
+         Ceq_solid_B = 0., 1.
+      }
+   }
+}
+
+Integrator {
+   atol = 2.e-5
+   Preconditioner{
+     enabled = FALSE
+   }
+}
+
+ScalarDiagnostics {
+   interval = 100
+   interval_type = "step"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+}   
+
+InitialConditions {
+   filename = "2spheres.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 64, 64
+   x_lo         =  0.0,  0.0 // lower end of computational domain.
+   x_up         =  3.2,  3.2 // upper end of computational domain.
+}

@@ -38,8 +38,10 @@ parser.add_option( "-z", "--nz", type="int", default=1,
                    help="number of cells in z direction" )
 parser.add_option( "-c", "--nomconc", type="string", # something like "0.1,0.2",
                    help="nominal concentration" )
-parser.add_option( "--concentration-in", type="string",
-                   help="concentration in interior region" )
+parser.add_option( "--concentration-A", type="string",
+                   help="concentration in phase A" )
+parser.add_option( "--concentration-B", type="string",
+                   help="concentration in phase B" )
 parser.add_option( "--concentration-out", type="string",
                    help="concentration in exterior region" )
 parser.add_option( "-w", "--width", type="float",
@@ -62,6 +64,7 @@ nz = options.nz
 
 radius = []
 centers = []
+sphase = []
 with open(spheres_filename, mode ='r') as file:    
   csvFile = csv.reader(file)
   for line in csvFile:
@@ -74,44 +77,39 @@ with open(spheres_filename, mode ='r') as file:
     if nz==1:
       cz = 1    
     centers.append([cx,cy,cz])
+    nwords = len(line)
+    print(nwords)
+    if nwords > 4:
+      p = line[4].strip()
+      print("Phase {}".format(p))
+      sphase.append(p)
+    else:
+      sphase.append('A')
 
 print("Centers:")
 print(centers)
 print("Radius:")
 print(radius)
+print("Phases:")
+print(sphase)
 
 width = 0.
 if ( options.width ) : width = options.width
 
 nomconc       = options.nomconc
-conc_inside   = options.concentration_in
-conc_outside  = options.concentration_out
-if conc_inside is None :
-  conc_inside = nomconc
+concA = eval(options.concentration_A)
+concB = eval(options.concentration_B)
+concL = eval(options.concentration_out)
+
+print(concL)
+print(concA)
+print(concB)
 
 periodic = options.periodic.split( ',')
 
 #-----------------------------------------------------------------------
 nspecies=0
-if ( not ( nomconc is None ) ):
-  tmp = options.nomconc.split( ',' )
-  c = [float(i) for i in tmp]
-  nspecies=len(set(c))
-  print ("Nominal composition={}".format(c))
-if ( not ( conc_inside is None ) ):
-  tmp = options.concentration_in.split( ',' )
-  ci = [float(i) for i in tmp]
-  if nspecies==0:
-    nspecies=len(ci)
-  print ("Composition inside={}".format(ci))
-else:
-  ci = N.zeros( nspecies, N.float32 )
-if ( not ( conc_outside is None ) ):
-  tmp = options.concentration_out.split( ',' )
-  co = [float(i) for i in tmp]
-  print ("Composition outside={}".format(co))
-else:
-  co = N.zeros( nspecies, N.float32 )
+nspecies=len(concA)
 
 print ("nspecies={}".format(nspecies))
 
@@ -195,17 +193,25 @@ conc  = N.zeros( (nspecies,nz,ny,nx), N.float32 )
 phase = N.zeros( (nspheres,nz,ny,nx), N.float32 )
 
 #-----------------------------------------------------------------------
+#initialize conc with liquid values
+for k in range( nz ) :
+  for j in range( ny ) :
+    for i in range( nx ) :
+      for s in range(nspecies):
+        conc[s,k,j,i] = concL[s]
 
-vol=nx*ny*nz
-vs=0.
-vl=0.;
-
-#fill phase value and compute volume solid
+#fill phase and composition values in grains
 for g in range(nspheres):
   center = centers[g]
   r_sq = radius[g]**2
   threshold = (radius[g]+5.*width)**2
-  print ("sphere {}, center: {},{},{}, radius: {}".format(g,center[0],center[1],center[2],radius[g]))
+  print(sphase[g])
+  if sphase[g]=='A':
+    cs = concA
+  else:
+    cs = concB
+  print ("sphere {}, center: {},{},{}, radius: {}, cs: {}".format(g,center[0],center[1],center[2],radius[g],cs))
+  print ("cs = {}".format(cs))
   for k in range( nz ) :
     z = k + 0.5
     dz2=distance2_1d_z(z,center[2])
@@ -224,38 +230,11 @@ for g in range(nspheres):
             d = N.sqrt(distance_sq) - N.sqrt(r_sq)
             if( d<0. ):
               phase[g,k,j,i] = 1.
+              for s in range(nspecies):
+                conc[s,k,j,i] = cs[s]
             if( width>0. ):
               if( abs(d)<8.*width ):
                 phase[g,k,j,i] = 0.5*(1.+N.tanh(-1.*d/(2.*width)))
-
-#fill conc values
-if nspecies>0:
-  if ( not ( conc_inside is None ) ):
-    if ( not ( nomconc is None ) and vl>0 ):
-      for s in range(nspecies):
-        co[s] = (c[s]*vol-ci[s]*vs)/vl
-      print ("Calculated composition outside={}".format(co))
-  if ( not ( options.concentration_out is None ) ):
-    if ( not ( nomconc is None ) and vs>0 ):
-      conc_inside = (c[0]*vol-conc_outside*vl)/vs
-      print ("Calculated composition inside={}".format(conc_inside))
-  if( ( conc_outside is None ) and ( conc_inside is None ) ):
-    conc_inside = nomconc
-    conc_outside = nomconc
-
-  if ( not ( conc_outside is None ) and not ( conc_inside is None ) ):
-    for s in range(nspecies):
-      print ("Calculated nominal Composition={}".format((vl*co[s]+vs*ci[s])/vol))
-
-  print ("set composition for {} species".format(nspecies))
-  for k in range( nz ) :
-    for j in range( ny ) :
-      for i in range( nx ) :
-        for s in range(nspecies):
-          phi=0.
-          for p in range(nspheres):
-            phi=phi+phase[p,k,j,i]
-          conc[s,k,j,i] = ci[s]*phi+co[s]*(1.-phi)
 
 #-----------------------------------------------------------------------
 # Write data to file and close
