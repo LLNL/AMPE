@@ -76,7 +76,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
               << std::endl;
    // newton_db->printClassData(std::cout);
    pt::ptree newton_pt;
-   copyDatabase(newton_db, newton_pt);
+   if (newton_db) copyDatabase(newton_db, newton_pt);
    pt::json_parser::write_json(std::cout, newton_pt);
 
    d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_pt, newton_pt,
