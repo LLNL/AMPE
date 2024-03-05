@@ -21,11 +21,22 @@ QuadraticEquilibriumPhaseConcentrationsStrategy::
     : d_conc_interp_func_type(model_parameters.conc_interp_func_type()),
       PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1, false)
 {
-   d_fenergy = new QuadraticFreeEnergyStrategy(
-       conc_db->getDatabase("Quadratic"),
+   std::shared_ptr<tbox::Database> quad_db = conc_db->getDatabase("Quadratic");
+
+   double Tref = quad_db->getDouble("T_ref");
+
+   double A_liquid = quad_db->getDouble("A_liquid");
+   double Ceq_liquid = quad_db->getDouble("Ceq_liquid");
+   double m_liquid = quad_db->getDouble("m_liquid");
+
+   double A_solid_A = quad_db->getDouble("A_solid");
+   double Ceq_solid_A = quad_db->getDouble("Ceq_solid");
+   double m_solid = quad_db->getDouble("m_solid");
+
+   d_fenergy.reset(new QuadraticFreeEnergyFunctionsBinary(
+       Tref, A_liquid, Ceq_liquid, m_liquid, A_solid_A, Ceq_solid_A, m_solid,
        model_parameters.energy_interp_func_type(),
-       model_parameters.molar_volume_liquid(),
-       model_parameters.molar_volume_solid_A(), conc_l_id, conc_a_id);
+       model_parameters.conc_interp_func_type()));
 }
 
 int QuadraticEquilibriumPhaseConcentrationsStrategy::
@@ -122,11 +133,11 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
             double hphi = INTERP_FUNC(phi, &interpf);
             double t = ptr_temp[idx_temp];
 
-            double c_l = d_fenergy->computeLiquidConcentration(t, hphi, c);
-            double c_a = d_fenergy->computeSolidAConcentration(t, hphi, c);
+            double x[2];
+            d_fenergy->computePhaseConcentrations(t, &c, &hphi, x);
 
-            ptr_c_l[idx_c_i] = c_l;
-            ptr_c_a[idx_c_i] = c_a;
+            ptr_c_l[idx_c_i] = x[0];
+            ptr_c_a[idx_c_i] = x[1];
          }
       }
    }
