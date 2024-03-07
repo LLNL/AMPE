@@ -36,8 +36,6 @@ parser.add_option( "-y", "--ny", type="int",
                    help="number of cells in y direction" )
 parser.add_option( "-z", "--nz", type="int", default=1,
                    help="number of cells in z direction" )
-parser.add_option( "-c", "--nomconc", type="string", # something like "0.1,0.2",
-                   help="nominal concentration" )
 parser.add_option( "--concentration-A", type="string",
                    help="concentration in phase A" )
 parser.add_option( "--concentration-B", type="string",
@@ -96,20 +94,26 @@ print(sphase)
 width = 0.
 if ( options.width ) : width = options.width
 
-nomconc       = options.nomconc
-concA = eval(options.concentration_A)
-concB = eval(options.concentration_B)
-concL = eval(options.concentration_out)
-
-print(concL)
-print(concA)
-print(concB)
-
 periodic = options.periodic.split( ',')
 
 #-----------------------------------------------------------------------
-nspecies=0
-nspecies=len(concA)
+if ( not options.concentration_out is None ) :
+  tmp = options.concentration_out.split( ',' )
+  concL = [float(i) for i in tmp]
+  print(concL)
+
+  tmp = options.concentration_A.split( ',' )
+  concA = [float(i) for i in tmp]
+  print(concA)
+
+  if ( options.concentration_B ) :
+    tmp = options.concentration_B.split( ',' )
+    concB = [float(i) for i in tmp]
+    print(concB)
+
+  nspecies = len(set(concA))
+else:
+  nspecies = 0
 
 print ("nspecies={}".format(nspecies))
 
@@ -205,13 +209,13 @@ for g in range(nspheres):
   center = centers[g]
   r_sq = radius[g]**2
   threshold = (radius[g]+5.*width)**2
-  print(sphase[g])
-  if sphase[g]=='A':
-    cs = concA
-  else:
-    cs = concB
-  print ("sphere {}, center: {},{},{}, radius: {}, cs: {}".format(g,center[0],center[1],center[2],radius[g],cs))
-  print ("cs = {}".format(cs))
+  print ("sphere {}, center: {},{},{}, radius: {}, phase: {}".format(g,center[0],center[1],center[2],radius[g],sphase[g]))
+  if nspecies > 0 :
+    if sphase[g]=='A':
+      cs = concA
+    else:
+      cs = concB
+    print ("cs = {}".format(cs))
   for k in range( nz ) :
     z = k + 0.5
     dz2=distance2_1d_z(z,center[2])
