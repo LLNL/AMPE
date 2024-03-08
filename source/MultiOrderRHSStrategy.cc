@@ -148,6 +148,7 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
                                         const int ydot_phase_id,
                                         const bool eval_flag)
 {
+   // tbox::plog<<"MultiOrderRHSStrategy::evaluateRHS()..."<<std::endl;
    math::PatchCellDataOpsReal<double> mathops;
 
    const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
@@ -219,6 +220,10 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
       d_free_energy_strategy->computeFreeEnergySolidA(*patch,
                                                       d_temperature_scratch_id,
                                                       d_f_a_id, false);
+
+      d_free_energy_strategy->computeFreeEnergySolidB(*patch,
+                                                      d_temperature_scratch_id,
+                                                      d_f_b_id, false);
 
       // then add component from chemical energy
       d_free_energy_strategy->addDrivingForce(

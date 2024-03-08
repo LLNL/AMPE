@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticFreeEnergyStrategyMultiOrderThreePhase
-#define included_QuadraticFreeEnergyStrategyMultiOrderThreePhase
+#ifndef included_QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
+#define included_QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
 
 #include "QuadraticFreeEnergyFunctionsTernaryThreePhase.h"
 #include "FreeEnergyStrategy.h"
@@ -24,18 +24,18 @@ class MolarVolumeStrategy;
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 
-class QuadraticFreeEnergyStrategyMultiOrderThreePhase
+class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
     : public FreeEnergyStrategy
 {
  public:
-   QuadraticFreeEnergyStrategyMultiOrderThreePhase(
+   QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
        std::shared_ptr<tbox::Database> input_db,
        const EnergyInterpolationType energy_interp_func_type,
        const short norderp_A, const double vml, const double vma,
        const double vmb, const int conc_l_id, const int conc_a_id,
        const int conc_b_id);
 
-   ~QuadraticFreeEnergyStrategyMultiOrderThreePhase(){};
+   ~QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(){};
 
    // implement pure virtual functions of FreeEnergyStrategy
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
@@ -45,7 +45,7 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
                                 const int fs_id, const bool gp) override;
 
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp) override{};
+                                const int fs_id, const bool gp) override;
 
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
@@ -168,18 +168,7 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
                           Thermo4PFM::PhaseIndex pi,
                           const double energy_factor);
 
-   void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
-                               const int f_id, const int c_i_id,
-                               Thermo4PFM::PhaseIndex pi,
-                               const double energy_factor);
-
    void computeFreeEnergy(
-       const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor);
-
-   void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,

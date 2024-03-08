@@ -240,8 +240,12 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid_A", 0.);
          else
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid", 0.);
-         d_D_solid_B = 0.;
-         d_Q0_solid_B = 0.;
+         if (conc_db->keyExists("D_solid_B"))
+            d_D_solid_B = conc_db->getDouble("D_solid_B");
+         if (conc_db->keyExists("Q0_solid_B"))
+            d_Q0_solid_B = conc_db->getDouble("Q0_solid_B");
+         else
+            d_Q0_solid_B = 0.;
       } else {
          d_D_solid_A = conc_db->getDouble("D_solid_A");
          d_D_solid_B = conc_db->getDouble("D_solid_B");

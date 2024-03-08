@@ -150,6 +150,8 @@ void QuadraticFreeEnergyStrategyMultiOrder::computeFreeEnergy(
     std::shared_ptr<pdat::CellData<double> > cd_conc_i,
     Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
+   assert(cd_conc_i->getDepth() == 1);
+
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
    double* ptr_c_i = cd_conc_i->getPointer();

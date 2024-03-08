@@ -4,8 +4,8 @@
 //
 model_type = "Quat"
 
-max_timesteps       = 5000
-end_time            = 0.5
+max_timesteps       = 150
+end_time            = 0.006
 
 Verbosity {  // optional, block
    initial_energy_diagnostics = TRUE  // optional, default=FALSE
@@ -21,16 +21,21 @@ TimerManager {
 }
 
 ModelParameters {
-   norderp = 3
-   norderp_A = 1
+
+   norderp = 5
+
+   // two grains in phase A
+   norderp_A = 2
    
    temperature = 1000.
 
-   epsilon_phi = 0.165   // [(pJ/um)^1/2]
+   Interface{
+      sigma = 0.1
+      delta = 0.045
+   }
 
    phi_mobility     = 200.
    
-   phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
    phi_interp_func_type ="pbg"
    avg_func_type = "arithmetic"
    conc_interp_func_type = "lin"
@@ -41,6 +46,7 @@ ModelParameters {
       model    = "quadratic"
       diffusion_type = "temperature_dependent"
       molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_solid_B = 1.5e-5 // [m^3/mol]
       molar_volume_liquid  = 1.5e-5 // [m^3/mol]
       D_solid_A  =  1.e4
       D_solid_B  =  1.e4
@@ -57,10 +63,7 @@ ModelParameters {
 }
 
 Integrator {
-   atol = 2.e-5
-   Preconditioner{
-     enabled = FALSE
-   }
+   atol = 1.e-4
 }
 
 ScalarDiagnostics {
@@ -71,7 +74,7 @@ ScalarDiagnostics {
 }   
 
 InitialConditions {
-   filename = "2spheres.nc"
+   filename = "4spheres.nc"
 }
 
 Geometry{

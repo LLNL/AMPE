@@ -11,13 +11,13 @@ inp     = sys.argv[5]
 datadir = sys.argv[6]
 
 #make symbolic link to calphad data
-data = "2spheres.csv"
+data = "4spheres.csv"
 if not os.path.exists(data):
   src = datadir+'/'+data
   os.symlink(src, data)
 
 #prepare initial conditions file
-initfilename="2spheres.nc"
+initfilename="4spheres.nc"
 subprocess.call(["python3", "../../utils/make_multi_spheres.py",
   "--nx", "64", "--ny", "64", "--nz", "1",
   "--concentration-A", "1.,0.", "--concentration-B", "0.,1.", "--concentration-out", "0.,0.",
@@ -33,6 +33,7 @@ lines=output.split(b'\n')
 volfractions=[]
 
 end_reached = False
+end_time = 0.006
 for line in lines:
   if line.count(b'phase') and line.count(b'Volume'):
     print(line)
@@ -44,7 +45,7 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time>0.25:
+    if time>end_time:
       end_reached = True
 
 minv=1.
@@ -55,12 +56,12 @@ for v in volfractions:
   if v>maxv:
     maxv = v
 
-expected_value=0.236
+expected_value=0.583
 if abs(maxv-expected_value)>0.001:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.037
+expected_value=0.104
 if abs(minv-expected_value)>0.001:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)

@@ -42,7 +42,12 @@ class QuadraticFreeEnergyStrategyMultiOrder : public FreeEnergyStrategy
                                 const int fs_id, const bool gp) override;
 
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp) override{};
+                                const int fs_id, const bool gp) override
+   {
+      tbox::plog << "QuadraticFreeEnergyStrategyMultiOrder::"
+                    "computeFreeEnergySolidB..."
+                 << std::endl;
+   };
 
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
