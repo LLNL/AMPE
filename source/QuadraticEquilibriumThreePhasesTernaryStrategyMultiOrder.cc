@@ -148,18 +148,18 @@ int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
                                 (kk - kmin_c_i) * kp_c_i;
 
             // 3 phases, last order parameter is assumed liquid
-            double phi[3] = {0., 0., 0.};
+            double hphi[3] = {0., 0., 0.};
 
-            phi[0] = ptr_phi[norder - 1][idx_pf];
+            hphi[0] = ptr_phi[norder - 1][idx_pf] * ptr_phi[norder - 1][idx_pf];
             for (short i = 0; i < d_norderp_A; i++)
-               phi[1] += ptr_phi[i][idx_pf];
+               hphi[1] += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
             for (short i = d_norderp_A; i < norder - 1; i++)
-               phi[2] += ptr_phi[i][idx_pf];
+               hphi[2] += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
 
-            double hphi[3];
+            const double sum2 = hphi[0] + hphi[1] + hphi[2];
+            const double sum2inv = 1. / sum2;
             for (short i = 0; i < 3; i++)
-               hphi[i] =
-                   Thermo4PFM::interp_func(d_conc_interp_func_type, phi[i]);
+               hphi[i] *= sum2inv;
 
             // get local two components of ternary alloy
             double c[2] = {ptr_conc[idx_pf], ptr_conc[idx_pf + ncp]};
