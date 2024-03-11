@@ -33,6 +33,8 @@ static void readSpeciesCP(std::shared_ptr<tbox::Database> cp_db,
 QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
 {
    d_norderp = 1;
+   d_norderp_A = -1;
+   d_norderp_B = -1;
    d_gamma = 1.5;
    d_H_parameter = def_val;
    d_epsilon_phase = def_val;
@@ -238,8 +240,12 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid_A", 0.);
          else
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid", 0.);
-         d_D_solid_B = 0.;
-         d_Q0_solid_B = 0.;
+         if (conc_db->keyExists("D_solid_B"))
+            d_D_solid_B = conc_db->getDouble("D_solid_B");
+         if (conc_db->keyExists("Q0_solid_B"))
+            d_Q0_solid_B = conc_db->getDouble("Q0_solid_B");
+         else
+            d_Q0_solid_B = 0.;
       } else {
          d_D_solid_A = conc_db->getDouble("D_solid_A");
          d_D_solid_B = conc_db->getDouble("D_solid_B");
@@ -722,6 +728,14 @@ void QuatModelParameters::readModelParameters(
    // phi, and define second phase as 1.-phi
    d_norderp = model_db->getIntegerWithDefault("norderp", 1);
    tbox::plog << "norderp = " << d_norderp << std::endl;
+
+   d_norderp_A = model_db->getIntegerWithDefault("norderp_A", -1);
+   if (d_norderp_A > 0) {
+      tbox::plog << "norderp_A = " << d_norderp_A << std::endl;
+      d_norderp_B = d_norderp - d_norderp_A - 1;
+      tbox::plog << "norderp_B = " << d_norderp_B << std::endl;
+   }
+
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
 

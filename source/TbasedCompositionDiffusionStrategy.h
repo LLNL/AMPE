@@ -19,6 +19,7 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 {
  public:
    TbasedCompositionDiffusionStrategy(
+       const short norderp, const short norderpA, const bool with3phases,
        const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
        const int pfm_diffusion_b_id, const double D_liquid,
        const double Q0_liquid, const double D_solid_A, const double Q0_solid_A,
@@ -36,6 +37,12 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
        const int temperature_id, const int phase_id, const int eta_id);
 
  private:
+   const short d_norderp;
+   const short d_norderpA;
+
+   // distinguish 3 phases implementation (Folch-Plapp)
+   const bool d_with3phases;
+
    /*!
     * holds data for diffusion coefficients in composition equation
     * weighted by phase fraction
@@ -55,7 +62,7 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 
    std::string d_avg_func_type;
 
-   bool d_with_three_phases;
+   bool d_with_phaseB;
 };
 
 #endif

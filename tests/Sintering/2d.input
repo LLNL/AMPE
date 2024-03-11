@@ -1,0 +1,84 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+max_timesteps       = 150
+end_time            = 0.006
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 100
+   interval_type = "step"
+}
+
+TimerManager {
+    print_threshold = 0.0
+}
+
+ModelParameters {
+
+   norderp = 5
+
+   // two grains in phase A
+   norderp_A = 2
+   
+   temperature = 1000.
+
+   Interface{
+      sigma = 0.1
+      delta = 0.045
+   }
+
+   phi_mobility     = 200.
+   
+   phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
+   conc_interp_func_type = "lin"
+
+   ConcentrationModel{
+      nspecies = 3
+      rhs_form = "ebs"
+      model    = "quadratic"
+      diffusion_type = "temperature_dependent"
+      molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_solid_B = 1.5e-5 // [m^3/mol]
+      molar_volume_liquid  = 1.5e-5 // [m^3/mol]
+      D_solid_A  =  1.e4
+      D_solid_B  =  1.e4
+      D_liquid  = 0.
+      Quadratic {
+         A_liquid  = 1.e4, 1.e4 
+         A_solid_A = 1.e4, 1.e4
+         A_solid_B = 1.e4, 1.e4
+         Ceq_liquid  = 0., 0.
+         Ceq_solid_A = 1., 0.
+         Ceq_solid_B = 0., 1.
+      }
+   }
+}
+
+Integrator {
+   atol = 1.e-4
+}
+
+ScalarDiagnostics {
+   interval = 100
+   interval_type = "step"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+}   
+
+InitialConditions {
+   filename = "4spheres.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 64, 64
+   x_lo         =  0.0,  0.0 // lower end of computational domain.
+   x_up         =  3.2,  3.2 // upper end of computational domain.
+}

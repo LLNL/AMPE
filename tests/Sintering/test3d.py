@@ -3,7 +3,7 @@ import sys
 import subprocess
 import os
 
-print("Test Two grains with Quadratic energies...")
+print("Test Two grains sintering...")
 
 mpicmd  = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe     = sys.argv[4]
@@ -11,16 +11,16 @@ inp     = sys.argv[5]
 datadir = sys.argv[6]
 
 #make symbolic link to calphad data
-data = "2spheres.csv"
+data = "4spheres.csv"
 if not os.path.exists(data):
   src = datadir+'/'+data
   os.symlink(src, data)
 
 #prepare initial conditions file
-initfilename="2spheres.nc"
+initfilename="4spheres.nc"
 subprocess.call(["python3", "../../utils/make_multi_spheres.py",
-  "--nx", "64", "--ny", "64", "--nz", "64",
-  "--concentration-A", "0.1", "--concentration-out", "0.06",
+  "--nx", "64", "--ny", "64", "--nz", "32",
+  "--concentration-A", "1.,0.", "--concentration-B", "0.,1.", "--concentration-out", "0.,0.",
   "--spheres", data,
   initfilename])
 
@@ -33,9 +33,9 @@ lines=output.split(b'\n')
 volfractions=[]
 
 end_reached = False
-end_time = 0.08
+end_time = 0.002
 for line in lines:
-  if (line.count(b'phase 0') or line.count(b'phase 1') ) and line.count(b'Volume'):
+  if line.count(b'phase') and line.count(b'Volume'):
     print(line)
     words=line.split()
     volume=eval(words[6])
@@ -45,7 +45,7 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time > end_time:
+    if time>end_time:
       end_reached = True
 
 minv=1.
@@ -56,13 +56,13 @@ for v in volfractions:
   if v>maxv:
     maxv = v
 
-expected_value=0.088
-if abs(maxv-expected_value)>0.003:
+expected_value=0.79
+if abs(maxv-expected_value)>0.001:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.001
-if abs(minv-expected_value)>0.001:
+expected_value=0.052
+if abs(minv-expected_value)>0.005:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)
 

@@ -506,6 +506,14 @@ add_test(NAME DumpNetCDF
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/${NDIM}d.input
          )
+add_test(NAME Sintering
+         COMMAND ${Python3_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/Sintering/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/Sintering/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/Sintering
+         )
 
 target_link_libraries(testNetCDFwrite ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})

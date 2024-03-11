@@ -21,7 +21,7 @@ if not os.path.exists(data):
 initfilename="512x4x4.nc"
 subprocess.call(["python3", "../../utils/make_multi_spheres.py",
   "--nx", "512", "--ny", "4", "--nz", "4",
-  "--concentration-in", "0.136", "--concentration-out", "0.147",
+  "--concentration-A", "0.136", "--concentration-out", "0.147",
   "--spheres", data,
   initfilename])
 

@@ -70,6 +70,11 @@ class QuatModelParameters
 
    // accessors for parameters
    int norderp() const { return (with_three_phases() ? 3 : d_norderp); }
+   int norderpA() const { return d_norderp_A; }
+   int norderpB() const { return d_norderp_B; }
+
+   bool withPhaseB() const { return (with_three_phases() || d_norderp_B > 0); }
+
    double H_parameter() const { return d_H_parameter; }
    bool with_orientation() const { return (d_H_parameter >= 0.); }
    bool evolveQuat() const
@@ -445,7 +450,13 @@ class QuatModelParameters
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
+   // total number of order parameters
    int d_norderp;
+
+   // number of order parameters associated with phase A
+   int d_norderp_A;
+   // number of order parameters associated with phase B
+   int d_norderp_B;
 
    // Model parameters
    double d_H_parameter;

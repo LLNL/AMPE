@@ -19,6 +19,7 @@
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "QuadraticFreeEnergyStrategyMultiOrder.h"
+#include "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase.h"
 #include "KKSdiluteBinary.h"
 #include "QuadraticFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
@@ -173,17 +174,37 @@ class FreeEnergyStrategyFactory
                 model_parameters.conc_interp_func_type(), mvstrategy,
                 conc_l_scratch_id, conc_a_scratch_id));
          } else if (model_parameters.isConcentrationModelQuadratic()) {
-            tbox::pout << "QuatModel: "
+            tbox::plog << "QuatModel: "
                        << "Using Quadratic model for concentration"
                        << std::endl;
             if (model_parameters.norderp() > 1)
-               free_energy_strategy.reset(
-                   new QuadraticFreeEnergyStrategyMultiOrder(
-                       conc_db->getDatabase("Quadratic"),
-                       model_parameters.energy_interp_func_type(),
-                       model_parameters.molar_volume_liquid(),
-                       model_parameters.molar_volume_solid_A(),
-                       conc_l_scratch_id, conc_a_scratch_id));
+               if (conc_b_scratch_id > -1) {
+                  tbox::plog << "Use "
+                                "QuadraticFreeEnergyStrategyMultiOrderTernaryTh"
+                                "reeP"
+                                "hase..."
+                             << std::endl;
+                  free_energy_strategy.reset(
+                      new QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
+                          conc_db->getDatabase("Quadratic"),
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.norderpA(),
+                          model_parameters.molar_volume_liquid(),
+                          model_parameters.molar_volume_solid_A(),
+                          model_parameters.molar_volume_solid_B(),
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id));
+               } else {
+                  tbox::plog << "Use QuadraticFreeEnergyStrategyMultiOrder..."
+                             << std::endl;
+                  free_energy_strategy.reset(
+                      new QuadraticFreeEnergyStrategyMultiOrder(
+                          conc_db->getDatabase("Quadratic"),
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.molar_volume_liquid(),
+                          model_parameters.molar_volume_solid_A(),
+                          conc_l_scratch_id, conc_a_scratch_id));
+               }
             else
                free_energy_strategy.reset(new QuadraticFreeEnergyStrategy(
                    conc_db->getDatabase("Quadratic"),

@@ -30,8 +30,9 @@ class MultiOrderRHSStrategy : public PhaseRHSStrategy
    MultiOrderRHSStrategy(
        const QuatModelParameters& _model_parameters, const int phase_scratch_id,
        const int conc_scratch_id, const int temperature_scratch_id,
-       const int f_l_id, const int f_a_id, const int phase_mobility_id,
-       const int flux_id, CVODESolver* sundials_solver,
+       const int f_l_id, const int f_a_id, const int f_b_id,
+       const int phase_mobility_id, const int flux_id,
+       CVODESolver* sundials_solver,
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
        std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
        std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy);
@@ -60,6 +61,7 @@ class MultiOrderRHSStrategy : public PhaseRHSStrategy
 
    const int d_f_l_id;
    const int d_f_a_id;
+   const int d_f_b_id;
 
    const int d_phase_mobility_id;
    const int d_flux_id;
