@@ -76,6 +76,20 @@ void ANISOTROPIC_GRADIENT_FLUX(const int& ifirst0, const int& ilast0,
 #endif
                                const int& fluxng);
 
+void QUATERNION_GRADIENT_FLUX(const int& ifirst0, const int& ilast0,
+                              const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                              const int& ifirst2, const int& ilast2,
+#endif
+                              const double* dx, const double& epsilon,
+                              const double& nu, const int& knumber,
+                              double* phase, const int& phaseng, double* quat,
+                              const int& qlen, double* flux0, double* flux1,
+#if (NDIM == 3)
+                              double* flux2,
+#endif
+                              const int& fluxng);
+
 void COMPUTERHSPBG(const int& ifirst0, const int& ilast0, const int& ifirst1,
                    const int& ilast1,
 #if (NDIM == 3)

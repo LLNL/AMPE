@@ -407,6 +407,14 @@ add_test(NAME TwoGrainsQuadraticMultiOrderP
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadraticMultiOrderP/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadraticMultiOrderP
          )
+add_test(NAME AnisotropicMultiOrderP
+         COMMAND ${Python3_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/AnisotropicMultiOrderP/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/AnisotropicMultiOrderP/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/AnisotropicMultiOrderP
+         )
 add_test(NAME ConservedVolume
          COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/ConservedVolume/test${NDIM}d.py

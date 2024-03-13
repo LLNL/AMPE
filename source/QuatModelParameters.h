@@ -109,7 +109,7 @@ class QuatModelParameters
       assert(isp < d_cp.size());
       return d_cp[isp];
    }
-   const std::vector<std::map<short, double> >& cp() const { return d_cp; }
+   const std::vector<std::map<short, double>>& cp() const { return d_cp; }
 
    int ncompositions() const
    {
@@ -447,6 +447,11 @@ class QuatModelParameters
 
    double zetaFactor(const double temp) const { return zetaFactorLA(temp); }
 
+   const std::vector<std::array<double, 4>>& orderp_quat() const
+   {
+      return d_orderp_quat;
+   }
+
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
@@ -479,7 +484,7 @@ class QuatModelParameters
    double d_thermal_diffusivity;
    double d_latent_heat;
    // cp for each species
-   std::vector<std::map<short, double> > d_cp;
+   std::vector<std::map<short, double>> d_cp;
    double d_meltingT;
    double d_interface_mobility;
 
@@ -491,6 +496,9 @@ class QuatModelParameters
    std::string d_heat_source_type;
    std::vector<double> d_T_source;
    std::vector<double> d_Q_heat_transport;
+
+   // quaternion associated with each order parameter
+   std::vector<std::array<double, 4>> d_orderp_quat;
 
    /*
     * Initial compositions in each phase:

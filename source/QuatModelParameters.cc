@@ -739,6 +739,19 @@ void QuatModelParameters::readModelParameters(
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
 
+   // read quaternions associated with each order parameter,
+   // except for the last one
+   if (d_H_parameter < 0. && d_norderp > 1) {
+      for (int i = 0; i < d_norderp - 1; i++) {
+         std::array<double, 4> q;
+         std::ostringstream o;
+         o << "quat";
+         o << i;
+         model_db->getDoubleArray(o.str(), q.data(), 4);
+         d_orderp_quat.push_back(q);
+      }
+   }
+
    // Interface energy
    if (model_db->keyExists("Interface")) {
       std::shared_ptr<tbox::Database> interface_db =
