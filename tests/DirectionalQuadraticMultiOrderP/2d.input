@@ -4,7 +4,7 @@
 //
 model_type = "KWCcomplex"
 
-end_time            = 2.e-2
+end_time            = 3.e-2
 max_timesteps       = 2200
 
 Visit {
@@ -16,13 +16,13 @@ ModelParameters {
    norderp = 2
 
    MovingFrame{
-      velocity = 2.e3
+      velocity = 1.e3
    }
 
    Temperature {
       type = "frozen"
       temperature    = 1670. // [K]
-      dtemperaturedt = -2.e3 // K/s
+      dtemperaturedt = -1.e3 // K/s
       center =   -5.3174, 0.
       gradient = 1., 0. // in [K/um]
    }
@@ -88,11 +88,7 @@ ScalarDiagnostics {
 }   
 
 Integrator {
-   atol = 1.e-5
-   Preconditioner {  // optional block
-      enabled = TRUE
-      precondition_phase = FALSE
-   }
+   atol = 1.e-4
 }
 
 InitialConditions {

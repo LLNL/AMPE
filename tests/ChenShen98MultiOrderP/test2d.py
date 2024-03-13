@@ -45,7 +45,7 @@ for line in lines:
     print(line)
     if end_reached:
       words=line.split()
-      if abs(eval(words[6])-0.11)>1.e-2:
+      if abs(eval(words[6])-0.065)>1.e-3:
         print("Wrong solid fraction")
         sys.exit(1)
 

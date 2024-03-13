@@ -12,7 +12,7 @@ Verbosity {  // optional, block
 }
 
 Visit {
-   interval = 10
+   interval = 20
    interval_type = "step"
 }
 
