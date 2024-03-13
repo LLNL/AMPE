@@ -55,12 +55,12 @@ for v in volfractions:
   if v>maxv:
     maxv = v
 
-expected_value=0.233
+expected_value=0.235
 if abs(maxv-expected_value)>0.001:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.039
+expected_value=0.040
 if abs(minv-expected_value)>0.001:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)

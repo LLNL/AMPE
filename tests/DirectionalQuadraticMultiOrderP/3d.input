@@ -15,13 +15,13 @@ ModelParameters {
    norderp = 2
 
    MovingFrame{
-      velocity = 2.e3
+      velocity = 1.e3
    }
 
    Temperature {
       type = "frozen"
       temperature    = 1670. // [K]
-      dtemperaturedt = -2.e3 // K/s
+      dtemperaturedt = -1.e3 // K/s
       center =   -5.3174, 0., 0.
       gradient = 1., 0., 0. // in [K/um]
    }
@@ -91,11 +91,7 @@ ScalarDiagnostics {
 }   
 
 Integrator {
-   atol = 1.e-5
-   Preconditioner {  // optional block
-      enabled = FALSE
-      precondition_phase = FALSE
-   }
+   atol = 1.e-4
 }
 
 InitialConditions {

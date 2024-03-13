@@ -98,21 +98,5 @@ c  Phase energy well
          enddo
       enddo
 
-c enforce constraint
-      do ic2 = ifirst2, ilast2
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0
-               dsum = 0.d0
-               do jp = 1, norder
-                 dsum = dsum +  rhs(ic0,ic1,ic2,jp)
-               enddo
-               dsum = dsum * fac
-               do jp = 1, norder
-                  rhs(ic0,ic1,ic2,jp) = rhs(ic0,ic1,ic2,jp) - dsum
-               enddo
-            enddo
-         enddo
-      enddo
-
       return
       end

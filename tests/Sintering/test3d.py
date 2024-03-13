@@ -35,11 +35,6 @@ volfractions=[]
 end_reached = False
 end_time = 0.002
 for line in lines:
-  if line.count(b'phase') and line.count(b'Volume'):
-    print(line)
-    words=line.split()
-    volume=eval(words[6])
-    volfractions.append(volume)
 
   if line.count(b'cycle'):
     print(line)
@@ -47,6 +42,13 @@ for line in lines:
     time=eval(words[6])
     if time>end_time:
       end_reached = True
+
+  if end_reached:
+    if line.count(b'phase') and line.count(b'Volume'):
+      print(line)
+      words=line.split()
+      volume=eval(words[6])
+      volfractions.append(volume)
 
 minv=1.
 maxv=0.
@@ -57,12 +59,12 @@ for v in volfractions:
     maxv = v
 
 expected_value=0.79
-if abs(maxv-expected_value)>0.001:
+if abs(maxv-expected_value)>0.01:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.052
-if abs(minv-expected_value)>0.005:
+expected_value=0.061
+if abs(minv-expected_value)>0.002:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)
 

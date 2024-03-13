@@ -57,13 +57,13 @@ if abs(cmax-target_cmax)>0.002:
   print("Wrong cmax {}, expected {}".format(cmax,target_cmax))
   sys.exit(1)
 
-target_vol_fraction = 0.51
+target_vol_fraction = 0.52
 print("Solid fraction : {}".format(fs))
 if abs(fs-target_vol_fraction)>0.005:
   print("Wrong solid fraction {}, expected {}".format(fs,target_vol_fraction))
   sys.exit(1)
 
-target_time = 2.e-2
+target_time = 3.e-2
 print("Time reached : {}".format(time))
 if time<target_time:
   print("Target time {} not reached!".format(target_time))

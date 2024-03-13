@@ -512,14 +512,6 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
 
             for (short i = 0; i < norderp; i++)
                ptr_rhs[i][idx_rhs] -= (rhs[i]);
-
-            // add to rhs a component to satisfy the constraint on phi
-            double corr = 0.;
-            for (short i = 0; i < norderp; i++)
-               corr += ptr_rhs[i][idx_rhs];
-            corr /= (double)norderp;
-            for (short i = 0; i < norderp; i++)
-               ptr_rhs[i][idx_rhs] -= corr;
          }
       }
    }
