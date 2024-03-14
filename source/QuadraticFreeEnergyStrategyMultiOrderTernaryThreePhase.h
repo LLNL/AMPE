@@ -30,7 +30,7 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
  public:
    QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
        std::shared_ptr<tbox::Database> input_db,
-       const EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const short norderp_A, const double vml, const double vma,
        const double vmb, const int conc_l_id, const int conc_a_id,
        const int conc_b_id);
@@ -131,9 +131,6 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
    int d_conc_l_id;
    int d_conc_a_id;
    int d_conc_b_id;
-
-   EnergyInterpolationType d_energy_interp_func_type;
-   ConcInterpolationType d_conc_interp_func_type;
 
    void defaultComputeSecondDerivativeEnergyPhaseL(
        const std::vector<double>& c, std::vector<double>& d2fdc2,

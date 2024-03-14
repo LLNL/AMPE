@@ -14,15 +14,13 @@
 #include "PhaseConcentrationsStrategy.h"
 #include "InterpolationType.h"
 
-using namespace Thermo4PFM;
-
 // compute c_l, c_s using partition coefficient
 class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy
 {
  public:
    PartitionPhaseConcentrationsStrategy(
        const int conc_l_id, const int conc_a_id, const int conc_b_id,
-       const ConcInterpolationType phase_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType phase_interp_func_type,
        const int partition_coeff_id)
        : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id, false),
          d_phase_interp_func_type(phase_interp_func_type),
@@ -45,7 +43,7 @@ class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy
        std::shared_ptr<hier::Patch> patch);
 
  private:
-   const ConcInterpolationType d_phase_interp_func_type;
+   const Thermo4PFM::ConcInterpolationType d_phase_interp_func_type;
    int d_partition_coeff_id;
 };
 

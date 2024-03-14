@@ -26,7 +26,6 @@
 #include <cmath>
 
 using namespace SAMRAI;
-using namespace Thermo4PFM;
 
 class QuatModelParameters
 {
@@ -162,16 +161,17 @@ class QuatModelParameters
    {
       return d_orient_interp_func_type2;
    }
-   ConcInterpolationType conc_interp_func_type() const
+   Thermo4PFM::ConcInterpolationType conc_interp_func_type() const
    {
       return d_conc_interp_func_type;
    }
-   EnergyInterpolationType energy_interp_func_type() const
+   Thermo4PFM::EnergyInterpolationType energy_interp_func_type() const
    {
-      assert(d_energy_interp_func_type != EnergyInterpolationType::UNDEFINED);
+      assert(d_energy_interp_func_type !=
+             Thermo4PFM::EnergyInterpolationType::UNDEFINED);
       return d_energy_interp_func_type;
    }
-   EnergyInterpolationType eta_interp_func_type() const
+   Thermo4PFM::EnergyInterpolationType eta_interp_func_type() const
    {
       return d_eta_interp_func_type;
    }
@@ -533,14 +533,14 @@ class QuatModelParameters
    /*!
     * form of h_r(phi)
     */
-   ConcInterpolationType d_conc_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    /*!
     * form of h_p(phi)
     */
-   EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
 
-   EnergyInterpolationType d_eta_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_eta_interp_func_type;
 
    /*!
     * form of h_d(phi)

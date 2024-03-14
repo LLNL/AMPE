@@ -13,11 +13,11 @@
 
 // return two-phases interpolation type the three-phases
 // interpolation reduces to when one phase is 0
-EnergyInterpolationType getTwoPhasesInterpolationType(
+Thermo4PFM::EnergyInterpolationType getTwoPhasesInterpolationType(
     EnergyThreeArgsInterpolationType type)
 {
    if (type == EnergyThreeArgsInterpolationType::FOLCHPLAPP2005)
-      return EnergyInterpolationType::PBG;
+      return Thermo4PFM::EnergyInterpolationType::PBG;
    else
-      return EnergyInterpolationType::UNDEFINED;
+      return Thermo4PFM::EnergyInterpolationType::UNDEFINED;
 }

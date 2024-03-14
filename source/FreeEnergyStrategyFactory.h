@@ -77,7 +77,7 @@ class FreeEnergyStrategyFactory
                   tbox::pout << "Use CALPHADFreeEnergyStrategyBinaryThreePhase"
                              << std::endl;
                   // check if sublattice parameters are in CALPHAD database
-                  bool subl = checkSublattice(calphad_pt);
+                  bool subl = Thermo4PFM::checkSublattice(calphad_pt);
                   if (subl) {
                      tbox::plog << "CALPHADFreeEnergyFunctionsBinary3Ph2Sl"
                                 << std::endl;
@@ -86,7 +86,8 @@ class FreeEnergyStrategyFactory
                          EnergyThreeArgsInterpolationType::MOELANS2011)
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
                                 TiltingMoelans2011>(
                                 calphad_pt, newton_db,
                                 model_parameters.energy_interp_func_type(),
@@ -96,7 +97,8 @@ class FreeEnergyStrategyFactory
                      else
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
                                 TiltingFolchPlapp2005>(
                                 calphad_pt, newton_db,
                                 model_parameters.energy_interp_func_type(),
@@ -111,7 +113,8 @@ class FreeEnergyStrategyFactory
                          EnergyThreeArgsInterpolationType::MOELANS2011)
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
                                 TiltingMoelans2011>(
                                 calphad_pt, newton_db,
                                 model_parameters.energy_interp_func_type(),
@@ -121,7 +124,8 @@ class FreeEnergyStrategyFactory
                      else  // default
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
                                 TiltingFolchPlapp2005>(
                                 calphad_pt, newton_db,
                                 model_parameters.energy_interp_func_type(),
@@ -132,13 +136,14 @@ class FreeEnergyStrategyFactory
                   // conc_b_scratch_id<0
                } else {
                   // check if sublattice parameters are in CALPHAD database
-                  bool subl = checkSublattice(calphad_pt);
+                  bool subl = Thermo4PFM::checkSublattice(calphad_pt);
                   if (subl) {
                      tbox::plog << "CALPHADFreeEnergyFunctionsBinary2Ph1Sl"
                                 << std::endl;
                      free_energy_strategy.reset(
                          new CALPHADFreeEnergyStrategyBinary<
-                             CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+                             Thermo4PFM::
+                                 CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
                              calphad_pt, newton_db,
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
@@ -147,7 +152,7 @@ class FreeEnergyStrategyFactory
                   } else
                      free_energy_strategy.reset(
                          new CALPHADFreeEnergyStrategyBinary<
-                             CALPHADFreeEnergyFunctionsBinary>(
+                             Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
                              calphad_pt, newton_db,
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),

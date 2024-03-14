@@ -29,11 +29,12 @@ class MolarVolumeStrategy;
 class KKSdiluteBinary : public FreeEnergyStrategy
 {
  public:
-   KKSdiluteBinary(std::shared_ptr<tbox::Database> conc_db,
-                   const EnergyInterpolationType energy_interp_func_type,
-                   const ConcInterpolationType conc_interp_func_type,
-                   MolarVolumeStrategy* mvstrategy, const int conc_l_id,
-                   const int conc_a_id);
+   KKSdiluteBinary(
+       std::shared_ptr<tbox::Database> conc_db,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+       MolarVolumeStrategy* mvstrategy, const int conc_l_id,
+       const int conc_a_id);
 
    ~KKSdiluteBinary(){};
 
@@ -112,8 +113,8 @@ class KKSdiluteBinary : public FreeEnergyStrategy
    }
 
  private:
-   EnergyInterpolationType d_energy_interp_func_type;
-   ConcInterpolationType d_conc_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    int d_conc_l_id;
    int d_conc_a_id;
@@ -136,7 +137,7 @@ class KKSdiluteBinary : public FreeEnergyStrategy
 
    MolarVolumeStrategy* d_mv_strategy;
 
-   KKSFreeEnergyFunctionDiluteBinary* d_kksdilute_fenergy;
+   Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary* d_kksdilute_fenergy;
 
    double hprime(const double phi)
    {
@@ -155,28 +156,31 @@ class KKSdiluteBinary : public FreeEnergyStrategy
 
    void computeFreeEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                           const int temperature_id, const int f_id,
-                          const PhaseIndex pi, const bool gp);
+                          const Thermo4PFM::PhaseIndex pi, const bool gp);
 
    void computeDerivFreeEnergy(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_id, const PhaseIndex pi);
+       const int temperature_id, const int f_id,
+       const Thermo4PFM::PhaseIndex pi);
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
-                          const int f_id, const PhaseIndex pi, const bool gp);
+                          const int f_id, const Thermo4PFM::PhaseIndex pi,
+                          const bool gp);
 
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
-                               const int f_id, const PhaseIndex pi);
+                               const int f_id, const Thermo4PFM::PhaseIndex pi);
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
-       const bool gp);
+       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+       const Thermo4PFM::PhaseIndex pi, const bool gp);
 
    void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi);
+       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+       const Thermo4PFM::PhaseIndex pi);
 
    void addDrivingForceEtaOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,

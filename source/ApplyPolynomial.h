@@ -16,18 +16,17 @@
 #include "SAMRAI/hier/PatchLevel.h"
 
 using namespace SAMRAI;
-using namespace Thermo4PFM;
 
 class ApplyPolynomial
 {
  public:
-   ApplyPolynomial(EnergyInterpolationType interp_func_type);
+   ApplyPolynomial(Thermo4PFM::EnergyInterpolationType interp_func_type);
 
    void apply(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
               const int src_cell_data_id, const int dst_cell_data_id);
 
  private:
-   EnergyInterpolationType d_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_interp_func_type;
 
    void apply(const std::shared_ptr<hier::PatchLevel> level,
               const int src_cell_data_id, const int dst_cell_data_id);

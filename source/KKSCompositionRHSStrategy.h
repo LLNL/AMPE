@@ -32,7 +32,7 @@ class KKSCompositionRHSStrategy : public CompositionRHSStrategy
        const int conc_a_scratch_id, const int conc_b_scratch_id,
        const double D_liquid, const double D_solid_A, const double D_solid_B,
        const double Q0_liquid, const double Q0_solid_A, const double Q0_solid_B,
-       const EnergyInterpolationType phase_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
        const std::string& avg_func_type);
    ~KKSCompositionRHSStrategy(){};
 
@@ -57,7 +57,7 @@ class KKSCompositionRHSStrategy : public CompositionRHSStrategy
 
    bool d_with_third_phase;
 
-   EnergyInterpolationType d_phase_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_phase_interp_func_type;
    std::string d_avg_func_type;
 
    double d_D_liquid;

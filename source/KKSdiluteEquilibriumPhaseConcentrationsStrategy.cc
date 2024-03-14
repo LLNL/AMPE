@@ -22,8 +22,8 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
                                   conc_b_scratch_id, false),
@@ -33,9 +33,8 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
 {
    pt::ptree troot;
    copyDatabase(conc_db, troot);
-   d_fenergy =
-       new KKSFreeEnergyFunctionDiluteBinary(troot, energy_interp_func_type,
-                                             conc_interp_func_type);
+   d_fenergy = new Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary(
+       troot, energy_interp_func_type, conc_interp_func_type);
 }
 
 int KKSdiluteEquilibriumPhaseConcentrationsStrategy::

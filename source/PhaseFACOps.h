@@ -17,7 +17,6 @@
 #include <string>
 
 using namespace SAMRAI;
-using namespace Thermo4PFM;
 
 class PhaseFACOps : public EllipticFACOps
 {

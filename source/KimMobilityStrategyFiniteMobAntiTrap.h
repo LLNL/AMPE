@@ -23,8 +23,8 @@ class KimMobilityStrategyFiniteMobAntiTrap
        const int conc_l_id, const int conc_s_id, const int temp_id,
        const double interface_mobility, const double epsilon,
        const double phase_well_scale,
-       const EnergyInterpolationType energy_interp_func_type,
-       const ConcInterpolationType conc_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
        const double DL, const double Q0, const double mv);
 

@@ -65,12 +65,13 @@ class PhaseConcentrationsStrategyFactory
          if (model_parameters.isConcentrationModelCALPHAD()) {
             tbox::plog << "CALPHAD..." << std::endl;
             if (ncompositions == 1) {
-               bool subl = checkSublattice(calphad_pt);
+               bool subl = Thermo4PFM::checkSublattice(calphad_pt);
                if (conc_b_scratch_id >= 0) {
                   if (subl) {
                      phase_conc_strategy.reset(
                          new CALPHADequilibriumPhaseConcentrationsStrategy<
-                             CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                             Thermo4PFM::
+                                 CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
                              conc_l_scratch_id, conc_a_scratch_id,
                              conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
                              conc_b_ref_id,
@@ -81,7 +82,8 @@ class PhaseConcentrationsStrategyFactory
                   } else {
                      phase_conc_strategy.reset(
                          new CALPHADequilibriumPhaseConcentrationsStrategy<
-                             CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                             Thermo4PFM::
+                                 CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                              conc_l_scratch_id, conc_a_scratch_id,
                              conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
                              conc_b_ref_id,
@@ -93,7 +95,7 @@ class PhaseConcentrationsStrategyFactory
                } else if (subl) {
                   phase_conc_strategy.reset(
                       new CALPHADequilibriumPhaseConcentrationsStrategy<
-                          CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+                          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
                           conc_l_scratch_id, conc_a_scratch_id,
                           conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
                           conc_b_ref_id,
@@ -105,7 +107,7 @@ class PhaseConcentrationsStrategyFactory
                } else {
                   phase_conc_strategy.reset(
                       new CALPHADequilibriumPhaseConcentrationsStrategy<
-                          CALPHADFreeEnergyFunctionsBinary>(
+                          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
                           conc_l_scratch_id, conc_a_scratch_id,
                           conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
                           conc_b_ref_id,
@@ -118,7 +120,7 @@ class PhaseConcentrationsStrategyFactory
                tbox::plog << "Ternary..." << std::endl;
                phase_conc_strategy.reset(
                    new CALPHADequilibriumPhaseConcentrationsStrategy<
-                       CALPHADFreeEnergyFunctionsTernary>(
+                       Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>(
                        conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
                        conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
                        model_parameters.energy_interp_func_type(),

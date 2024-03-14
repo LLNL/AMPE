@@ -23,11 +23,10 @@ using namespace SAMRAI;
 
 QuadraticFreeEnergyStrategyMultiOrder::QuadraticFreeEnergyStrategyMultiOrder(
     std::shared_ptr<tbox::Database> input_db,
-    const EnergyInterpolationType energy_interp_func_type, const double vml,
-    const double vma, const int conc_l_id, const int conc_a_id)
-    : d_energy_interp_func_type(energy_interp_func_type),
-      d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id)
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const double vml, const double vma, const int conc_l_id,
+    const int conc_a_id)
+    : d_conc_l_id(conc_l_id), d_conc_a_id(conc_a_id)
 {
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);

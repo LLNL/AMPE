@@ -30,8 +30,9 @@ using namespace SAMRAI;
 
 QuadraticFreeEnergyStrategy::QuadraticFreeEnergyStrategy(
     std::shared_ptr<tbox::Database> input_db,
-    const EnergyInterpolationType energy_interp_func_type, const double vml,
-    const double vma, const int conc_l_id, const int conc_a_id)
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const double vml, const double vma, const int conc_l_id,
+    const int conc_a_id)
 {
    assert(conc_l_id >= 0);
    assert(conc_a_id >= 0);
@@ -250,8 +251,8 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergy(
 void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
-    const double energy_factor)
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -475,7 +476,7 @@ void QuadraticFreeEnergyStrategy::addDrivingForceOnPatch(
    kmax = pbox.upper(2);
 #endif
 
-   const char interp = energyInterpChar(d_energy_interp_func_type);
+   const char interp = Thermo4PFM::energyInterpChar(d_energy_interp_func_type);
 
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {

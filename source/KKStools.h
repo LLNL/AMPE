@@ -11,5 +11,5 @@
 #include "QuatModelParameters.h"
 
 double kks_mobility_factor(
-    const EnergyInterpolationType energy_interp_func_type, const double epsilon,
-    const double phase_well_scale);
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const double epsilon, const double phase_well_scale);

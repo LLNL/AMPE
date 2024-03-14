@@ -28,7 +28,8 @@ BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
     const int phase_scratch_id, const int partition_coeff_scratch_id,
     const int conc_tilde_diffusion_id,
     const int conc_phase_coupling_diffusion_id, const double D_liquid,
-    const double D_solid_A, const ConcInterpolationType phase_interp_func_type,
+    const double D_solid_A,
+    const Thermo4PFM::ConcInterpolationType phase_interp_func_type,
     const std::string& avg_func_type)
     : CompositionRHSStrategy(avg_func_type), d_quat_model(quat_model)
 {

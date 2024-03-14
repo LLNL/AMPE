@@ -49,7 +49,8 @@ class MobilityFactory
              conc_db->getStringWithDefault("model", "undefined");
          if (conc_model[0] == 'c') {
             if (ncompositions > 1)
-               return createInternal<CALPHADFreeEnergyFunctionsTernary>(
+               return createInternal<
+                   Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>(
                    model, model_parameters, conc_l_scratch_id,
                    conc_a_scratch_id, conc_b_scratch_id, temperature_scratch_id,
                    ncompositions, conc_db);
@@ -58,7 +59,8 @@ class MobilityFactory
                   tbox::plog << "FreeEnergyFunctionType: "
                                 "CALPHADFreeEnergyFunctionsBinary"
                              << std::endl;
-                  return createInternal<CALPHADFreeEnergyFunctionsBinary>(
+                  return createInternal<
+                      Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
                       model, model_parameters, conc_l_scratch_id,
                       conc_a_scratch_id, conc_b_scratch_id,
                       temperature_scratch_id, ncompositions, conc_db);
@@ -75,7 +77,8 @@ class MobilityFactory
             tbox::plog << "FreeEnergyFunctionType: "
                           "KKSFreeEnergyFunctionDiluteBinary"
                        << std::endl;
-            return createInternal<KKSFreeEnergyFunctionDiluteBinary>(
+            return createInternal<
+                Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>(
                 model, model_parameters, conc_l_scratch_id, conc_a_scratch_id,
                 conc_b_scratch_id, temperature_scratch_id, ncompositions,
                 conc_db);
@@ -145,14 +148,16 @@ class MobilityFactory
       std::shared_ptr<QuatMobilityStrategy> mobility_strategy;
 
       tbox::plog << "KimMobilityStrategyInfMob3Phases" << std::endl;
-      mobility_strategy.reset(new KimMobilityStrategyInfMob3Phases<
-                              CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
-          model_parameters, model, conc_l_scratch_id, conc_a_scratch_id,
-          conc_b_scratch_id, temperature_scratch_id,
-          model_parameters.epsilon_phase(), model_parameters.phase_well_scale(),
-          model_parameters.energy_three_args_interp_func_type(),
-          model_parameters.conc_interp_func_type(), conc_db, ncompositions,
-          model_parameters.molar_volume_liquid()));
+      mobility_strategy.reset(
+          new KimMobilityStrategyInfMob3Phases<
+              Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+              model_parameters, model, conc_l_scratch_id, conc_a_scratch_id,
+              conc_b_scratch_id, temperature_scratch_id,
+              model_parameters.epsilon_phase(),
+              model_parameters.phase_well_scale(),
+              model_parameters.energy_three_args_interp_func_type(),
+              model_parameters.conc_interp_func_type(), conc_db, ncompositions,
+              model_parameters.molar_volume_liquid()));
       return mobility_strategy;
    }
 };

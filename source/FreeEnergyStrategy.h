@@ -20,7 +20,6 @@
 #include <vector>
 
 using namespace SAMRAI;
-using namespace Thermo4PFM;
 
 class FreeEnergyStrategy
 {

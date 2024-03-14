@@ -23,7 +23,6 @@ class QuatModel;
 #include <string>
 
 using namespace SAMRAI;
-using namespace Thermo4PFM;
 
 /*
  * Based on S.G. Kim, Acta Mat. 55 (2007), p. 4391-4399
@@ -32,13 +31,12 @@ template <class FreeEnergyType>
 class KimMobilityStrategy : public SimpleQuatMobilityStrategy
 {
  public:
-   KimMobilityStrategy(QuatModel* quat_model, const int conc_l_id,
-                       const int conc_a_id, const int conc_b_id,
-                       const int temp_id,
-                       const EnergyInterpolationType energy_interp_func_type,
-                       const ConcInterpolationType conc_interp_func_type,
-                       std::shared_ptr<tbox::Database> conc_db,
-                       const unsigned ncompositions);
+   KimMobilityStrategy(
+       QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+       const int conc_b_id, const int temp_id,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+       std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions);
 
    void computePhaseMobility(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,

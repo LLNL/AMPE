@@ -123,7 +123,7 @@ int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
    kmin = c_i_gbox.lower(2);
    kmax = c_i_gbox.upper(2);
 #endif
-   const char interpf = concInterpChar(d_conc_interp_func_type);
+   const char interpf = Thermo4PFM::concInterpChar(d_conc_interp_func_type);
    const short norder = cd_phi->getDepth();
 
    std::vector<double*> ptr_phi(norderp);

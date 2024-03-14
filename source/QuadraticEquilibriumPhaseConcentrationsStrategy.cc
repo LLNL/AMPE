@@ -33,7 +33,7 @@ QuadraticEquilibriumPhaseConcentrationsStrategy::
    double Ceq_solid_A = quad_db->getDouble("Ceq_solid");
    double m_solid = quad_db->getDouble("m_solid");
 
-   d_fenergy.reset(new QuadraticFreeEnergyFunctionsBinary(
+   d_fenergy.reset(new Thermo4PFM::QuadraticFreeEnergyFunctionsBinary(
        Tref, A_liquid, Ceq_liquid, m_liquid, A_solid_A, Ceq_solid_A, m_solid,
        model_parameters.energy_interp_func_type(),
        model_parameters.conc_interp_func_type()));
@@ -112,7 +112,7 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
    kmin = c_i_gbox.lower(2);
    kmax = c_i_gbox.upper(2);
 #endif
-   const char interpf = concInterpChar(d_conc_interp_func_type);
+   const char interpf = Thermo4PFM::concInterpChar(d_conc_interp_func_type);
 
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {

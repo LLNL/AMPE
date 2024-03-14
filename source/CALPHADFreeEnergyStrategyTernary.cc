@@ -33,8 +33,8 @@ using namespace SAMRAI;
 CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
     std::shared_ptr<tbox::Database> calphad_db,
     std::shared_ptr<tbox::Database> newton_db,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id)
     : d_mv_strategy(mvstrategy)
 {
@@ -70,10 +70,9 @@ void CALPHADFreeEnergyStrategyTernary::setup(
    copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
-   d_calphad_fenergy =
-       new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
-                                             d_energy_interp_func_type,
-                                             d_conc_interp_func_type);
+   d_calphad_fenergy = new Thermo4PFM::CALPHADFreeEnergyFunctionsTernary(
+       calphad_pt, newton_pt, d_energy_interp_func_type,
+       d_conc_interp_func_type);
 }
 
 //=======================================================================
@@ -85,7 +84,7 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergyLiquid(
    assert(dfl_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfl_id, d_conc_l_id,
-                          PhaseIndex::phaseL);
+                          Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -97,7 +96,7 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergySolidA(
    assert(dfs_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfs_id, d_conc_a_id,
-                          PhaseIndex::phaseA);
+                          Thermo4PFM::PhaseIndex::phaseA);
 }
 
 //=======================================================================
@@ -125,7 +124,7 @@ void CALPHADFreeEnergyStrategyTernary::computeFreeEnergyLiquid(
    assert(d_conc_l_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     PhaseIndex::phaseL, gp);
+                     Thermo4PFM::PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
@@ -138,7 +137,7 @@ void CALPHADFreeEnergyStrategyTernary::computeFreeEnergySolidA(
    assert(fs_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fs_id, d_conc_a_id,
-                     PhaseIndex::phaseA, gp);
+                     Thermo4PFM::PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
@@ -157,7 +156,7 @@ void CALPHADFreeEnergyStrategyTernary::computeFreeEnergySolidB(
 
 void CALPHADFreeEnergyStrategyTernary::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int f_id,
-    const int conc_i_id, const PhaseIndex pi, const bool gp)
+    const int conc_i_id, const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -184,7 +183,7 @@ void CALPHADFreeEnergyStrategyTernary::computeFreeEnergy(
 
 void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int df_id,
-    const int conc_i_id, const PhaseIndex pi)
+    const int conc_i_id, const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -212,8 +211,8 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergy(
 void CALPHADFreeEnergyStrategyTernary::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
-    const bool gp)
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -292,7 +291,8 @@ void CALPHADFreeEnergyStrategyTernary::computeFreeEnergy(
 void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_dfree_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const Thermo4PFM::PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_df = cd_dfree_energy->getPointer();
@@ -523,7 +523,7 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-   const char interpf = energyInterpChar(d_energy_interp_func_type);
+   const char interpf = Thermo4PFM::energyInterpChar(d_energy_interp_func_type);
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {
          for (int ii = imin; ii <= imax; ii++) {
@@ -579,8 +579,12 @@ void CALPHADFreeEnergyStrategyTernary::computeMuA(const double t,
    TBOX_ASSERT(c1 == c1);
 
    double c[2] = {c0, c1};
-   d_calphad_fenergy->computeDerivFreeEnergy(t, c, PhaseIndex::phaseA, mu);
-   double fac = d_mv_strategy->computeInvMolarVolume(t, c, PhaseIndex::phaseA);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, c,
+                                             Thermo4PFM::PhaseIndex::phaseA,
+                                             mu);
+   double fac =
+       d_mv_strategy->computeInvMolarVolume(t, c,
+                                            Thermo4PFM::PhaseIndex::phaseA);
    mu[0] *= fac;
    mu[1] *= fac;
 
@@ -595,8 +599,12 @@ void CALPHADFreeEnergyStrategyTernary::computeMuL(const double t,
                                                   const double c1, double* mu)
 {
    double c[2] = {c0, c1};
-   d_calphad_fenergy->computeDerivFreeEnergy(t, c, PhaseIndex::phaseL, mu);
-   double fac = d_mv_strategy->computeInvMolarVolume(t, c, PhaseIndex::phaseL);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, c,
+                                             Thermo4PFM::PhaseIndex::phaseL,
+                                             mu);
+   double fac =
+       d_mv_strategy->computeInvMolarVolume(t, c,
+                                            Thermo4PFM::PhaseIndex::phaseL);
    mu[0] *= fac;
    mu[1] *= fac;
 }
@@ -628,13 +636,13 @@ void CALPHADFreeEnergyStrategyTernary::
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
-                                                        PhaseIndex::phaseL,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_l[0], Thermo4PFM::PhaseIndex::phaseL, d2fdc2.data());
 
    if (use_internal_units) {
-      double voli = d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
-                                                         PhaseIndex::phaseL);
+      double voli =
+          d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
+                                               Thermo4PFM::PhaseIndex::phaseL);
       for (short i = 0; i < 4; i++)
          d2fdc2[i] *= voli;
    }
@@ -648,13 +656,13 @@ void CALPHADFreeEnergyStrategyTernary::
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
-                                                        PhaseIndex::phaseA,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_a[0], Thermo4PFM::PhaseIndex::phaseA, d2fdc2.data());
 
    if (use_internal_units) {
-      double voli = d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
-                                                         PhaseIndex::phaseA);
+      double voli =
+          d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
+                                               Thermo4PFM::PhaseIndex::phaseA);
       for (short i = 0; i < 4; i++)
          d2fdc2[i] *= voli;
    }

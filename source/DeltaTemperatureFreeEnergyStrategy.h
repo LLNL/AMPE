@@ -18,14 +18,12 @@
 
 #include <cstring>
 
-using namespace Thermo4PFM;
-
 class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
    DeltaTemperatureFreeEnergyStrategy(
        const double Tm, const double latentHeat,
-       const EnergyInterpolationType phase_interp_func_type);
+       const Thermo4PFM::EnergyInterpolationType phase_interp_func_type);
 
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
 
@@ -73,7 +71,7 @@ class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
    // latent heat
    const double d_L;
 
-   const EnergyInterpolationType d_phase_interp_func_type;
+   const Thermo4PFM::EnergyInterpolationType d_phase_interp_func_type;
 };
 
 #endif

@@ -22,8 +22,8 @@ KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
         const int conc_l_id, const int conc_s_id, const int temp_id,
         const double interface_mobility, const double epsilon,
         const double phase_well_scale,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
         const double DL, const double Q0, const double mv)
     : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id, -1,
@@ -55,7 +55,7 @@ double KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::evaluateMobility(
     const double temp, const std::vector<double>& phaseconc,
     const std::vector<double>& phi)
 {
-   const PhaseIndex pi0 = PhaseIndex::phaseL;
+   const Thermo4PFM::PhaseIndex pi0 = Thermo4PFM::PhaseIndex::phaseL;
 
    this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
                                                       d_d2fdc2.data());
@@ -80,10 +80,10 @@ double KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::evaluateMobility(
 }
 
 template class KimMobilityStrategyFiniteMobAntiTrap<
-    CALPHADFreeEnergyFunctionsBinary>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;
 template class KimMobilityStrategyFiniteMobAntiTrap<
-    CALPHADFreeEnergyFunctionsTernary>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>;
 template class KimMobilityStrategyFiniteMobAntiTrap<
-    KKSFreeEnergyFunctionDiluteBinary>;
+    Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>;
 template class KimMobilityStrategyFiniteMobAntiTrap<
-    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;

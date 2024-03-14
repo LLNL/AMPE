@@ -35,8 +35,8 @@ CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
                                           TiltingFunction>::
     CALPHADFreeEnergyStrategyBinaryThreePhase(
         pt::ptree calphad_db, std::shared_ptr<tbox::Database> newton_db,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
     : d_mv_strategy(mvstrategy),
@@ -97,7 +97,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
    assert(dfl_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfl_id, d_conc_l_id,
-                          PhaseIndex::phaseL);
+                          Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -113,7 +113,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
    assert(dfa_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfa_id, d_conc_a_id,
-                          PhaseIndex::phaseA);
+                          Thermo4PFM::PhaseIndex::phaseA);
 }
 
 //=======================================================================
@@ -129,7 +129,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
    assert(dfb_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfb_id, d_conc_b_id,
-                          PhaseIndex::phaseB);
+                          Thermo4PFM::PhaseIndex::phaseB);
 }
 
 //=======================================================================
@@ -147,7 +147,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
    assert(d_conc_l_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     PhaseIndex::phaseL, gp);
+                     Thermo4PFM::PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
@@ -163,7 +163,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
    assert(fa_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fa_id, d_conc_a_id,
-                     PhaseIndex::phaseA, gp);
+                     Thermo4PFM::PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
@@ -179,7 +179,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
    assert(fb_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fb_id, d_conc_b_id,
-                     PhaseIndex::phaseB, gp);
+                     Thermo4PFM::PhaseIndex::phaseB, gp);
 }
 
 //=======================================================================
@@ -190,7 +190,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
     TiltingFunction>::computeFreeEnergy(hier::Patch& patch,
                                         const int temperature_id,
                                         const int f_id, const int conc_i_id,
-                                        const PhaseIndex pi, const bool gp)
+                                        const Thermo4PFM::PhaseIndex pi,
+                                        const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -222,7 +223,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
                                              const int temperature_id,
                                              const int df_id,
                                              const int conc_i_id,
-                                             const PhaseIndex pi)
+                                             const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -254,7 +255,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
                       std::shared_ptr<pdat::CellData<double> > cd_temp,
                       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
                       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-                      const PhaseIndex pi, const bool gp)
+                      const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -336,7 +337,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
     computeDerivFreeEnergy(
         const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
         std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
+        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+        const Thermo4PFM::PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -670,8 +672,11 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
                                                          const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseA, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseA);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
+                                             Thermo4PFM::PhaseIndex::phaseA,
+                                             &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseA);
 
    return mu;
 }
@@ -684,8 +689,11 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
                                                          const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseL, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseL);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
+                                             Thermo4PFM::PhaseIndex::phaseL,
+                                             &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseL);
 
    return mu;
 }
@@ -698,8 +706,11 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
                                                          const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseB, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseB);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
+                                             Thermo4PFM::PhaseIndex::phaseB,
+                                             &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseB);
 
    return mu;
 }
@@ -714,13 +725,13 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
-                                                        PhaseIndex::phaseL,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_l[0], Thermo4PFM::PhaseIndex::phaseL, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
-                                                        PhaseIndex::phaseL);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
+                                               Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -733,13 +744,13 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
-                                                        PhaseIndex::phaseA,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_a[0], Thermo4PFM::PhaseIndex::phaseA, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
-                                                        PhaseIndex::phaseA);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
+                                               Thermo4PFM::PhaseIndex::phaseA);
 }
 
 //=======================================================================
@@ -751,20 +762,21 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
-                                                        PhaseIndex::phaseB,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_b[0], Thermo4PFM::PhaseIndex::phaseB, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
-                                                        PhaseIndex::phaseB);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
+                                               Thermo4PFM::PhaseIndex::phaseB);
 }
 
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
-    CALPHADFreeEnergyFunctionsBinaryThreePhase, TiltingFolchPlapp2005>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase,
+    TiltingFolchPlapp2005>;
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
-    CALPHADFreeEnergyFunctionsBinaryThreePhase, TiltingMoelans2011>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase, TiltingMoelans2011>;
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
-    CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingFolchPlapp2005>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingFolchPlapp2005>;
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
-    CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingMoelans2011>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingMoelans2011>;

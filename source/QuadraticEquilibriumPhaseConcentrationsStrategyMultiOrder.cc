@@ -33,7 +33,7 @@ QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder::
    double Ceq_solid_A = quad_db->getDouble("Ceq_solid");
    double m_solid = quad_db->getDouble("m_solid");
 
-   d_fenergy.reset(new QuadraticFreeEnergyFunctionsBinary(
+   d_fenergy.reset(new Thermo4PFM::QuadraticFreeEnergyFunctionsBinary(
        Tref, A_liquid, Ceq_liquid, m_liquid, A_solid_A, Ceq_solid_A, m_solid,
        model_parameters.energy_interp_func_type(),
        model_parameters.conc_interp_func_type()));

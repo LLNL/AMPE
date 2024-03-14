@@ -19,8 +19,8 @@ KimMobilityStrategyFiniteMob<FreeEnergyType>::KimMobilityStrategyFiniteMob(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
     const int temp_id, const double interface_mobility, const double epsilon,
     const double phase_well_scale,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id, -1,
                                           temp_id, energy_interp_func_type,
@@ -36,8 +36,11 @@ KimMobilityStrategyFiniteMob<FreeEnergyType>::KimMobilityStrategyFiniteMob(
    d_alpha = 3. * sqrt(2.) * xi / interface_mobility;
 }
 
-template class KimMobilityStrategyFiniteMob<CALPHADFreeEnergyFunctionsBinary>;
-template class KimMobilityStrategyFiniteMob<CALPHADFreeEnergyFunctionsTernary>;
-template class KimMobilityStrategyFiniteMob<KKSFreeEnergyFunctionDiluteBinary>;
 template class KimMobilityStrategyFiniteMob<
-    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;
+template class KimMobilityStrategyFiniteMob<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>;
+template class KimMobilityStrategyFiniteMob<
+    Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>;
+template class KimMobilityStrategyFiniteMob<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
