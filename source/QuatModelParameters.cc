@@ -80,15 +80,15 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_diffq_avg_func_type = "";
    d_phase_well_func_type = "";
 
-   d_conc_interp_func_type = ConcInterpolationType::UNDEFINED;
-   d_energy_interp_func_type = EnergyInterpolationType::UNDEFINED;
+   d_conc_interp_func_type = Thermo4PFM::ConcInterpolationType::UNDEFINED;
+   d_energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::UNDEFINED;
    d_conc_three_args_interp_func_type =
        ConcThreeArgsInterpolationType::UNDEFINED;
    d_energy_three_args_interp_func_type =
        EnergyThreeArgsInterpolationType::UNDEFINED;
    d_diffusion_interp_type = DiffusionInterpolationType::UNDEFINED;
    d_eta_well_func_type = "";
-   d_eta_interp_func_type = EnergyInterpolationType::UNDEFINED;
+   d_eta_interp_func_type = Thermo4PFM::EnergyInterpolationType::UNDEFINED;
    d_eta_well_func_type = "";
    d_quat_mobility_func_type = "";
 
@@ -705,12 +705,16 @@ void QuatModelParameters::initializeEta(
        model_db->getStringWithDefault("eta_interp_func_type", "pbg");
    switch (eta_interp_func_type[0]) {
       case 'l':
-      case 'L': d_eta_interp_func_type = EnergyInterpolationType::LINEAR; break;
+      case 'L':
+         d_eta_interp_func_type = Thermo4PFM::EnergyInterpolationType::LINEAR;
+         break;
       case 'p':
-      case 'P': d_eta_interp_func_type = EnergyInterpolationType::PBG; break;
+      case 'P':
+         d_eta_interp_func_type = Thermo4PFM::EnergyInterpolationType::PBG;
+         break;
       case 'h':
       case 'H':
-         d_eta_interp_func_type = EnergyInterpolationType::HARMONIC;
+         d_eta_interp_func_type = Thermo4PFM::EnergyInterpolationType::HARMONIC;
          break;
       default:
          tbox::plog << "eta_interp_func_type=" << eta_interp_func_type
@@ -831,19 +835,23 @@ void QuatModelParameters::readModelParameters(
       switch (energy_interp_func_type[0]) {
          case 'l':
          case 'L':
-            d_energy_interp_func_type = EnergyInterpolationType::LINEAR;
+            d_energy_interp_func_type =
+                Thermo4PFM::EnergyInterpolationType::LINEAR;
             break;
          case 'p':
          case 'P':
-            d_energy_interp_func_type = EnergyInterpolationType::PBG;
+            d_energy_interp_func_type =
+                Thermo4PFM::EnergyInterpolationType::PBG;
             break;
          case 'h':
          case 'H':
-            d_energy_interp_func_type = EnergyInterpolationType::HARMONIC;
+            d_energy_interp_func_type =
+                Thermo4PFM::EnergyInterpolationType::HARMONIC;
             break;
          case 'u':
          case 'U':
-            d_energy_interp_func_type = EnergyInterpolationType::UNDEFINED;
+            d_energy_interp_func_type =
+                Thermo4PFM::EnergyInterpolationType::UNDEFINED;
             break;
          default:
             tbox::plog << "energy_interp_func_type=" << energy_interp_func_type
@@ -859,13 +867,16 @@ void QuatModelParameters::readModelParameters(
       switch (conc_interp_func_type[0]) {
          case 'l':
          case 'L':
-            d_conc_interp_func_type = ConcInterpolationType::LINEAR;
+            d_conc_interp_func_type = Thermo4PFM::ConcInterpolationType::LINEAR;
             break;
          case 'p':
-         case 'P': d_conc_interp_func_type = ConcInterpolationType::PBG; break;
+         case 'P':
+            d_conc_interp_func_type = Thermo4PFM::ConcInterpolationType::PBG;
+            break;
          case 'h':
          case 'H':
-            d_conc_interp_func_type = ConcInterpolationType::HARMONIC;
+            d_conc_interp_func_type =
+                Thermo4PFM::ConcInterpolationType::HARMONIC;
             break;
          default:
             tbox::plog << "conc_interp_func_type=" << conc_interp_func_type

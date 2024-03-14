@@ -33,7 +33,7 @@ void COMPUTEDPHIDTEMPERATUREDELTATEMPERATURE(
 
 DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
     const double Tm, const double latent_heat,
-    const EnergyInterpolationType phase_interp_func_type)
+    const Thermo4PFM::EnergyInterpolationType phase_interp_func_type)
     : d_Tm(Tm),
       d_L(latent_heat),
       d_phase_interp_func_type(phase_interp_func_type)

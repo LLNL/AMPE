@@ -12,8 +12,6 @@
 #define included_CALPHADFreeEnergyStrategyBinary
 
 #include "ConcFreeEnergyStrategy.h"
-#include "CALPHADSpeciesPhaseGibbsEnergy.h"
-#include "CALPHADConcSolverBinary.h"
 #include "FuncFort.h"
 #include "InterpolationType.h"
 
@@ -22,6 +20,8 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/hier/Box.h"
 class MolarVolumeStrategy;
+
+#include <boost/property_tree/ptree.hpp>
 
 #include <string>
 #include <vector>
@@ -33,8 +33,8 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
    CALPHADFreeEnergyStrategyBinary(
        boost::property_tree::ptree calphad_db,
        std::shared_ptr<tbox::Database> newton_db,
-       const EnergyInterpolationType energy_interp_func_type,
-       const ConcInterpolationType conc_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
        const int conc_a_id, const int conc_b_id, const bool with_third_phase);
 
@@ -127,8 +127,8 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
       d_calphad_fenergy->preRunDiagnostics(temperature);
    }
 
-   bool computeCeqT(const double temperature, const PhaseIndex pi0,
-                    const PhaseIndex pi1, double* ceq)
+   bool computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
+                    const Thermo4PFM::PhaseIndex pi1, double* ceq)
    {
       return d_calphad_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
    }
@@ -154,8 +154,8 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 
    std::shared_ptr<FreeEnergyFunctionType> d_calphad_fenergy;
 
-   EnergyInterpolationType d_energy_interp_func_type;
-   ConcInterpolationType d_conc_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    double computeMuA(const double t, const double c);
 
@@ -170,7 +170,8 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
  private:
    double hprime(const double phi)
    {
-      const char interp = energyInterpChar(d_energy_interp_func_type);
+      const char interp =
+          Thermo4PFM::energyInterpChar(d_energy_interp_func_type);
       return DERIV_INTERP_FUNC(phi, &interp);
    }
 
@@ -187,23 +188,24 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
                         const hier::Box& pbox);
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
-                          const int f_id, const int c_i_id, const PhaseIndex pi,
-                          const bool gp);
+                          const int f_id, const int c_i_id,
+                          const Thermo4PFM::PhaseIndex pi, const bool gp);
 
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
                                const int f_id, const int c_i_id,
-                               const PhaseIndex pi);
+                               const Thermo4PFM::PhaseIndex pi);
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
-       const bool gp);
+       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+       const Thermo4PFM::PhaseIndex pi, const bool gp);
 
    void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi);
+       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+       const Thermo4PFM::PhaseIndex pi);
 
    void addDrivingForceEta(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,

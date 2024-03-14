@@ -18,6 +18,7 @@
 
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "Database2JSON.h"
+
 namespace pt = boost::property_tree;
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -37,8 +38,8 @@ template <class FreeEnergyFunctionType>
 CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     CALPHADFreeEnergyStrategyBinary(
         pt::ptree calphad_db, std::shared_ptr<tbox::Database> newton_db,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id, const bool with_third_phase)
     : d_mv_strategy(mvstrategy),
@@ -86,7 +87,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
    assert(dfl_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfl_id, d_conc_l_id,
-                          PhaseIndex::phaseL);
+                          Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -100,7 +101,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
    assert(dfs_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfs_id, d_conc_a_id,
-                          PhaseIndex::phaseA);
+                          Thermo4PFM::PhaseIndex::phaseA);
 }
 
 //=======================================================================
@@ -114,7 +115,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
    assert(dfs_id >= 0);
 
    computeDerivFreeEnergy(patch, temperature_id, dfs_id, d_conc_b_id,
-                          PhaseIndex::phaseB);
+                          Thermo4PFM::PhaseIndex::phaseB);
 }
 
 //=======================================================================
@@ -132,7 +133,7 @@ void CALPHADFreeEnergyStrategyBinary<
    assert(d_conc_l_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     PhaseIndex::phaseL, gp);
+                     Thermo4PFM::PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
@@ -148,7 +149,7 @@ void CALPHADFreeEnergyStrategyBinary<
    assert(fs_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fs_id, d_conc_a_id,
-                     PhaseIndex::phaseA, gp);
+                     Thermo4PFM::PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
@@ -164,7 +165,7 @@ void CALPHADFreeEnergyStrategyBinary<
    assert(fs_id >= 0);
 
    computeFreeEnergy(patch, temperature_id, fs_id, d_conc_b_id,
-                     PhaseIndex::phaseB, gp);
+                     Thermo4PFM::PhaseIndex::phaseB, gp);
 }
 
 //=======================================================================
@@ -172,7 +173,7 @@ void CALPHADFreeEnergyStrategyBinary<
 template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int f_id,
-    const int conc_i_id, const PhaseIndex pi, const bool gp)
+    const int conc_i_id, const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -198,12 +199,10 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeFreeEnergy(
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinary<
-    FreeEnergyFunctionType>::computeDerivFreeEnergy(hier::Patch& patch,
-                                                    const int temperature_id,
-                                                    const int df_id,
-                                                    const int conc_i_id,
-                                                    const PhaseIndex pi)
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
+                           const int df_id, const int conc_i_id,
+                           const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -232,8 +231,8 @@ template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
-    const bool gp)
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -314,7 +313,8 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     computeDerivFreeEnergy(
         const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
         std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
+        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+        const Thermo4PFM::PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -397,11 +397,11 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
                         const int eta_id, const int conc_id, const int f_l_id,
                         const int f_a_id, const int f_b_id, const int rhs_id)
 {
-   EnergyInterpolationType d_energy_interp_func_type_saved(
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type_saved(
        d_energy_interp_func_type);
    // use linear interpolation function to get driving force
    // without polynomial of phi factor
-   d_energy_interp_func_type = EnergyInterpolationType::LINEAR,
+   d_energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::LINEAR,
 
    FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
                                            phase_id, eta_id, conc_id, f_l_id,
@@ -650,8 +650,11 @@ double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuA(
     const double t, const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseA, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseA);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
+                                             Thermo4PFM::PhaseIndex::phaseA,
+                                             &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseA);
 
    return mu;
 }
@@ -663,8 +666,11 @@ double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuL(
     const double t, const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseL, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseL);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
+                                             Thermo4PFM::PhaseIndex::phaseL,
+                                             &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseL);
 
    return mu;
 }
@@ -838,7 +844,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-   const char interpf = energyInterpChar(d_energy_interp_func_type);
+   const char interpf = Thermo4PFM::energyInterpChar(d_energy_interp_func_type);
 
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {
@@ -889,13 +895,13 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
-                                                        PhaseIndex::phaseL,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_l[0], Thermo4PFM::PhaseIndex::phaseL, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
-                                                        PhaseIndex::phaseL);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
+                                               Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -907,17 +913,17 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
-                                                        PhaseIndex::phaseA,
-                                                        d2fdc2.data());
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_a[0], Thermo4PFM::PhaseIndex::phaseA, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
-                                                        PhaseIndex::phaseA);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
+                                               Thermo4PFM::PhaseIndex::phaseA);
 }
 
 
 template class CALPHADFreeEnergyStrategyBinary<
-    CALPHADFreeEnergyFunctionsBinary>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;
 template class CALPHADFreeEnergyStrategyBinary<
-    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;

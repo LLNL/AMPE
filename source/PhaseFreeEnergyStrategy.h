@@ -14,14 +14,12 @@
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
-using namespace Thermo4PFM;
-
 class PhaseFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
-   PhaseFreeEnergyStrategy(const EnergyInterpolationType phase_interp_func_type,
-                           const double fl, const double fa, const double vml,
-                           const double vma);
+   PhaseFreeEnergyStrategy(
+       const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
+       const double fl, const double fa, const double vml, const double vma);
 
    ~PhaseFreeEnergyStrategy(){};
 
@@ -55,7 +53,7 @@ class PhaseFreeEnergyStrategy : public FreeEnergyStrategy
    double d_f_l;
    double d_f_a;
 
-   EnergyInterpolationType d_phase_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_phase_interp_func_type;
 };
 
 #endif

@@ -17,8 +17,6 @@
 
 #include <memory>
 
-using namespace Thermo4PFM;
-
 template <class FreeEnergyType>
 class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 {
@@ -26,8 +24,8 @@ class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
    AzizPartitionCoefficientStrategy(
        const int velocity_id, const int temperature_id,
        const int partition_coeff_id, const double vd, const double keq,
-       const EnergyInterpolationType energy_interp_func_type,
-       const ConcInterpolationType conc_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db);
 
    ~AzizPartitionCoefficientStrategy() {}

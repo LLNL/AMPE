@@ -11,13 +11,13 @@
 
 // see Kim. Acta Mat. 55 (2007), 4391
 double kks_mobility_factor(
-    const EnergyInterpolationType energy_interp_func_type, const double epsilon,
-    const double phase_well_scale)
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const double epsilon, const double phase_well_scale)
 {
    double a2 = 0.;
    switch (energy_interp_func_type) {
-      case EnergyInterpolationType::PBG: a2 = 47. / 60.; break;
-      case EnergyInterpolationType::HARMONIC: a2 = 0.5; break;
+      case Thermo4PFM::EnergyInterpolationType::PBG: a2 = 47. / 60.; break;
+      case Thermo4PFM::EnergyInterpolationType::HARMONIC: a2 = 0.5; break;
       default:
          TBOX_ERROR("Invalid interpolation function in mobility_factor()");
    }

@@ -21,8 +21,6 @@
 
 #include <string>
 
-using namespace Thermo4PFM;
-
 class QuatModel;
 
 class BeckermannCompositionRHSStrategy : public CompositionRHSStrategy
@@ -33,7 +31,7 @@ class BeckermannCompositionRHSStrategy : public CompositionRHSStrategy
        const int phase_scratch_id, const int partition_coeff_scratch_id,
        const int diffusion0_id, const int phase_coupling_diffusion_id,
        const double D_liquid, const double D_solid_A,
-       const ConcInterpolationType phase_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType phase_interp_func_type,
        const std::string& avg_func_type);
    ~BeckermannCompositionRHSStrategy(){};
 
@@ -53,7 +51,7 @@ class BeckermannCompositionRHSStrategy : public CompositionRHSStrategy
    int d_diffusion0_id;
    int d_conc_phase_coupling_diffusion_id;
 
-   ConcInterpolationType d_phase_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_phase_interp_func_type;
    std::string d_avg_func_type;
 
    double d_D_liquid;

@@ -19,8 +19,8 @@ using namespace SAMRAI;
 
 
 PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
-    const EnergyInterpolationType phase_interp_func_type, const double fl,
-    const double fa, const double vml, const double vma)
+    const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
+    const double fl, const double fa, const double vml, const double vma)
 {
    assert(vml == vml);
    assert(vma == vma);

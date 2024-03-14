@@ -26,7 +26,7 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
         const int conc_l_id, const int conc_a_id, const int conc_b_id,
         const int temp_id, const double epsilon, const double phase_well_scale,
         const EnergyThreeArgsInterpolationType energy_three_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
         const double mv)
     : KimMobilityStrategy<FreeEnergyType>(
@@ -42,11 +42,11 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
    assert(conc_b_id > -1);
    assert(ncompositions > 0);
 
-   EnergyInterpolationType energy_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType energy_interp_func_type;
    switch (energy_three_interp_func_type) {
       // FolchPlapp2005 reduces to PBG for two phases
       case EnergyThreeArgsInterpolationType::FOLCHPLAPP2005:
-         energy_interp_func_type = EnergyInterpolationType::PBG;
+         energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::PBG;
          break;
       case EnergyThreeArgsInterpolationType::MOELANS2011:
          TBOX_ERROR(
@@ -76,7 +76,7 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    const double phiA = phi[1];
    const double phiB = phi[2];
 
-   const PhaseIndex pil = PhaseIndex::phaseL;
+   const Thermo4PFM::PhaseIndex pil = Thermo4PFM::PhaseIndex::phaseL;
 
    // std::cout<<std::setprecision(15);
    const double* const cl = &phaseconc[0];
@@ -118,4 +118,4 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
 }
 
 template class KimMobilityStrategyInfMob3Phases<
-    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;

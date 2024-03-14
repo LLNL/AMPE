@@ -23,8 +23,9 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
  public:
    QuadraticFreeEnergyStrategy(
        std::shared_ptr<tbox::Database> input_db,
-       const EnergyInterpolationType energy_interp_func_type, const double vml,
-       const double vma, const int conc_l_id, const int conc_a_id);
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const double vml, const double vma, const int conc_l_id,
+       const int conc_a_id);
 
    ~QuadraticFreeEnergyStrategy(){};
 
@@ -107,7 +108,7 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary>
        d_quadratic_fenergy;
 
-   EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
 
    double d_vm_L;  // molar volume
    double d_vm_A;  // molar volume

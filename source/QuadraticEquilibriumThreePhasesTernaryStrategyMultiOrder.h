@@ -42,7 +42,7 @@ class QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder
    // number of order parameters associated with phase A
    const short d_norderp_A;
 
-   ConcInterpolationType d_conc_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsTernaryThreePhase>
        d_fenergy;

@@ -23,12 +23,12 @@
 namespace pt = boost::property_tree;
 
 template <>
-AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsBinary>::
+AzizPartitionCoefficientStrategy<Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>::
     AzizPartitionCoefficientStrategy(
         const int velocity_id, const int temperature_id,
         const int partition_coeff_id, const double vd, const double keq,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db)
     : PartitionCoefficientStrategy(velocity_id, temperature_id,
                                    partition_coeff_id),
@@ -53,19 +53,20 @@ AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsBinary>::
    pt::ptree newton_pt;
    copyDatabase(newton_db, newton_pt);
 
-   d_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsBinary>(
-       new CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
-                                            energy_interp_func_type,
-                                            conc_interp_func_type));
+   d_fenergy = std::unique_ptr<Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
+       new Thermo4PFM::CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
+                                                        energy_interp_func_type,
+                                                        conc_interp_func_type));
 }
 
 template <>
-AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsTernary>::
+AzizPartitionCoefficientStrategy<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>::
     AzizPartitionCoefficientStrategy(
         const int velocity_id, const int temperature_id,
         const int partition_coeff_id, const double vd, const double keq,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db)
     : PartitionCoefficientStrategy(velocity_id, temperature_id,
                                    partition_coeff_id),
@@ -90,19 +91,20 @@ AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsTernary>::
    pt::ptree newton_pt;
    copyDatabase(newton_db, newton_pt);
 
-   d_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsTernary>(
-       new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
-                                             energy_interp_func_type,
-                                             conc_interp_func_type));
+   d_fenergy = std::unique_ptr<Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>(
+       new Thermo4PFM::CALPHADFreeEnergyFunctionsTernary(
+           calphad_pt, newton_pt, energy_interp_func_type,
+           conc_interp_func_type));
 }
 
 template <>
-AzizPartitionCoefficientStrategy<KKSFreeEnergyFunctionDiluteBinary>::
+AzizPartitionCoefficientStrategy<
+    Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>::
     AzizPartitionCoefficientStrategy(
         const int velocity_id, const int temperature_id,
         const int partition_coeff_id, const double vd, const double keq,
-        const EnergyInterpolationType energy_interp_func_type,
-        const ConcInterpolationType conc_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db)
     : PartitionCoefficientStrategy(velocity_id, temperature_id,
                                    partition_coeff_id),
@@ -113,9 +115,9 @@ AzizPartitionCoefficientStrategy<KKSFreeEnergyFunctionDiluteBinary>::
 
    pt::ptree conc_pt;
    copyDatabase(conc_db, conc_pt);
-   d_fenergy = std::unique_ptr<KKSFreeEnergyFunctionDiluteBinary>(
-       new KKSFreeEnergyFunctionDiluteBinary(conc_pt, energy_interp_func_type,
-                                             conc_interp_func_type));
+   d_fenergy = std::unique_ptr<Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>(
+       new Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary(
+           conc_pt, energy_interp_func_type, conc_interp_func_type));
 }
 
 template <class FreeEnergyType>
@@ -161,4 +163,4 @@ double AzizPartitionCoefficientStrategy<FreeEnergyType>::computeKeq(
 }
 
 template class AzizPartitionCoefficientStrategy<
-    CALPHADFreeEnergyFunctionsBinary>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;

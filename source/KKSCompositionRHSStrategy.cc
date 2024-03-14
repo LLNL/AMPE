@@ -30,7 +30,7 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
     const int conc_a_scratch_id, const int conc_b_scratch_id,
     const double D_liquid, const double D_solid_A, const double D_solid_B,
     const double Q0_liquid, const double Q0_solid_A, const double Q0_solid_B,
-    const EnergyInterpolationType phase_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
     const std::string& avg_func_type)
     : CompositionRHSStrategy(avg_func_type)
 {

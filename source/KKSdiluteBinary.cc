@@ -30,8 +30,8 @@ using namespace SAMRAI;
 
 KKSdiluteBinary::KKSdiluteBinary(
     std::shared_ptr<tbox::Database> conc_db,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id)
     : d_mv_strategy(mvstrategy),
       d_energy_interp_func_type(energy_interp_func_type),
@@ -60,9 +60,8 @@ void KKSdiluteBinary::setup(std::shared_ptr<tbox::Database> conc_db)
 {
    pt::ptree troot;
    copyDatabase(conc_db, troot);
-   d_kksdilute_fenergy =
-       new KKSFreeEnergyFunctionDiluteBinary(troot, d_energy_interp_func_type,
-                                             d_conc_interp_func_type);
+   d_kksdilute_fenergy = new Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary(
+       troot, d_energy_interp_func_type, d_conc_interp_func_type);
 }
 
 //=======================================================================
@@ -77,7 +76,7 @@ void KKSdiluteBinary::computeDerivFreeEnergyLiquid(
    // tbox::pout<<"d_conc_l_id="<<d_conc_l_id<<std::endl;
 
    computeDerivFreeEnergy(hierarchy, temperature_id, dfl_id,
-                          PhaseIndex::phaseL);
+                          Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -93,7 +92,7 @@ void KKSdiluteBinary::computeDerivFreeEnergySolidA(
    // tbox::pout<<"d_conc_a_id="<<d_conc_a_id<<std::endl;
 
    computeDerivFreeEnergy(hierarchy, temperature_id, dfs_id,
-                          PhaseIndex::phaseA);
+                          Thermo4PFM::PhaseIndex::phaseA);
 }
 
 //=======================================================================
@@ -117,7 +116,8 @@ void KKSdiluteBinary::computeFreeEnergyLiquid(hier::Patch& patch,
    assert(temperature_id >= 0);
    assert(fl_id >= 0);
 
-   computeFreeEnergy(patch, temperature_id, fl_id, PhaseIndex::phaseL, gp);
+   computeFreeEnergy(patch, temperature_id, fl_id,
+                     Thermo4PFM::PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
@@ -129,7 +129,8 @@ void KKSdiluteBinary::computeFreeEnergySolidA(hier::Patch& patch,
    assert(temperature_id >= 0.);
    assert(fs_id >= 0);
 
-   computeFreeEnergy(patch, temperature_id, fs_id, PhaseIndex::phaseA, gp);
+   computeFreeEnergy(patch, temperature_id, fs_id,
+                     Thermo4PFM::PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
@@ -148,16 +149,17 @@ void KKSdiluteBinary::computeFreeEnergySolidB(hier::Patch& patch,
 
 void KKSdiluteBinary::computeFreeEnergy(hier::Patch& patch,
                                         const int temperature_id,
-                                        const int f_id, const PhaseIndex pi,
+                                        const int f_id,
+                                        const Thermo4PFM::PhaseIndex pi,
                                         const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
 
    int conc_i_id = -1;
-   if (pi == PhaseIndex::phaseL)
+   if (pi == Thermo4PFM::PhaseIndex::phaseL)
       conc_i_id = d_conc_l_id;
-   else if (pi == PhaseIndex::phaseA)
+   else if (pi == Thermo4PFM::PhaseIndex::phaseA)
       conc_i_id = d_conc_a_id;
    assert(conc_i_id >= 0);
 
@@ -183,15 +185,15 @@ void KKSdiluteBinary::computeFreeEnergy(hier::Patch& patch,
 void KKSdiluteBinary::computeDerivFreeEnergy(hier::Patch& patch,
                                              const int temperature_id,
                                              const int df_id,
-                                             const PhaseIndex pi)
+                                             const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
 
    int conc_i_id = -1;
-   if (pi == PhaseIndex::phaseL)
+   if (pi == Thermo4PFM::PhaseIndex::phaseL)
       conc_i_id = d_conc_l_id;
-   else if (pi == PhaseIndex::phaseA)
+   else if (pi == Thermo4PFM::PhaseIndex::phaseA)
       conc_i_id = d_conc_a_id;
    assert(conc_i_id >= 0);
 
@@ -216,7 +218,7 @@ void KKSdiluteBinary::computeDerivFreeEnergy(hier::Patch& patch,
 
 void KKSdiluteBinary::computeFreeEnergy(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int f_id, const PhaseIndex pi,
+    const int temperature_id, const int f_id, const Thermo4PFM::PhaseIndex pi,
     const bool gp)
 {
    assert(temperature_id >= 0);
@@ -238,7 +240,7 @@ void KKSdiluteBinary::computeFreeEnergy(
 
 void KKSdiluteBinary::computeDerivFreeEnergy(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int df_id, const PhaseIndex pi)
+    const int temperature_id, const int df_id, const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -260,8 +262,8 @@ void KKSdiluteBinary::computeDerivFreeEnergy(
 void KKSdiluteBinary::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
-    const bool gp)
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -340,7 +342,8 @@ void KKSdiluteBinary::computeFreeEnergy(
 void KKSdiluteBinary::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const Thermo4PFM::PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -423,11 +426,11 @@ void KKSdiluteBinary::computeDrivingForce(const double time, hier::Patch& patch,
                                           const int f_a_id, const int f_b_id,
                                           const int rhs_id)
 {
-   EnergyInterpolationType d_energy_interp_func_type_saved(
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type_saved(
        d_energy_interp_func_type);
    // use linear interpolation function to get driving force
    // without polynomial of phi factor
-   d_energy_interp_func_type = EnergyInterpolationType::LINEAR,
+   d_energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::LINEAR,
 
    FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
                                            phase_id, eta_id, conc_id, f_l_id,
@@ -628,8 +631,11 @@ void KKSdiluteBinary::addDrivingForceOnPatch(
 double KKSdiluteBinary::computeMuA(const double t, const double c)
 {
    double mu;
-   d_kksdilute_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseA, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseA);
+   d_kksdilute_fenergy->computeDerivFreeEnergy(t, &c,
+                                               Thermo4PFM::PhaseIndex::phaseA,
+                                               &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseA);
 
    return mu;
 }
@@ -639,8 +645,11 @@ double KKSdiluteBinary::computeMuA(const double t, const double c)
 double KKSdiluteBinary::computeMuL(const double t, const double c)
 {
    double mu;
-   d_kksdilute_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseL, &mu);
-   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseL);
+   d_kksdilute_fenergy->computeDerivFreeEnergy(t, &c,
+                                               Thermo4PFM::PhaseIndex::phaseL,
+                                               &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseL);
 
    return mu;
 }
@@ -663,13 +672,13 @@ void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseL(
     const double temp, const std::vector<double>& c_l,
     std::vector<double>& d2fdc2, const bool use_internal_units)
 {
-   d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
-                                                          PhaseIndex::phaseL,
-                                                          d2fdc2.data());
+   d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_l[0], Thermo4PFM::PhaseIndex::phaseL, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
-                                                        PhaseIndex::phaseL);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
+                                               Thermo4PFM::PhaseIndex::phaseL);
 }
 
 //=======================================================================
@@ -678,11 +687,11 @@ void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseA(
     const double temp, const std::vector<double>& c_a,
     std::vector<double>& d2fdc2, const bool use_internal_units)
 {
-   d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
-                                                          PhaseIndex::phaseA,
-                                                          d2fdc2.data());
+   d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(
+       temp, &c_a[0], Thermo4PFM::PhaseIndex::phaseA, d2fdc2.data());
 
    if (use_internal_units)
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
-                                                        PhaseIndex::phaseA);
+      d2fdc2[0] *=
+          d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
+                                               Thermo4PFM::PhaseIndex::phaseA);
 }

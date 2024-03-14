@@ -1390,8 +1390,8 @@ void QuatIntegrator::setModelParameters(
     const double eta_well_scale, const std::string orient_interp_func_type1,
     const std::string orient_interp_func_type2, const std::string avg_func_type,
     const std::string phase_well_func_type,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     const std::string eta_well_func_type)
 {
    tbox::plog << "QuatIntegrator::setModelParameters()" << std::endl;

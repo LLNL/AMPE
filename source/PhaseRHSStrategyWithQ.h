@@ -52,7 +52,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
    const double d_eta_well_scale;
    const double d_H_parameter;
 
-   const EnergyInterpolationType d_energy_interp_func_type;
+   const Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
    std::string d_orient_interp_func_type1;
    std::string d_orient_interp_func_type2;
 

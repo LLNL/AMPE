@@ -12,14 +12,12 @@
 #ifndef included_MolarVolumeStrategy
 #define included_MolarVolumeStrategy
 
-using namespace Thermo4PFM;
-
 class MolarVolumeStrategy
 {
  public:
    virtual double computeInvMolarVolume(const double temperature,
                                         const double* const conc,
-                                        const PhaseIndex pi) = 0;
+                                        const Thermo4PFM::PhaseIndex pi) = 0;
 };
 
 #endif

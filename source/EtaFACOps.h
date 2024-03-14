@@ -18,7 +18,6 @@
 #include <string>
 
 using namespace SAMRAI;
-using namespace Thermo4PFM;
 
 class EtaFACOps : public EllipticFACOps
 {
@@ -31,23 +30,22 @@ class EtaFACOps : public EllipticFACOps
    void setOperatorCoefficients(
        const int phase_id, const int eta_id, const int eta_mobility_id,
        const double epsilon_eta, const double gamma,
-       const EnergyInterpolationType phase_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
        const double eta_well_scale, const std::string eta_well_func_type);
 
    void setC(const int phi_id, const int eta_id, const double gamma,
-             const EnergyInterpolationType phi_interp_func_type,
+             const Thermo4PFM::EnergyInterpolationType phi_interp_func_type,
              const double eta_well_scale, const std::string eta_well_func_type);
 
  private:
-   void setCOnPatchPrivate(std::shared_ptr<pdat::CellData<double> > cd_phi,
-                           std::shared_ptr<pdat::CellData<double> > cd_eta,
-                           std::shared_ptr<pdat::CellData<double> > cd_m,
-                           std::shared_ptr<pdat::CellData<double> > cd_c,
-                           const double gamma,
-                           const EnergyInterpolationType phi_interp_func_type,
-                           const double eta_well_scale,
-                           const char* eta_well_func_type,
-                           const hier::Box& pbox);
+   void setCOnPatchPrivate(
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_m,
+       std::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
+       const Thermo4PFM::EnergyInterpolationType phi_interp_func_type,
+       const double eta_well_scale, const char* eta_well_func_type,
+       const hier::Box& pbox);
 };
 
 #endif  // included_EtaFACOps

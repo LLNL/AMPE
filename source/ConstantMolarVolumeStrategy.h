@@ -24,16 +24,17 @@ class ConstantMolarVolumeStrategy : public MolarVolumeStrategy
       assert(vml > 0.);
       assert(vma > 0.);
 
-      d_inv_vm[static_cast<int>(PhaseIndex::phaseL)] = 1.e-6 / vml;
-      d_inv_vm[static_cast<int>(PhaseIndex::phaseA)] = 1.e-6 / vma;
+      d_inv_vm[static_cast<int>(Thermo4PFM::PhaseIndex::phaseL)] = 1.e-6 / vml;
+      d_inv_vm[static_cast<int>(Thermo4PFM::PhaseIndex::phaseA)] = 1.e-6 / vma;
       if (vmb > 0.)
-         d_inv_vm[static_cast<int>(PhaseIndex::phaseB)] = 1.e-6 / vmb;
+         d_inv_vm[static_cast<int>(Thermo4PFM::PhaseIndex::phaseB)] =
+             1.e-6 / vmb;
    }
 
 
    virtual double computeInvMolarVolume(const double temperature,
                                         const double* const conc,
-                                        const PhaseIndex pi)
+                                        const Thermo4PFM::PhaseIndex pi)
    {
       (void)temperature;
       (void)conc;

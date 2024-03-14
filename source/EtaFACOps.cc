@@ -32,7 +32,7 @@ EtaFACOps::EtaFACOps(const std::string& object_name,
 void EtaFACOps::setOperatorCoefficients(
     const int phase_id, const int eta_id, const int eta_mobility_id,
     const double epsilon_eta, const double gamma,
-    const EnergyInterpolationType phase_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
     const double eta_well_scale, const std::string eta_well_func_type)
 {
    setM(eta_mobility_id);
@@ -49,10 +49,10 @@ void EtaFACOps::setOperatorCoefficients(
 // C = 1 + gamma * eta_mobility *
 //       eta_well_scale * phi_interp_func * eta_well_func''
 
-void EtaFACOps::setC(const int phi_id, const int eta_id, const double gamma,
-                     const EnergyInterpolationType phi_interp_func_type,
-                     const double eta_well_scale,
-                     const std::string eta_well_func_type)
+void EtaFACOps::setC(
+    const int phi_id, const int eta_id, const double gamma,
+    const Thermo4PFM::EnergyInterpolationType phi_interp_func_type,
+    const double eta_well_scale, const std::string eta_well_func_type)
 {
    assert(phi_id >= 0);
    assert(eta_id >= 0);
@@ -102,7 +102,7 @@ void EtaFACOps::setCOnPatchPrivate(
     std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::CellData<double> > cd_m,
     std::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
-    const EnergyInterpolationType phi_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType phi_interp_func_type,
     const double eta_well_scale, const char* eta_well_func_type,
     const hier::Box& pbox)
 {

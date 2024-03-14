@@ -20,8 +20,9 @@ using namespace SAMRAI;
 
 
 TemperatureFreeEnergyStrategy::TemperatureFreeEnergyStrategy(
-    const EnergyInterpolationType phase_interp_func_type, const double fa,
-    const double vma, const double latent_heat, const double meltingT)
+    const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
+    const double fa, const double vma, const double latent_heat,
+    const double meltingT)
 {
    assert(meltingT > 0.);
    assert(meltingT < 100000.);

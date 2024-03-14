@@ -28,8 +28,8 @@ template <class FreeEnergyType>
 KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
     QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
     const int conc_b_id, const int temp_id,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
@@ -74,12 +74,13 @@ KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
 }
 
 template <>
-KimMobilityStrategy<CALPHADFreeEnergyFunctionsTernary>::KimMobilityStrategy(
-    QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
-    const int conc_b_id, const int temp_id,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
-    std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
+KimMobilityStrategy<Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>::
+    KimMobilityStrategy(
+        QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+        const int conc_b_id, const int temp_id,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
       d_conc_a_id(conc_a_id),
@@ -111,18 +112,18 @@ KimMobilityStrategy<CALPHADFreeEnergyFunctionsTernary>::KimMobilityStrategy(
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
 
-   d_fenergy = new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
-                                                     energy_interp_func_type,
-                                                     conc_interp_func_type);
+   d_fenergy = new Thermo4PFM::CALPHADFreeEnergyFunctionsTernary(
+       calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type);
 }
 
 template <>
-KimMobilityStrategy<KKSFreeEnergyFunctionDiluteBinary>::KimMobilityStrategy(
-    QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
-    const int conc_b_id, const int temp_id,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
-    std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
+KimMobilityStrategy<Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>::
+    KimMobilityStrategy(
+        QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+        const int conc_b_id, const int temp_id,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
       d_conc_a_id(conc_a_id),
@@ -140,9 +141,8 @@ KimMobilityStrategy<KKSFreeEnergyFunctionDiluteBinary>::KimMobilityStrategy(
 
    pt::ptree conc_pt;
    copyDatabase(conc_db, conc_pt);
-   d_fenergy =
-       new KKSFreeEnergyFunctionDiluteBinary(conc_pt, energy_interp_func_type,
-                                             conc_interp_func_type);
+   d_fenergy = new Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary(
+       conc_pt, energy_interp_func_type, conc_interp_func_type);
 }
 
 template <class FreeEnergyType>
@@ -304,6 +304,9 @@ void KimMobilityStrategy<FreeEnergyType>::update(
    }
 }
 
-template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>;
-template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
-template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
+template class KimMobilityStrategy<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;
+template class KimMobilityStrategy<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+template class KimMobilityStrategy<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;

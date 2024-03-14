@@ -104,8 +104,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        const std::string orient_interp_func_type1,
        const std::string orient_interp_func_type2,
        const std::string avg_func_type, const std::string phase_well_func_type,
-       const EnergyInterpolationType energy_interp_func_type,
-       const ConcInterpolationType conc_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        const std::string eta_well_func_type);
 
    void setAbsTol(const double atol) { d_atol = atol; }
@@ -405,9 +405,9 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    */
    bool d_lag_quat_sidegrad;
 
-   EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
 
-   ConcInterpolationType d_conc_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 

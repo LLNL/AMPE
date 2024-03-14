@@ -22,8 +22,8 @@ KimMobilityStrategyInfMob<FreeEnergyType>::KimMobilityStrategyInfMob(
     const QuatModelParameters& model_parameters, QuatModel* quat_model,
     const int conc_l_id, const int conc_s_id, const int temp_id,
     const double epsilon, const double phase_well_scale,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
+    const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+    const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
     const double DL, const double Q0, const double mv)
     : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id, -1,
@@ -52,7 +52,7 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
 {
    assert(d_mv > 0.);
 
-   const PhaseIndex pi0 = PhaseIndex::phaseL;
+   const Thermo4PFM::PhaseIndex pi0 = Thermo4PFM::PhaseIndex::phaseL;
 
    this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
                                                       d_d2fdc2.data());
@@ -82,8 +82,11 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
    return mob;
 }
 
-template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsBinary>;
-template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsTernary>;
-template class KimMobilityStrategyInfMob<KKSFreeEnergyFunctionDiluteBinary>;
 template class KimMobilityStrategyInfMob<
-    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;
+template class KimMobilityStrategyInfMob<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>;
+template class KimMobilityStrategyInfMob<
+    Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>;
+template class KimMobilityStrategyInfMob<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;

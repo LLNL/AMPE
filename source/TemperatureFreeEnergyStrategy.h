@@ -17,14 +17,13 @@
 #include <string>
 #include <vector>
 
-using namespace Thermo4PFM;
-
 class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
    TemperatureFreeEnergyStrategy(
-       const EnergyInterpolationType phase_interp_func_type, const double fa,
-       const double vma, const double latent_heat, const double meltingT);
+       const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
+       const double fa, const double vma, const double latent_heat,
+       const double meltingT);
 
    ~TemperatureFreeEnergyStrategy(){};
 
@@ -63,7 +62,7 @@ class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
    double d_invMeltingT;
    double d_f_a;
 
-   EnergyInterpolationType d_phase_interp_func_type;
+   Thermo4PFM::EnergyInterpolationType d_phase_interp_func_type;
 
    double computeValFreeEnergyLiquid(const double temperature,
                                      const double conc, const bool gp = false);

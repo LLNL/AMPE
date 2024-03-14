@@ -422,14 +422,14 @@ void QuatModel::setupAziz()
    if (d_model_parameters.isConcentrationModelCALPHAD()) {
       if (d_ncompositions > 1)
          d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy<
-             CALPHADFreeEnergyFunctionsTernary>(
+             Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>(
              d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id,
              d_model_parameters.vd(), d_model_parameters.keq(),
              d_model_parameters.energy_interp_func_type(),
              d_model_parameters.conc_interp_func_type(), d_conc_db);
       else {
          d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy<
-             CALPHADFreeEnergyFunctionsBinary>(
+             Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
              d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id,
              d_model_parameters.vd(), d_model_parameters.keq(),
              d_model_parameters.energy_interp_func_type(),
@@ -437,7 +437,7 @@ void QuatModel::setupAziz()
       }
    } else
       d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy<
-          KKSFreeEnergyFunctionDiluteBinary>(
+          Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary>(
           d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id,
           d_model_parameters.vd(), d_model_parameters.keq(),
           d_model_parameters.energy_interp_func_type(),
@@ -2255,8 +2255,8 @@ void QuatModel::preRunDiagnostics(void)
          double ceq[4];  // 2 phases x 2 compositions max.
          bool found_ceq = false;
          if (phi_min < 0.1) {
-            found_ceq = computeCeq(temperature, PhaseIndex::phaseL,
-                                   PhaseIndex::phaseA, &ceq[0]);
+            found_ceq = computeCeq(temperature, Thermo4PFM::PhaseIndex::phaseL,
+                                   Thermo4PFM::PhaseIndex::phaseA, &ceq[0]);
          }
 
          mpi.Barrier();
@@ -2284,8 +2284,9 @@ void QuatModel::preRunDiagnostics(void)
 
 //-----------------------------------------------------------------------
 
-bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
-                           const PhaseIndex pi1, double* ceq) const
+bool QuatModel::computeCeq(const double temperature,
+                           const Thermo4PFM::PhaseIndex pi0,
+                           const Thermo4PFM::PhaseIndex pi1, double* ceq) const
 {
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);

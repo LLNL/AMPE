@@ -13,8 +13,6 @@
 
 #include "InterpolationType.h"
 
-using namespace Thermo4PFM;
-
 enum class ConcThreeArgsInterpolationType {
    FOLCHPLAPP2005,
    MOELANS2011,
@@ -27,7 +25,7 @@ enum class EnergyThreeArgsInterpolationType {
    UNDEFINED
 };
 
-EnergyInterpolationType getTwoPhasesInterpolationType(
+Thermo4PFM::EnergyInterpolationType getTwoPhasesInterpolationType(
     EnergyThreeArgsInterpolationType type);
 
 #endif

@@ -35,7 +35,6 @@
 
 #include <map>
 
-using namespace Thermo4PFM;
 using namespace SAMRAI;
 
 class GradStrategy;
@@ -332,8 +331,8 @@ class QuatModel : public PFModel
        std::shared_ptr<pdat::CellData<double> > cd_mobility,
        std::shared_ptr<pdat::CellData<double> > cd_phi);
 
-   bool computeCeq(const double temperature, const PhaseIndex pi0,
-                   const PhaseIndex pi1, double* ceq) const;
+   bool computeCeq(const double temperature, const Thermo4PFM::PhaseIndex pi0,
+                   const Thermo4PFM::PhaseIndex pi1, double* ceq) const;
 
    void applyPolynomial(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         const int src_cell_data_id, const int dst_cell_data_id);

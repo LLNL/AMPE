@@ -90,7 +90,7 @@ int PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
    kmax = pbox.upper(2);
 #endif
 
-   const char interp = concInterpChar(d_phase_interp_func_type);
+   const char interp = Thermo4PFM::concInterpChar(d_phase_interp_func_type);
 
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {

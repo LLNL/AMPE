@@ -16,8 +16,9 @@
 class ConcFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
-   virtual bool computeCeqT(const double temperature, const PhaseIndex pi0,
-                            const PhaseIndex pi1, double* ceq)
+   virtual bool computeCeqT(const double temperature,
+                            const Thermo4PFM::PhaseIndex pi0,
+                            const Thermo4PFM::PhaseIndex pi1, double* ceq)
    {
       return false;
    };

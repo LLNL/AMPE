@@ -24,12 +24,11 @@ using namespace SAMRAI;
 QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
     QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
         std::shared_ptr<tbox::Database> input_db,
-        const EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const short norderp_A, const double vml, const double vma,
         const double vmb, const int conc_l_id, const int conc_a_id,
         const int conc_b_id)
     : d_norderp_A(norderp_A),
-      d_energy_interp_func_type(energy_interp_func_type),
       d_conc_l_id(conc_l_id),
       d_conc_a_id(conc_a_id),
       d_conc_b_id(conc_b_id)

@@ -17,8 +17,6 @@
 
 #include "SAMRAI/tbox/InputManager.h"
 
-using namespace Thermo4PFM;
-
 class KKSdiluteEquilibriumPhaseConcentrationsStrategy
     : public PhaseConcentrationsStrategy
 {
@@ -27,8 +25,8 @@ class KKSdiluteEquilibriumPhaseConcentrationsStrategy
        const int conc_l_id, const int conc_a_id, const int conc_b_id,
        const int conc_l_ref_id, const int conc_a_ref_id,
        const int conc_b_ref_id,
-       const EnergyInterpolationType energy_interp_func_type,
-       const ConcInterpolationType conc_interp_func_type,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db);
 
    ~KKSdiluteEquilibriumPhaseConcentrationsStrategy() { delete d_fenergy; }
@@ -48,7 +46,7 @@ class KKSdiluteEquilibriumPhaseConcentrationsStrategy
    int d_conc_a_ref_id;
    int d_conc_b_ref_id;
 
-   KKSFreeEnergyFunctionDiluteBinary* d_fenergy;
+   Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary* d_fenergy;
 };
 
 #endif
