@@ -976,6 +976,8 @@ void QuatModelParameters::readModelParameters(
       d_moving_frame_upwind = db->getBoolWithDefault("upwind", false);
    } else {
       d_moving_frame_velocity = 0.;
+      d_moving_frame_adapt = false;
+      d_moving_frame_upwind = false;
    }
 
    if (with_third_phase()) initializeEta(model_db);
