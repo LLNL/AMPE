@@ -23,7 +23,6 @@ endif()
 
 message(STATUS "MPIEXEC: ${MPIEXEC}\n")
 
-set(HDF5_USE_STATIC_LIBRARIES ON)
 find_package(HDF5 COMPONENTS C HL REQUIRED)
 message(STATUS ${HDF5_VERSION} )
 include_directories(${HDF5_INCLUDE_DIR})
