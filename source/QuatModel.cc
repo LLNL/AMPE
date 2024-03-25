@@ -3815,9 +3815,6 @@ void QuatModel::computeQuatGradCell(
 
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
       std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& pbox = patch->getBox();
-      const hier::Index& ifirst = pbox.lower();
-      const hier::Index& ilast = pbox.upper();
 
       std::shared_ptr<pdat::SideData<double> > diff_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(

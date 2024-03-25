@@ -18,8 +18,8 @@ QuadraticEquilibriumPhaseConcentrationsStrategy::
         const int conc_l_id, const int conc_a_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
-    : d_conc_interp_func_type(model_parameters.conc_interp_func_type()),
-      PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1, false)
+    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1, false),
+      d_conc_interp_func_type(model_parameters.conc_interp_func_type())
 {
    std::shared_ptr<tbox::Database> quad_db = conc_db->getDatabase("Quadratic");
 
@@ -58,8 +58,6 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
 
    (void)cd_eta;
    (void)cd_c_b;
-
-   const hier::Box& pbox = patch->getBox();
 
    double* ptr_temp = cd_temperature->getPointer();
    double* ptr_phi = cd_phi->getPointer();

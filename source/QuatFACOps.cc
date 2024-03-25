@@ -1066,8 +1066,7 @@ void QuatFACOps::doLevelSolve(solv::SAMRAIVectorReal<double>& solution,
                                                 residual_tolerance);
 
    // Solve
-   const int solver_ret =
-       d_quat_level_solver[ln]->solveSystem(q_residual_id, q_solution_id);
+   d_quat_level_solver[ln]->solveSystem(q_residual_id, q_solution_id);
 
    // Update q ghost cells
    xeqScheduleGhostFillNoCoarse(q_solution_id, ln);

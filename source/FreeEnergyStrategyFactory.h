@@ -53,11 +53,9 @@ class FreeEnergyStrategyFactory
                        << "Using CALPHAD model for concentration" << std::endl;
             std::shared_ptr<tbox::Database> db(conc_db->getDatabase("Calphad"));
             std::string calphad_filename = db->getString("filename");
-            bool calphad_file_is_json = false;
             if (calphad_filename.compare(calphad_filename.size() - 4, 4,
                                          "json") == 0) {
                boost::property_tree::read_json(calphad_filename, calphad_pt);
-               calphad_file_is_json = true;
             } else {
                calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
                tbox::pout << "FreeEnergyStrategyFactory: Read "

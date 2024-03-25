@@ -145,14 +145,6 @@ void HierarchyStencilOps::computeDiffs(std::shared_ptr<hier::Patch> patch,
    assert(diff_data);
    assert(diff_data->getGhostCellWidth()[0] > 0);
 
-   const hier::Box& var_gbox = var_data->getGhostBox();
-   const hier::Index& qlower = var_gbox.lower();
-   const hier::Index& qupper = var_gbox.upper();
-
-   const hier::Box& diff_gbox = diff_data->getGhostBox();
-   const hier::Index& dlower = diff_gbox.lower();
-   const hier::Index& dupper = diff_gbox.upper();
-
    DIFFS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
          ifirst(2), ilast(2),
@@ -204,14 +196,6 @@ void HierarchyStencilOps::computeGradCell(std::shared_ptr<hier::Patch> patch,
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(grad_id)));
    assert(grad_cell_data);
-
-   const hier::Box& diff_gbox = diff_data->getGhostBox();
-   const hier::Index& d_lower = diff_gbox.lower();
-   const hier::Index& d_upper = diff_gbox.upper();
-
-   const hier::Box& grad_gbox = grad_cell_data->getGhostBox();
-   const hier::Index& g_lower = grad_gbox.lower();
-   const hier::Index& g_upper = grad_gbox.upper();
 
    std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,

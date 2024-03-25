@@ -39,12 +39,12 @@ CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
-    : d_mv_strategy(mvstrategy),
-      d_energy_interp_func_type(energy_interp_func_type),
-      d_conc_interp_func_type(conc_interp_func_type),
-      d_conc_l_id(conc_l_id),
+    : d_conc_l_id(conc_l_id),
       d_conc_a_id(conc_a_id),
-      d_conc_b_id(conc_b_id)
+      d_conc_b_id(conc_b_id),
+      d_mv_strategy(mvstrategy),
+      d_energy_interp_func_type(energy_interp_func_type),
+      d_conc_interp_func_type(conc_interp_func_type)
 {
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);

@@ -40,8 +40,6 @@ int main(int argc, char* argv[])
 
    int ret = 0;
    {
-      const int qlen = 4;
-
       const tbox::Dimension dim(static_cast<unsigned short>(NDIM));
 
       /*
@@ -74,12 +72,6 @@ int main(int argc, char* argv[])
 
       // initialize phi fields as linear functions of x,y,z
       hier::Box gbox(phi->getGhostBox());
-
-      int x_lower = gbox.lower(0);
-      int y_lower = gbox.lower(1);
-#if (NDIM == 3)
-      int z_lower = gbox.lower(2);
-#endif
 
       const hier::Index& ifirst = box.lower();
       const hier::Index& ilast = box.upper();

@@ -76,13 +76,6 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    const double phiA = phi[1];
    const double phiB = phi[2];
 
-   const Thermo4PFM::PhaseIndex pil = Thermo4PFM::PhaseIndex::phaseL;
-
-   // std::cout<<std::setprecision(15);
-   const double* const cl = &phaseconc[0];
-   const double* const ca = &phaseconc[this->d_ncompositions];
-   const double* const cb = &phaseconc[2 * this->d_ncompositions];
-
    double zeta_factor = d_model_parameters.zetaFactorLA(temp);
    assert(zeta_factor > 0.);
 

@@ -113,9 +113,6 @@ class KKSdiluteBinary : public FreeEnergyStrategy
    }
 
  private:
-   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
-   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
-
    int d_conc_l_id;
    int d_conc_a_id;
 
@@ -136,6 +133,9 @@ class KKSdiluteBinary : public FreeEnergyStrategy
        std::vector<double>& d2fdc2, const bool use_internal_units);
 
    MolarVolumeStrategy* d_mv_strategy;
+
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary* d_kksdilute_fenergy;
 

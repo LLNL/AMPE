@@ -298,7 +298,6 @@ void PhaseHypre::setCOnPatchPrivate(
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_m = cd_m->getPointer();
    double* ptr_c = cd_c->getPointer();
-   double* ptr_eta = NULL;
 
    const hier::Box& c_gbox = cd_c->getGhostBox();
    int imin_c = c_gbox.lower(0);

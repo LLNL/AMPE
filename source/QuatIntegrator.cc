@@ -149,11 +149,11 @@ QuatIntegrator::QuatIntegrator(
       d_f_a_id(-1),
       d_f_b_id(-1),
       d_phase_rhs_visit_id(-1),
-      d_conc_rhs_visit_id(-1),
       d_driving_force_visit_id(-1),
       d_q_rhs_visit_id(-1),
       d_modulus_q_rhs_visit_id(-1),
       d_temperature_rhs_visit_id(-1),
+      d_conc_rhs_visit_id(-1),
       d_q_rhs1_visit_id(-1),
       d_phase_sol_id(-1),
       d_phase_rhs_id(-1),
@@ -337,7 +337,6 @@ void QuatIntegrator::setupPreconditionersPhase(
           phase_sys_solver_database->getBoolWithDefault("verbose", false);
    }
 
-   const int nphases = d_model_parameters.norderp();
    std::shared_ptr<PhaseFACOps> d_phase_fac_ops(
        new PhaseFACOps(d_name + "_QIPhaseFACOps", phase_sys_solver_database));
 
@@ -3083,11 +3082,6 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
    assert(y_dot_samvect->getNumberOfComponents() == n);
    //#endif
 
-   int conc_id = -1;
-   if (d_with_concentration) {
-      conc_id = y_samvect->getComponentDescriptorIndex(d_conc_component_index);
-   }
-
 #ifdef DEBUG_CHECK_ASSERTIONS
    int temperature_id = d_with_unsteady_temperature
                             ? y_samvect->getComponentDescriptorIndex(
@@ -3099,6 +3093,8 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
       assert(norm_y_temp == norm_y_temp);
    }
    if (d_with_concentration) {
+      int conc_id =
+          y_samvect->getComponentDescriptorIndex(d_conc_component_index);
       assert(checkForNans(hierarchy, conc_id) == 0);
    }
 #endif
