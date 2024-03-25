@@ -50,11 +50,11 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
                         const int eta_id, const int conc_id, const int f_l_id,
-                        const int f_a_id, const int f_b_id, const int rhs_id);
+                        const int f_a_id, const int f_b_id, const int rhs_id)override;
 
    void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true)
+       std::vector<double>& d2fdc2, const bool use_internal_units = true)override
    {
       (void)temperature;
 
@@ -65,7 +65,7 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
    }
    void computeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true)
+       std::vector<double>& d2fdc2, const bool use_internal_units = true)override
    {
       (void)temperature;
 
@@ -114,7 +114,7 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
       }
    }
 
-   void preRunDiagnostics(const double temperature){};
+   void preRunDiagnostics(const double temperature)override{};
 
 
  private:
