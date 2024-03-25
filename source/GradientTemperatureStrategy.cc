@@ -44,8 +44,7 @@ GradientTemperatureStrategy::GradientTemperatureStrategy(
       tbox::plog << "Read temperature data from file " << filename << std::endl;
       d_temperature_history->readCSV(filename);
    } else {
-      size_t nterms = temperature_db->getArraySize("gradient");
-      assert(nterms == NDIM);
+      assert(temperature_db->getArraySize("gradient") == NDIM);
 
       temperature_db->getDoubleArray("gradient", &d_gradient[0], NDIM);
       tbox::plog << "GradientTemperatureStrategy with grad T = "

@@ -159,7 +159,10 @@ double AzizPartitionCoefficientStrategy<FreeEnergyType>::computeKeq(
 
    assert(flag);
 
-   return ceq[1] / ceq[0];
+   if (flag)
+      return ceq[1] / ceq[0];
+   else
+      return -1.;
 }
 
 template class AzizPartitionCoefficientStrategy<

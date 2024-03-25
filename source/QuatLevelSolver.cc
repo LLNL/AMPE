@@ -890,7 +890,6 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
                                            "setMatrixCoefficients\n");
             }
             const hier::BoundaryBoxUtils bbu(boundary_box);
-            const int location_index = boundary_box.getLocationIndex();
             const hier::BoundaryBox trimmed_boundary_box =
                 bbu.trimBoundaryBox(patch.getBox());
             const hier::Box bccoef_box = bbu.getSurfaceBoxFromBoundaryBox();

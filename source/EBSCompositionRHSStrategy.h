@@ -84,10 +84,10 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    bool d_with_diffusion_for_preconditioner;
    std::vector<int> d_diffusion_precond_id;
 
+   std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
+
    // free energy needed to compute diffusion in each phase
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
-
-   std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
 
    void setDiffusionCoeffForPreconditionerOnPatch(
        std::shared_ptr<pdat::SideData<double> > sd_d_l,

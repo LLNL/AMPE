@@ -42,6 +42,8 @@ QuatSysSolver::QuatSysSolver(
     const int ql, std::shared_ptr<QuatFaceCoeff> quat_face_coeff_strategy,
     const std::string& object_name, std::shared_ptr<tbox::Database> database)
     : d_object_name(object_name),
+      d_context(hier::VariableDatabase::getDatabase()->getContext(object_name +
+                                                                  "::CONTEXT")),
       d_fac_ops(new QuatFACOps(ql, quat_face_coeff_strategy,
                                object_name + "::fac_ops", database)),
       d_fac_solver(object_name + "::fac_precond", d_fac_ops),
@@ -49,8 +51,6 @@ QuatSysSolver::QuatSysSolver(
       d_simple_bc(tbox::Dimension(NDIM), object_name + "::bc"),
       d_ln_min(-1),
       d_ln_max(-1),
-      d_context(hier::VariableDatabase::getDatabase()->getContext(object_name +
-                                                                  "::CONTEXT")),
       d_solver_is_initialized(false),
       d_verbose(false),
       d_precond_maxiters(10)

@@ -17,9 +17,9 @@ QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
         const short norderp_A, const int conc_l_id, const int conc_a_id,
         const int conc_b_id, const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
-    : d_norderp_A(norderp_A),
-      d_conc_interp_func_type(model_parameters.conc_interp_func_type()),
-      PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id, false)
+    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id, false),
+      d_norderp_A(norderp_A),
+      d_conc_interp_func_type(model_parameters.conc_interp_func_type())
 {
    std::shared_ptr<tbox::Database> quad_db = conc_db->getDatabase("Quadratic");
 
@@ -69,8 +69,6 @@ int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
    (void)cd_eta;
 
    const int norderp = cd_phi->getDepth();
-
-   const hier::Box& pbox = patch->getBox();
 
    double* ptr_temp = cd_temperature->getPointer();
    double* ptr_conc = cd_concentration->getPointer();
@@ -123,7 +121,6 @@ int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
    kmin = c_i_gbox.lower(2);
    kmax = c_i_gbox.upper(2);
 #endif
-   const char interpf = Thermo4PFM::concInterpChar(d_conc_interp_func_type);
    const short norder = cd_phi->getDepth();
 
    std::vector<double*> ptr_phi(norderp);

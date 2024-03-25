@@ -89,8 +89,6 @@ int main(int argc, char *argv[])
       if (conc_db->isDatabase("NewtonSolver"))
          newton_db = conc_db->getDatabase("NewtonSolver");
 
-      bool with_third_phase = false;
-
       pt::ptree calphad_pt;
       pt::ptree newton_pt;
       copyDatabase(calphad_db, calphad_pt);
@@ -100,10 +98,6 @@ int main(int argc, char *argv[])
                                             energy_interp_func_type,
                                             conc_interp_func_type);
 
-
-      // choose pair of phases: phaseL, phaseA, phaseB
-      const PhaseIndex pi0 = PhaseIndex::phaseL;
-      const PhaseIndex pi1 = PhaseIndex::phaseA;
 
       // initial guesses
       double init_guess[2];

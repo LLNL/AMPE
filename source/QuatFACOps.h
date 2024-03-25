@@ -359,6 +359,8 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    void divideMobilitySqrt(const int id);
 
  private:
+   const int d_qlen;
+
    std::shared_ptr<QuatFaceCoeff> d_quat_face_coeff_strategy;
    /*
     * Function to compute flux, using general diffusion
@@ -629,8 +631,6 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
 
    // Free static variables at shutdown time.
    static void freeVariables();
-
-   const int d_qlen;
 
    /*
     * Object name.

@@ -88,14 +88,6 @@ void QuatGradModulusStrategy::computeQuatGradModulusFromSides(
       assert(grad_modulus_data->getGhostCellWidth() ==
              hier::IntVector(tbox::Dimension(NDIM), 0));
 
-      const hier::Box& grad_gbox = grad_side_data->getGhostBox();
-      const hier::Index& g_lower = grad_gbox.lower();
-      const hier::Index& g_upper = grad_gbox.upper();
-
-      const hier::Box& mod_gbox = grad_modulus_data->getGhostBox();
-      const hier::Index& m_lower = mod_gbox.lower();
-      const hier::Index& m_upper = mod_gbox.upper();
-
       assert(grad_side_data->getDepth() == NDIM * d_qlen);
       assert(grad_modulus_data->getDepth() == 1);
 

@@ -8,6 +8,7 @@ rm Makefile
 rm -f ../source/fortran/2d/*.f
 
 cmake -DCMAKE_CXX_COMPILER=mpiCC \
+      -DCMAKE_CXX_FLAGS="-Wall" \
       -DCMAKE_C_COMPILER=mpicc \
       -DCMAKE_Fortran_COMPILER=mpif77 \
       -DSAMRAI_DIR=$HOME/SAMRAI/SAMRAI-v4.1.0 \

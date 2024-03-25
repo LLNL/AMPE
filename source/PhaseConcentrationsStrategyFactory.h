@@ -137,7 +137,7 @@ class PhaseConcentrationsStrategyFactory
                     model_parameters.energy_interp_func_type(),
                     model_parameters.conc_interp_func_type(), conc_db));
          } else {
-            if (model_parameters.isConcentrationModelQuadratic())
+            if (model_parameters.isConcentrationModelQuadratic()) {
                if (model_parameters.norderp() > 1) {
                   tbox::plog << "Quadratic, MultiOrder..." << std::endl;
                   if (conc_b_scratch_id >= 0) {
@@ -162,6 +162,7 @@ class PhaseConcentrationsStrategyFactory
                           conc_l_scratch_id, conc_a_scratch_id,
                           model_parameters, conc_db));
                }
+            }
          }
       } else {
          if (model_parameters.partition_phase_concentration()) {

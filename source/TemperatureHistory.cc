@@ -79,7 +79,7 @@ int TemperatureHistory::getTandGradT(const double time, const double position,
       d_os << "Minimum time is " << d_times[0] << std::endl;
       return 1;
    }
-   int itime = 0;
+   unsigned itime = 0;
    for (auto t : d_times) {
       if (time >= t)
          itime++;
@@ -105,7 +105,7 @@ int TemperatureHistory::getTandGradT(const double time, const double position,
       d_os << "Minimum position is " << d_positions[0] << std::endl;
       return 1;
    }
-   int ipos = 0;
+   unsigned ipos = 0;
    for (auto x : d_positions) {
       if (position > x)
          ipos++;

@@ -287,7 +287,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    // number of cells for each field
    const int ncp = pf_gbox.size();
    const int ncc = ci_gbox.size();
-   const int nct = temp_gbox.size();
 
    // Limits computation to one ghost cell if the Patch touches a non-periodic
    // physical boundary.
@@ -324,6 +323,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    int nits = 0;
 
 #ifdef GPU_OFFLOAD
+   const int nct = temp_gbox.size();
 // clang-format off
 #pragma omp target map(to: ptr_temp[:nct]) \
                    map(to: ptr_phi[:ncp]) \

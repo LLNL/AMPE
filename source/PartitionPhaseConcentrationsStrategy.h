@@ -27,7 +27,8 @@ class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy
          d_partition_coeff_id(partition_coeff_id)
    {
       assert(d_partition_coeff_id >= 0);
-      assert(phase_interp_func_type != ConcInterpolationType::UNDEFINED);
+      assert(phase_interp_func_type !=
+             Thermo4PFM::ConcInterpolationType::UNDEFINED);
    };
 
    ~PartitionPhaseConcentrationsStrategy(){};

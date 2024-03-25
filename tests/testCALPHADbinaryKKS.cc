@@ -112,8 +112,6 @@ int main(int argc, char* argv[])
       if (conc_db->isDatabase("NewtonSolver"))
          newton_db = conc_db->getDatabase("NewtonSolver");
 
-      bool with_third_phase = false;
-
       pt::ptree calphad_pt;
       pt::ptree newton_pt;
       copyDatabase(calphad_db, calphad_pt);

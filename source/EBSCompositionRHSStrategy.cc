@@ -198,8 +198,6 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    const hier::Index& ifirst(pbox.lower());
    const hier::Index& ilast(pbox.upper());
 
-   const unsigned nc2 = d_ncompositions * d_ncompositions;
-
    std::shared_ptr<pdat::CellData<double> > conc_l(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_l_scratch_id)));
@@ -216,13 +214,13 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_diffusion_l_id)));
    assert(diffusionl);
-   assert(diffusionl->getDepth() == (nc2));
+   assert(diffusionl->getDepth() == (d_ncompositions * d_ncompositions));
 
    std::shared_ptr<pdat::SideData<double> > diffusiona(
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_diffusion_a_id)));
    assert(diffusiona);
-   assert(diffusiona->getDepth() == (int)nc2);
+   assert(diffusiona->getDepth() == (int)(d_ncompositions * d_ncompositions));
 
    std::shared_ptr<pdat::SideData<double> > flux(
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(

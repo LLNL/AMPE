@@ -33,11 +33,11 @@ KKSdiluteBinary::KKSdiluteBinary(
     const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
     const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id)
-    : d_mv_strategy(mvstrategy),
+    : d_conc_l_id(conc_l_id),
+      d_conc_a_id(conc_a_id),
+      d_mv_strategy(mvstrategy),
       d_energy_interp_func_type(energy_interp_func_type),
-      d_conc_interp_func_type(conc_interp_func_type),
-      d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id)
+      d_conc_interp_func_type(conc_interp_func_type)
 {
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]

@@ -106,7 +106,7 @@ void FieldsInitializer::initializeLevelFromData(
    tbox::plog << "Opened NetCDF file " << init_data_filename << std::endl;
 
    size_t qlen_file = 0;
-   NcVar* ncPhase;
+   NcVar* ncPhase = nullptr;
 #ifdef HAVE_NETCDF3
    tbox::plog << "Try to read phase values..." << std::endl;
    ncPhase = ncf->get_var("phase");
@@ -444,14 +444,6 @@ void FieldsInitializer::initializeLevelFromData(
             for (pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
                  i != iend; ++i) {
                const pdat::CellIndex ccell = *i;
-               int ix = ccell(0) - x_lower;
-               int iy = ccell(1) - y_lower;
-#if (NDIM == 2)
-               int idx = nx * iy + ix;
-#else
-            int iz = ccell(2) - z_lower;
-            int idx = nx * ny * iz + nx * iy + ix;
-#endif
                double val = 0.;
                for (int depth = 0; depth < d_nphases - 1; depth++)
                   val += (*phase_data)(ccell, depth);

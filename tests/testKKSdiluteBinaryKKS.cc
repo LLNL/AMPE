@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    /* This extra code block is used to scope some temporaries that are
     * created, it forces the destruction before the manager is

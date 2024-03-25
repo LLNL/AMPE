@@ -347,8 +347,6 @@ int main(
       std::shared_ptr<tbox::Timer> coarsen_comm_time(
          time_man->getTimer("test::main::performCoarsenOperations"));
 
-      const bool plot = main_db->getBoolWithDefault("plot", false);
-
       tbox::TimerManager::getManager()->resetAllTimers();
 
       /*

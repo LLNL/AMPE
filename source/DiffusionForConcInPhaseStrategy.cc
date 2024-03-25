@@ -309,9 +309,6 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                                  (kk - kmin_temp) * kp_temp;
             const int idxm1_temp = idx_temp - 1;
 
-            const int idx_pf = idx_c;
-            const int idxm1_pf = idxm1_c;
-
             double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
 
             for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
@@ -356,9 +353,6 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                c_a[ic] = 0.5 * (ptr_c_a[ic][idx_c] + ptr_c_a[ic][idxm1_c]);
             }
 
-            const int idx_pf = idx_c;
-            const int idxm1_pf = idxm1_c;
-
             double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
 
             computeLocalDiffusionMatrixL(temp, c_l);
@@ -390,9 +384,6 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                                     (jj - jmin_temp) * jp_temp +
                                     (kk - kmin_temp) * kp_temp;
                const int idxm1_temp = idx_temp - kp_temp;
-
-               const int idx_pf = idx_c;
-               const int idxm1_pf = idxm1_c;
 
                for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
                   c_l[ic] = 0.5 * (ptr_c_l[ic][idx_c] + ptr_c_l[ic][idxm1_c]);
