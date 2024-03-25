@@ -26,6 +26,8 @@ c
 c
       implicit none
 c
+      integer lo0, hi0, lo1, hi1, lo2, hi2,
+     &        depth
 c variables in 3d cell indexed
       double precision phi(CELL3d(lo,hi,ngp))
       double precision temp(CELL3d(lo,hi,ngt))
@@ -41,9 +43,6 @@ c variables in 3d cell indexed
       character*(*) interp_type1, interp_type2
       character*(*) floor_type
       character*(*) avg_type
-
-      integer lo0, hi0, lo1, hi1, lo2, hi2,
-     &        depth
 
       double precision
      &           gradient_floor, eps_q
