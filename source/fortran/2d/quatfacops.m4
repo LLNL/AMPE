@@ -27,6 +27,8 @@ c
 c
       implicit none
 c
+      integer lo0, hi0, lo1, hi1,
+     &        depth
 c variables in 2d cell indexed
       integer ngp, ngt, nggq, ngf
       double precision phi(CELL2d(lo,hi,ngp))
@@ -39,9 +41,6 @@ c variables in 2d cell indexed
       character*(*) interp_type1, interp_type2
       character*(*) floor_type
       character*(*) avg_type
-
-      integer lo0, hi0, lo1, hi1,
-     &        depth
 
       double precision
      &           gradient_floor, eps_q
