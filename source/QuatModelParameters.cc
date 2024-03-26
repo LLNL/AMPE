@@ -80,6 +80,7 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_well_bias_gamma = def_val;
    d_liquidus_slope = def_val;
    d_average_concentration = def_val;
+   d_stochio_cB = -1.;
 
    d_avg_func_type = "";
    d_diffq_avg_func_type = "";
@@ -365,6 +366,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
 
    d_init_phase_conc_eq =
        conc_db->getBoolWithDefault("init_phase_conc_eq", true);
+
+   d_stochio_cB = conc_db->getDoubleWithDefault("stochio_cB", -1.);
 }
 
 void QuatModelParameters::readDiluteAlloy(

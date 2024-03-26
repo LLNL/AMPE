@@ -11,6 +11,7 @@
 #ifndef included_PhaseConcentrationsStrategyFactory
 #define included_PhaseConcentrationsStrategyFactory
 
+#include "CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
@@ -70,6 +71,7 @@ class PhaseConcentrationsStrategyFactory
             if (ncompositions == 1) {
                tbox::plog << "Binary alloy..." << std::endl;
                bool subl = Thermo4PFM::checkSublattice(calphad_pt);
+               double cB = model_parameters.getStochioB();
                if (conc_b_scratch_id >= 0) {
                   tbox::plog << "Three phases..." << std::endl;
                   // three phases
@@ -83,7 +85,13 @@ class PhaseConcentrationsStrategyFactory
                              model_parameters, conc_db, newton_db));
                   } else {
                      // three phases model
-                     if (subl) {
+                     if (cB >= 0.) {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB(
+                                cB, conc_l_scratch_id, conc_a_scratch_id,
+                                conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                                conc_b_ref_id, calphad_pt, newton_db));
+                     } else if (subl) {
                         phase_conc_strategy.reset(
                             new CALPHADequilibriumPhaseConcentrationsStrategy<
                                 Thermo4PFM::

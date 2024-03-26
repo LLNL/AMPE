@@ -17,6 +17,7 @@ namespace pt = boost::property_tree;
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB.h"
 
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
@@ -157,6 +158,25 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
            new Thermo4PFM::CALPHADFreeEnergyFunctionsTernary(
                calphad_pt, newton_pt, energy_interp_func_type,
                Thermo4PFM::ConcInterpolationType::LINEAR));
+}
+
+template <class FreeEnergyType>
+CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
+    CALPHADequilibriumPhaseConcentrationsStrategy(
+        const int conc_l_scratch_id, const int conc_a_scratch_id,
+        const int conc_b_scratch_id, const int conc_l_ref_id,
+        const int conc_a_ref_id, const int conc_b_ref_id,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+        const bool with_third_phase, pt::ptree calphad_pt,
+        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+    : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
+                                  conc_b_scratch_id, with_third_phase),
+      d_conc_l_ref_id(conc_l_ref_id),
+      d_conc_a_ref_id(conc_a_ref_id),
+      d_conc_b_ref_id(conc_b_ref_id),
+      d_conc_interp_func_type(conc_interp_func_type)
+{
 }
 
 template <class FreeEnergyType>
@@ -385,8 +405,11 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                int status =
                    d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi,
                                                                  x);
-               // std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
-               //          << std::endl;
+               std::cout << "computePhaseConcentrations for T=" << temp
+                         << ", hphi=";
+               for (short i = 0; i < nphases; i++)
+                  std::cerr << hphi[i] << ", ";
+               std::cerr << ", c=" << c[0] << std::endl;
                if (status < 0) {
                   std::cerr
                       << "computePhaseConcentrations failed for T=" << temp
@@ -452,3 +475,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 #endif
    return nits;
 }
+
+template class CALPHADequilibriumPhaseConcentrationsStrategy<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>;
