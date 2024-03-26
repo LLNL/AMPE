@@ -19,6 +19,7 @@
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyStrategyMultiOrder.h"
+#include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "QuadraticFreeEnergyStrategyMultiOrder.h"
 #include "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase.h"
 #include "KKSdiluteBinary.h"
@@ -117,16 +118,26 @@ class FreeEnergyStrategyFactory
                         tbox::plog << "CALPHADFreeEnergyFunctionsBinaryThreePha"
                                       "se"
                                    << std::endl;
-                        free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
-                                TiltingFolchPlapp2005>(
-                                calphad_pt, newton_db,
-                                model_parameters.energy_interp_func_type(),
-                                model_parameters.conc_interp_func_type(),
-                                mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
+                        if (model_parameters.getStochioB()) {
+                           free_energy_strategy.reset(
+                               new CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB(
+                                   calphad_pt, newton_db,
+                                   model_parameters.energy_interp_func_type(),
+                                   model_parameters.conc_interp_func_type(),
+                                   mvstrategy, conc_l_scratch_id,
+                                   conc_a_scratch_id, conc_b_scratch_id));
+                        } else {
+                           free_energy_strategy.reset(
+                               new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                   Thermo4PFM::
+                                       CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                   TiltingFolchPlapp2005>(
+                                   calphad_pt, newton_db,
+                                   model_parameters.energy_interp_func_type(),
+                                   model_parameters.conc_interp_func_type(),
+                                   mvstrategy, conc_l_scratch_id,
+                                   conc_a_scratch_id, conc_b_scratch_id));
+                        }
                      }
                      // conc_b_scratch_id<0
                   } else {
