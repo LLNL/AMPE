@@ -447,6 +447,11 @@ class QuatModelParameters
 
    double zetaFactor(const double temp) const { return zetaFactorLA(temp); }
 
+   double concL_ref() { return d_concL_ref; }
+   double concA_ref() { return d_concA_ref; }
+   double concB_ref() { return d_concB_ref; }
+
+
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
@@ -575,6 +580,11 @@ class QuatModelParameters
    double d_Q0_solid_A;
    double d_Q0_solid_B;
    std::string d_conc_avg_func_type;
+
+   // reference auxilliary compositions to use for initialization
+   double d_concL_ref;
+   double d_concA_ref;
+   double d_concB_ref;
 
    ConcModel d_conc_model;
    ConcRHSstrategy d_conc_rhs_strategy;

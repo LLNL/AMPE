@@ -65,6 +65,11 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_Q0_liquid = def_val;
    d_Q0_solid_A = def_val;
    d_Q0_solid_B = def_val;
+   // defaults values of -1 means they were not set
+   d_concL_ref = -1.;
+   d_concA_ref = -1.;
+   d_concB_ref = -1.;
+
    d_conc_mobility = def_val;
    d_thermal_diffusivity = def_val;
    d_latent_heat = def_val;
@@ -269,6 +274,16 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       d_Q_heat_transport[1] = conc_db->getDouble("gradT_Q1");
    } else {
       d_with_gradT = false;
+   }
+
+   if (conc_db->keyExists("concL_ref")) {
+      d_concL_ref = conc_db->getDouble("concL_ref");
+   }
+   if (conc_db->keyExists("concA_ref")) {
+      d_concA_ref = conc_db->getDouble("concA_ref");
+   }
+   if (conc_db->keyExists("concB_ref")) {
+      d_concB_ref = conc_db->getDouble("concB_ref");
    }
 
    d_with_antitrapping = conc_db->getBoolWithDefault("antitrapping", false);
