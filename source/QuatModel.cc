@@ -739,6 +739,28 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
        d_model_parameters, d_qlen, d_phase_scratch_id, d_quat_scratch_id,
        d_quat_grad_side_id, d_weight_id, d_f_l_id, d_f_a_id, d_temperature_id,
        d_energy_diag_id));
+
+   math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
+
+   tbox::plog << "Set reference auxilliary compositions..." << std::endl;
+   const double cLref = d_model_parameters.concL_ref();
+   if (cLref >= 0.) {
+      tbox::plog << "Set reference cL to " << cLref << std::endl;
+      cellops.setToScalar(d_conc_l_ref_id, cLref, false);
+      cellops.setToScalar(d_conc_l_id, cLref);
+   }
+   const double cAref = d_model_parameters.concA_ref();
+   if (cAref >= 0.) {
+      tbox::plog << "Set reference ca to " << cAref << std::endl;
+      cellops.setToScalar(d_conc_a_ref_id, cAref, false);
+      cellops.setToScalar(d_conc_a_id, cAref);
+   }
+   const double cBref = d_model_parameters.concB_ref();
+   if (cBref >= 0.) {
+      tbox::plog << "Set reference cb to " << cBref << std::endl;
+      cellops.setToScalar(d_conc_b_ref_id, cBref, false);
+      cellops.setToScalar(d_conc_b_id, cBref);
+   }
 }
 
 //=======================================================================
