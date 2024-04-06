@@ -22,6 +22,8 @@
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder.h"
+#include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases.h"
 #include "CALPHADFunctions.h"
 
 #include <boost/property_tree/ptree.hpp>
@@ -43,6 +45,7 @@ class PhaseConcentrationsStrategyFactory
       boost::property_tree::ptree calphad_pt;
       std::shared_ptr<tbox::MemoryDatabase> calphad_db;
 
+      tbox::plog << "=== PhaseConcentrationsStrategyFactory ===" << std::endl;
       if (model_parameters.isConcentrationModelCALPHAD()) {
          std::shared_ptr<tbox::Database> db(conc_db->getDatabase("Calphad"));
          std::string calphad_filename = db->getString("filename");
@@ -65,56 +68,83 @@ class PhaseConcentrationsStrategyFactory
          if (model_parameters.isConcentrationModelCALPHAD()) {
             tbox::plog << "CALPHAD..." << std::endl;
             if (ncompositions == 1) {
+               tbox::plog << "Binary alloy..." << std::endl;
                bool subl = Thermo4PFM::checkSublattice(calphad_pt);
                if (conc_b_scratch_id >= 0) {
-                  if (subl) {
+                  tbox::plog << "Three phases..." << std::endl;
+                  // three phases
+                  if (model_parameters.withMultipleOrderP()) {
+                     tbox::plog << "Multi-order parameters..." << std::endl;
+                     // multi-order parameters model
                      phase_conc_strategy.reset(
-                         new CALPHADequilibriumPhaseConcentrationsStrategy<
-                             Thermo4PFM::
-                                 CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
-                             conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
-                             conc_b_ref_id,
-                             model_parameters.energy_interp_func_type(),
-                             model_parameters.conc_interp_func_type(),
-                             model_parameters.with_third_phase(), calphad_pt,
-                             newton_db, ncompositions));
+                         new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases(
+                             model_parameters.norderpA(), conc_l_scratch_id,
+                             conc_a_scratch_id, conc_b_scratch_id,
+                             model_parameters, conc_db, newton_db));
                   } else {
-                     phase_conc_strategy.reset(
-                         new CALPHADequilibriumPhaseConcentrationsStrategy<
-                             Thermo4PFM::
-                                 CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-                             conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
-                             conc_b_ref_id,
-                             model_parameters.energy_interp_func_type(),
-                             model_parameters.conc_interp_func_type(),
-                             model_parameters.with_third_phase(), calphad_pt,
-                             newton_db, ncompositions));
+                     // three phases model
+                     if (subl) {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                                conc_l_scratch_id, conc_a_scratch_id,
+                                conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                                conc_b_ref_id,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                model_parameters.with_third_phase(), calphad_pt,
+                                newton_db, ncompositions));
+                     } else {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                                conc_l_scratch_id, conc_a_scratch_id,
+                                conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                                conc_b_ref_id,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                model_parameters.with_third_phase(), calphad_pt,
+                                newton_db, ncompositions));
+                     }
                   }
-               } else if (subl) {
-                  phase_conc_strategy.reset(
-                      new CALPHADequilibriumPhaseConcentrationsStrategy<
-                          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
-                          conc_b_ref_id,
-                          model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(),
-                          model_parameters.with_third_phase(), calphad_pt,
-                          newton_db, ncompositions));
+               } else {  // two phases only
+                  tbox::plog << "Two phases..." << std::endl;
+                  if (model_parameters.norderp() > 1) {
+                     // multiple order parameters
+                     tbox::plog << "Multi-order parameters..." << std::endl;
+                     phase_conc_strategy.reset(
+                         new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder(
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             model_parameters, conc_db, newton_db));
+                  } else {  // single order parameter
+                     if (subl) {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+                                conc_l_scratch_id, conc_a_scratch_id,
+                                conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                                conc_b_ref_id,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                model_parameters.with_third_phase(), calphad_pt,
+                                newton_db, ncompositions));
 
-               } else {
-                  phase_conc_strategy.reset(
-                      new CALPHADequilibriumPhaseConcentrationsStrategy<
-                          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
-                          conc_b_ref_id,
-                          model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(),
-                          model_parameters.with_third_phase(), calphad_pt,
-                          newton_db, ncompositions));
+                     } else {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                                Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
+                                conc_l_scratch_id, conc_a_scratch_id,
+                                conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                                conc_b_ref_id,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                model_parameters.with_third_phase(), calphad_pt,
+                                newton_db, ncompositions));
+                     }
+                  }
                }
             } else if (ncompositions == 2) {
                tbox::plog << "Ternary..." << std::endl;

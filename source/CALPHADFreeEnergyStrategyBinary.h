@@ -128,19 +128,7 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
    }
 
    bool computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
-                    const Thermo4PFM::PhaseIndex pi1, double* ceq)
-   {
-      return d_calphad_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
-   }
-
-   void energyVsPhiAndC(const double temperature, const double* const ceq,
-                        const bool found_ceq, const double phi_well_scale,
-                        const std::string& phi_well_type, const int npts_phi,
-                        const int npts_c)
-   {
-      d_calphad_fenergy->energyVsPhiAndC(temperature, ceq, found_ceq,
-                                         phi_well_scale, npts_phi, npts_c);
-   }
+                    const Thermo4PFM::PhaseIndex pi1, double* ceq);
 
  protected:
    void defaultComputeSecondDerivativeEnergyPhaseL(
@@ -158,8 +146,8 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
    Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    double computeMuA(const double t, const double c);
-
    double computeMuL(const double t, const double c);
+   double computeMuB(const double t, const double c);
 
    int d_conc_l_id;
    int d_conc_a_id;
@@ -175,17 +163,17 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
       return DERIV_INTERP_FUNC(phi, &interp);
    }
 
-   void addDrivingForce(std::shared_ptr<pdat::CellData<double> > cd_rhs,
-                        std::shared_ptr<pdat::CellData<double> > cd_temperature,
-                        std::shared_ptr<pdat::CellData<double> > cd_phi,
-                        std::shared_ptr<pdat::CellData<double> > cd_eta,
-                        std::shared_ptr<pdat::CellData<double> > cd_f_l,
-                        std::shared_ptr<pdat::CellData<double> > cd_f_a,
-                        std::shared_ptr<pdat::CellData<double> > cd_f_b,
-                        std::shared_ptr<pdat::CellData<double> > cd_c_l,
-                        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-                        std::shared_ptr<pdat::CellData<double> > cd_c_b,
-                        const hier::Box& pbox);
+   virtual void addDrivingForce(
+       std::shared_ptr<pdat::CellData<double> > cd_rhs,
+       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_f_l,
+       std::shared_ptr<pdat::CellData<double> > cd_f_a,
+       std::shared_ptr<pdat::CellData<double> > cd_f_b,
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
                           const int f_id, const int c_i_id,

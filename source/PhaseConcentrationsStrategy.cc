@@ -112,9 +112,11 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
             assert(c_b);
          }
 
-         nits += computePhaseConcentrationsOnPatch(temperature, phi, eta,
-                                                   concentration, c_l, c_a, c_b,
-                                                   patch);
+         int ret = computePhaseConcentrationsOnPatch(temperature, phi, eta,
+                                                     concentration, c_l, c_a,
+                                                     c_b, patch);
+         if (ret < 0) tbox::SAMRAI_MPI::abort();
+         nits += ret;
       }
    }
 #if 0

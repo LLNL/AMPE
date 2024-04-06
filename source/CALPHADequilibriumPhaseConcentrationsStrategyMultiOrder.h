@@ -8,26 +8,27 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
-#define included_QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
+#ifndef included_CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
+#define included_CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
 
 #include "PhaseConcentrationsStrategy.h"
 #include "QuatModelParameters.h"
-#include "QuadraticFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "EquilibriumPhaseConcentrationsBinaryMultiOrder.h"
 
 #include <string>
 
-class QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
+class CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
     : public EquilibriumPhaseConcentrationsBinaryMultiOrder
 {
  public:
-   QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder(
+   CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder(
        const int conc_l_id, const int conc_a_id,
        const QuatModelParameters& model_parameters,
-       std::shared_ptr<tbox::Database> conc_db);
+       std::shared_ptr<tbox::Database> conc_db,
+       std::shared_ptr<tbox::Database> newton_db);
 
-   ~QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder() {}
+   ~CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder() {}
 
  protected:
    virtual void computePhaseConcentrations(const double t, double* c,
@@ -37,7 +38,7 @@ class QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
    }
 
  private:
-   std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary> d_fenergy;
+   std::shared_ptr<Thermo4PFM::CALPHADFreeEnergyFunctionsBinary> d_fenergy;
 };
 
 #endif

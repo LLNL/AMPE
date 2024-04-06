@@ -18,6 +18,7 @@
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
+#include "CALPHADFreeEnergyStrategyMultiOrder.h"
 #include "QuadraticFreeEnergyStrategyMultiOrder.h"
 #include "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase.h"
 #include "KKSdiluteBinary.h"
@@ -26,7 +27,6 @@
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "TiltingFolchPlapp2005.h"
-#include "TiltingMoelans2011.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -71,92 +71,89 @@ class FreeEnergyStrategyFactory
             }
 
             if (ncompositions == 1) {
-               if (conc_b_scratch_id >= 0) {
-                  tbox::pout << "Use CALPHADFreeEnergyStrategyBinaryThreePhase"
+               if (model_parameters.withMultipleOrderP()) {
+                  tbox::plog << "CALPHADFreeEnergyStrategyMultiOrder..."
                              << std::endl;
-                  // check if sublattice parameters are in CALPHAD database
-                  bool subl = Thermo4PFM::checkSublattice(calphad_pt);
-                  if (subl) {
-                     tbox::plog << "CALPHADFreeEnergyFunctionsBinary3Ph2Sl"
-                                << std::endl;
-                     if (model_parameters
-                             .energy_three_args_interp_func_type() ==
-                         EnergyThreeArgsInterpolationType::MOELANS2011)
-                        free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
-                                TiltingMoelans2011>(
-                                calphad_pt, newton_db,
-                                model_parameters.energy_interp_func_type(),
-                                model_parameters.conc_interp_func_type(),
-                                mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
-                     else
-                        free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
-                                TiltingFolchPlapp2005>(
-                                calphad_pt, newton_db,
-                                model_parameters.energy_interp_func_type(),
-                                model_parameters.conc_interp_func_type(),
-                                mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
-                  } else {
-                     tbox::plog << "CALPHADFreeEnergyFunctionsBinaryThreePhase"
-                                << std::endl;
-                     if (model_parameters
-                             .energy_three_args_interp_func_type() ==
-                         EnergyThreeArgsInterpolationType::MOELANS2011)
-                        free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
-                                TiltingMoelans2011>(
-                                calphad_pt, newton_db,
-                                model_parameters.energy_interp_func_type(),
-                                model_parameters.conc_interp_func_type(),
-                                mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
-                     else  // default
-                        free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
-                                TiltingFolchPlapp2005>(
-                                calphad_pt, newton_db,
-                                model_parameters.energy_interp_func_type(),
-                                model_parameters.conc_interp_func_type(),
-                                mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
-                  }
-                  // conc_b_scratch_id<0
-               } else {
-                  // check if sublattice parameters are in CALPHAD database
-                  bool subl = Thermo4PFM::checkSublattice(calphad_pt);
-                  if (subl) {
-                     tbox::plog << "CALPHADFreeEnergyFunctionsBinary2Ph1Sl"
-                                << std::endl;
+                  if (conc_b_scratch_id >= 0) {
                      free_energy_strategy.reset(
-                         new CALPHADFreeEnergyStrategyBinary<
+                         new CALPHADFreeEnergyStrategyMultiOrder<
+                             Thermo4PFM::
+                                 CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                             calphad_pt, newton_db,
+                             model_parameters.conc_interp_func_type(),
+                             model_parameters.norderpA(), mvstrategy,
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id));
+                  } else {
+                     free_energy_strategy.reset(
+                         new CALPHADFreeEnergyStrategyMultiOrder<
                              Thermo4PFM::
                                  CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
                              calphad_pt, newton_db,
-                             model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
-                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id, false));
-                  } else
-                     free_energy_strategy.reset(
-                         new CALPHADFreeEnergyStrategyBinary<
-                             Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
-                             calphad_pt, newton_db,
-                             model_parameters.energy_interp_func_type(),
-                             model_parameters.conc_interp_func_type(),
-                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id,
-                             model_parameters.with_third_phase()));
+                             model_parameters.norderpA(), mvstrategy,
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id));
+                  }
+               } else {
+                  // check if sublattice parameters are in CALPHAD database
+                  bool subl = Thermo4PFM::checkSublattice(calphad_pt);
+                  if (conc_b_scratch_id >= 0) {
+                     if (subl) {
+                        tbox::plog << "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.."
+                                      "."
+                                   << std::endl;
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
+                                TiltingFolchPlapp2005>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
+                     } else {
+                        tbox::plog << "CALPHADFreeEnergyFunctionsBinaryThreePha"
+                                      "se"
+                                   << std::endl;
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                TiltingFolchPlapp2005>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
+                     }
+                     // conc_b_scratch_id<0
+                  } else {
+                     if (subl) {
+                        tbox::plog << "CALPHADFreeEnergyFunctionsBinary2Ph1Sl"
+                                   << std::endl;
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinary<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id, false));
+                     } else {
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinary<
+                                Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters.with_third_phase()));
+                     }
+                  }
                }
             } else {  // ncompositions!=1
                assert(ncompositions == 2);
@@ -183,7 +180,8 @@ class FreeEnergyStrategyFactory
             if (model_parameters.norderp() > 1)
                if (conc_b_scratch_id > -1) {
                   tbox::plog << "Use "
-                                "QuadraticFreeEnergyStrategyMultiOrderTernaryTh"
+                                "QuadraticFreeEnergyStrategyMultiOrderTernar"
+                                "yTh"
                                 "reeP"
                                 "hase..."
                              << std::endl;
@@ -198,7 +196,8 @@ class FreeEnergyStrategyFactory
                           conc_l_scratch_id, conc_a_scratch_id,
                           conc_b_scratch_id));
                } else {
-                  tbox::plog << "Use QuadraticFreeEnergyStrategyMultiOrder..."
+                  tbox::plog << "Use "
+                                "QuadraticFreeEnergyStrategyMultiOrder..."
                              << std::endl;
                   free_energy_strategy.reset(
                       new QuadraticFreeEnergyStrategyMultiOrder(
