@@ -357,7 +357,7 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    }
 
    if (conc_db->keyExists("initc_in_phase")) {
-      size_t nterms = conc_db->getArraySize("initc_in_phase");
+      int nterms = conc_db->getArraySize("initc_in_phase");
       assert(nterms == 2 * d_ncompositions);
       d_initc_in_phase.resize(nterms);
       conc_db->getDoubleArray("initc_in_phase", &d_initc_in_phase[0], nterms);

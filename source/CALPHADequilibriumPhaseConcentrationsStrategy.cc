@@ -373,20 +373,30 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                }
                assert(!std::isnan(x[0]));
                assert(!std::isnan(x[nc]));
+               // std::cerr << ", c=" << c[0] << std::endl;
+               // std::cerr << "c_ref=" << cl_ref[idx_ci] << "," <<
+               // ca_ref[idx_ci]
+               //          << "," << cb_ref[idx_ci];
+               // std::cerr << ", hphi =";
+               // for (short i = 0; i < nphases; i++)
+               //   std::cerr << hphi[i] << ", ";
 
                // compute cL, cS
                int status =
                    d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi,
                                                                  x);
+               // std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
+               //          << std::endl;
                if (status < 0) {
                   std::cerr
                       << "computePhaseConcentrations failed for T=" << temp
-                      << ", hphi=";
+                      << ", " << nphases << " phases, hphi=";
                   for (short i = 0; i < nphases; i++)
                      std::cerr << hphi[i] << ", ";
                   std::cerr << ", c=" << c[0] << std::endl;
-                  std::cerr << "c_ref=" << cl_ref[0] << "," << ca_ref[0] << ","
-                            << cb_ref[0] << std::endl;
+                  std::cerr << "c_ref=" << cl_ref[idx_ci] << ","
+                            << ca_ref[idx_ci] << "," << cb_ref[idx_ci]
+                            << std::endl;
                   std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
                             << std::endl;
                   MPI_Abort(mpi.getCommunicator(), -1);

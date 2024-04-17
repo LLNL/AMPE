@@ -43,6 +43,8 @@ void FieldsInitializer::registerFieldsIds(const int phase_id, const int eta_id,
                                           const int ncompositions,
                                           const int nphases)
 {
+   tbox::plog << "FieldsInitializer::registerFieldsIds with " << nphases
+              << " phases" << std::endl;
    d_phase_id = phase_id, d_eta_id = eta_id, d_temperature_id = temperature_id,
    d_quat_id = quat_id, d_conc_id = conc_id;
 

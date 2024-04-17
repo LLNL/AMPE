@@ -13,7 +13,7 @@
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
-#include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "FuncFort.h"
 
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
@@ -74,6 +74,26 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::setup(
    d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_pt, newton_pt,
                                                       d_energy_interp_func_type,
                                                       d_conc_interp_func_type));
+}
+
+//=======================================================================
+
+template <class FreeEnergyFunctionType>
+bool CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeCeqT(
+    const double temperature, const Thermo4PFM::PhaseIndex pi0,
+    const Thermo4PFM::PhaseIndex pi1, double* ceq)
+{
+   TBOX_ERROR("computeCeqT not implented for that class");
+   return false;
+}
+
+template <>
+bool CALPHADFreeEnergyStrategyBinary<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>::
+    computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
+                const Thermo4PFM::PhaseIndex pi1, double* ceq)
+{
+   return d_calphad_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
 }
 
 //=======================================================================
@@ -478,6 +498,9 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
       eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
           patch.getPatchData(eta_id));
       assert(eta);
+   }
+   if (d_conc_b_id > -1) {
+      assert(f_b_id > -1);
       fb = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
           patch.getPatchData(f_b_id));
       assert(fb);
@@ -674,6 +697,21 @@ double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuL(
 
    return mu;
 }
+
+template <class FreeEnergyFunctionType>
+double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuB(
+    const double t, const double c)
+{
+   double mu;
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
+                                             Thermo4PFM::PhaseIndex::phaseB,
+                                             &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c,
+                                              Thermo4PFM::PhaseIndex::phaseB);
+
+   return mu;
+}
+
 
 //=======================================================================
 
@@ -927,3 +965,5 @@ template class CALPHADFreeEnergyStrategyBinary<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>;
 template class CALPHADFreeEnergyStrategyBinary<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+template class CALPHADFreeEnergyStrategyBinary<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>;
