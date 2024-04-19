@@ -497,3 +497,61 @@ c
 
       return
       end
+c
+c see Moelans 2011
+c
+      subroutine phiphi_interfacialenergy(
+     &   lo0, hi0, lo1, hi1,
+     &   phi, pghosts, nphases,
+     &   gamma, m,
+     &   weight,
+     &   edensity,
+     &   total_energy,
+     &   eval_per_cell
+     &   )
+
+      implicit none
+
+      integer lo0, hi0, lo1, hi1
+      integer pghosts, nphases
+      integer eval_per_cell
+      double precision gamma, m, total_energy(nphases*nphases)
+      double precision phi(CELL2d(lo,hi,pghosts), nphases)
+      double precision edensity(CELL2d(lo,hi,0))
+      double precision weight(CELL2d(lo,hi,0))
+
+      integer i, j, p1, p2
+      double precision e, factor
+c
+      factor = 0.5d0 * gamma * m
+      if ( eval_per_cell /= 0 ) then
+         do j = lo1, hi1
+            do i = lo0, hi0
+               edensity(i,j) = 0.d0
+            enddo
+         enddo
+      endif
+
+c
+      do p1 = 1, nphases
+         do p2 = 1, nphases
+            total_energy(nphases*(p1-1)+p2) = 0.d0
+            do j = lo1, hi1
+               do i = lo0, hi0
+                  e = phi(i,j,p1)*phi(i,j,p1)
+     &              * phi(i,j,p2)*phi(i,j,p2)
+                  e = e * factor
+                  if ( eval_per_cell /= 0 ) then
+                     edensity(i,j) = e
+                  endif
+                  e = e * weight(i,j)
+
+                  total_energy(nphases*(p1-1)+p2) =
+     &               total_energy(nphases*(p1-1)+p2) + e
+               enddo
+            enddo
+         enddo
+      enddo
+
+      return
+      end

@@ -22,6 +22,7 @@
 #include "FieldsInitializer.h"
 #include "EventInterval.h"
 #include "EnergyEvaluationStrategy.h"
+#include "MultiOrderPEnergyEvaluationStrategy.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -590,6 +591,8 @@ class QuatModel : public PFModel
    std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
 
    std::shared_ptr<EnergyEvaluationStrategy> d_energy_eval_strategy;
+
+   std::shared_ptr<MultiOrderPEnergyEvaluationStrategy> d_multiorderp_energy;
 
    ///
    /// number of ghost cells for main field: phase, conc, temperature,...

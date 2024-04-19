@@ -38,6 +38,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyInfMob3Phases.cc
             ${CMAKE_SOURCE_DIR}/source/EnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TwoPhasesEnergyEvaluationStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/MultiOrderPEnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingMoelans2011.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureRHSStrategy.cc

@@ -740,6 +740,11 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
        d_quat_grad_side_id, d_weight_id, d_f_l_id, d_f_a_id, d_temperature_id,
        d_energy_diag_id));
 
+   if (d_model_parameters.withMultipleOrderP())
+      d_multiorderp_energy.reset(new MultiOrderPEnergyEvaluationStrategy(
+          d_model_parameters, d_phase_scratch_id, d_weight_id,
+          d_energy_diag_id));
+
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
 
    tbox::plog << "Set reference auxilliary compositions..." << std::endl;
@@ -4686,6 +4691,11 @@ void QuatModel::evaluateEnergy(
                                              total_phase_e, total_orient_e,
                                              total_qint_e, total_well_e,
                                              total_free_e, gp);
+
+   if (d_model_parameters.withMultipleOrderP()) {
+      d_multiorderp_energy->evaluatePairEnergy(hierarchy);
+      d_multiorderp_energy->printPairEnergy(tbox::plog);
+   }
 }
 
 //=======================================================================
