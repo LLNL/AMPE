@@ -210,6 +210,7 @@ class QuatModelParameters
    }
 
    double gamma() const { return d_gamma; }
+   double m_moelans2011() const { return 8. * d_phase_well_scale; }
 
    double molar_volume_liquid() const { return d_molar_volume_liquid; }
    double molar_volume_solid_A() const { return d_molar_volume_solid_A; }

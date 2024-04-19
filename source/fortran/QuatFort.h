@@ -671,6 +671,17 @@ void QUATENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const char* orient_interp_type2, const char* avg_type,
                 const char* floor_type, const double& floor2);
 
+void PHIPHI_INTERFACIALENERGY(const int& ifirst0, const int& ilast0,
+                              const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                              const int& ifirst2, const int& ilast2,
+#endif
+                              const double* const phi, const int& ngphi,
+                              const int& nphases, const double& gamma,
+                              const double& m, const double* const weight,
+                              const double* const energy_density,
+                              double* energy, const int& eval_per_cell);
+
 void BULKENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
 #if (NDIM == 3)
