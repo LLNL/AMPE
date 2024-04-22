@@ -2012,13 +2012,12 @@ void QuatIntegrator::initialize(
    }
 
    if (d_model_parameters.withRBmotion()) {
-      std::vector<double> mobilities;
-      mobilities.push_back(d_model_parameters.rbMobilityA());
       d_rb_motion.reset(
-          new RigidBodyMotionRHS(d_phase_scratch_id, d_weight_id, mobilities));
-      d_rb_motion_conc.reset(new RigidBodyMotionConcRHS(d_phase_scratch_id,
-                                                        d_weight_id,
-                                                        mobilities));
+          new RigidBodyMotionRHS(d_phase_scratch_id, d_weight_id,
+                                 d_model_parameters.rbMobility()));
+      d_rb_motion_conc.reset(
+          new RigidBodyMotionConcRHS(d_phase_scratch_id, d_weight_id,
+                                     d_model_parameters.rbMobility()));
    }
 }
 
@@ -2467,11 +2466,27 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    if (d_model_parameters.withRBmotion()) {
       d_rb_forces.clear();
-      for (int i = 0; i < d_model_parameters.norderpA(); i++) {
+      for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
          std::array<double, NDIM> f;
+         // external force is the same on all grains
          d_model_parameters.rbExternalForce(f);
          d_rb_forces.push_back(f);
       }
+
+      assert(d_rigid_body_forces);
+      d_rigid_body_forces->evaluatePairForces(hierarchy);
+      for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
+         // sum up forces contributions from all other particles
+         for (int j = 0; j < d_model_parameters.norderp() - 1; j++) {
+            if (j != i) {
+               std::array<double, NDIM> f;
+               d_rigid_body_forces->getPairForce(i, j, f);
+               for (short d = 0; d < NDIM; d++)
+                  d_rb_forces[i][d] += f[d];
+            }
+         }
+      }
+
       d_rb_motion->addRHS(hierarchy, phase_rhs_id, d_rb_forces);
    }
 
@@ -2620,10 +2635,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
    }
 
    if (d_model_parameters.withRBmotion()) {
-      d_rb_forces.clear();
-      std::array<double, NDIM> f;
-      d_model_parameters.rbExternalForce(f);
-      d_rb_forces.push_back(f);
+      // d_rb_forces set when computing r.h.s. for phase variable
       d_rb_motion_conc->addRHS(hierarchy, conc_rhs_id, d_rb_forces);
    }
 

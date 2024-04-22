@@ -465,22 +465,14 @@ class QuatModelParameters
    double concB_ref() { return d_concB_ref; }
 
    bool withRBmotion() const { return d_with_rb_motion; }
+   double rbStiffness() const { return d_rb_stiffness; }
+
    void rbExternalForce(std::array<double, NDIM>& force) const
    {
       for (int i = 0; i < NDIM; i++)
          force[i] = d_rb_external_force[i];
    }
-   double rbMobilityA() const
-   {
-      assert(0 < d_rb_mobilities.size());
-      return d_rb_mobilities[0];
-   }
-   double rbMobilityB() const
-   {
-      assert(1 < d_rb_mobilities.size());
-      return d_rb_mobilities[1];
-   }
-
+   double rbMobility() const { return d_rb_mobility; }
 
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
@@ -691,8 +683,9 @@ class QuatModelParameters
     * Rigid body motion options
     */
    bool d_with_rb_motion;
-   std::vector<double> d_rb_mobilities;
+   double d_rb_mobility;
    double d_rb_external_force[NDIM];
+   double d_rb_stiffness;
 
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
 };

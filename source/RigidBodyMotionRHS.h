@@ -20,7 +20,7 @@ class RigidBodyMotionRHS
 {
  public:
    RigidBodyMotionRHS(const int data_scratch_id, const int weight_id,
-                      const std::vector<double>& mobilities);
+                      const double mobility);
 
    void addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                const int ydot_id,
@@ -33,14 +33,15 @@ class RigidBodyMotionRHS
    /*!
     * Translational mobilities relating velocities to forces
     */
-   const std::vector<double> d_mobilities;
+   const double d_mobility;
 
    /*!
     * Volumes of each grain
     */
    std::vector<double> d_volumes;
 
-   void computeVolumes(std::shared_ptr<hier::PatchHierarchy> hierarchy);
+   void computeVolumes(std::shared_ptr<hier::PatchHierarchy> hierarchy,
+                       const unsigned nbodies);
 };
 
 #endif

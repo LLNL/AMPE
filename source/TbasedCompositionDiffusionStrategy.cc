@@ -54,10 +54,10 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
       d_avg_func_type(avg_func_type),
       d_with_phaseB(d_pfm_diffusion_b_id >= 0)
 {
-   assert(D_liquid >= 0.);
+   assert(D0_liquid >= 0.);
    assert(Q0_liquid >= 0.);
    assert(Q0_solidA >= 0.);
-   assert(D_solidA >= 0.);
+   assert(D0_solidA >= 0.);
 
    tbox::plog << "TbasedCompositionDiffusionStrategy: D0_AB = " << D0_AB
               << std::endl;
@@ -175,8 +175,8 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
             // interface between two grains of same phase, add factor
             // 0.5
             const double dval = (i == j) ? 0.5 * d0[i][j] : d0[i][j];
-            std::cout << "i=" << i << ", j=" << j << ", d = " << dval
-                      << std::endl;
+            // std::cout << "i=" << i << ", j=" << j << ", d = " << dval
+            //          << std::endl;
             AB_DIFFUSION_OF_TEMPERATURE(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)

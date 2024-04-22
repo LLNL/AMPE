@@ -693,6 +693,15 @@ void PHIPHI_INTERFACIALENERGY(const int& ifirst0, const int& ilast0,
                               const double* const energy_density,
                               double* energy, const int& eval_per_cell);
 
+void PHIPHI_FORCES(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                   const int& ilast1,
+#if (NDIM == 3)
+                   const int& ifirst2, const int& ilast2,
+#endif
+                   const double* const dx, const double* const phi,
+                   const int& ngphi, const int& nphases, const double& gamma,
+                   const double& m, const double* const weight, double* forces);
+
 void BULKENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
 #if (NDIM == 3)

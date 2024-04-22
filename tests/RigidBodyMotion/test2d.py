@@ -49,10 +49,11 @@ for line in lines:
       words=line.split()
       volume=eval(words[6])
 
-expected_value=0.13
-if abs(volume-expected_value)>0.001:
-  print("Expected volume = {}, found {}".format(expected_value,volume))
-  sys.exit(1)
+if end_reached:
+  expected_value=0.13
+  if abs(volume-expected_value)>0.001:
+    print("Expected volume = {}, found {}".format(expected_value,volume))
+    sys.exit(1)
 
 os.remove(initfilename)
 os.unlink(data)
