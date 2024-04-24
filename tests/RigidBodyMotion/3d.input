@@ -1,0 +1,85 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+max_timesteps       = 400
+end_time            = 0.01
+
+Visit {
+   interval = 100
+   interval_type = "step"
+}
+
+TimerManager {
+    print_threshold = 0.0
+}
+
+ModelParameters {
+
+   norderp = 2
+
+   // one grain in phase A
+   norderp_A = 1
+
+   RigidBody{
+      external_force = 10., 10., 10.
+      // mobilities of grains of type A
+      mobilities = 2.
+   }
+ 
+   temperature = 1000.
+
+   Interface{
+      sigma = 0.1
+      delta = 0.045
+   }
+
+   phi_mobility     = 200.
+   
+   phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
+   conc_interp_func_type = "lin"
+
+   ConcentrationModel{
+      nspecies = 2
+      rhs_form = "ebs"
+      model    = "quadratic"
+      diffusion_type = "temperature_dependent"
+      molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_liquid  = 1.5e-5 // [m^3/mol]
+      D_solid  =  1.e4
+      D_liquid  = 0.
+      Quadratic {
+         T_ref     = 1000.
+         A_liquid  = 1.e4
+         A_solid = 1.e4
+         Ceq_liquid  = 0.
+         Ceq_solid = 1.
+         m_liquid = 0.
+         m_solid  = 0.
+      }
+   }
+}
+
+Integrator {
+   atol = 1.e-4
+}
+
+ScalarDiagnostics {
+   interval = 100
+   interval_type = "step"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+}   
+
+InitialConditions {
+   filename = "1sphere.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 40, 40, 40
+   x_lo         =  0., 0., 0. // lower end of computational domain.
+   x_up         =  2., 2., 2. // upper end of computational domain.
+}

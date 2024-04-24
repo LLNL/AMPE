@@ -23,6 +23,10 @@ void copyDepthCellData(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
                        const int dst_id, const int dst_depth, const int src_id,
                        const int src_depth);
 
+double integralDepthCellData(
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const int data_id,
+    const int depth, const int weight_id);
+
 int checkForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
                  const int data_id);
 int checkSideDataForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,

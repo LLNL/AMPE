@@ -2010,6 +2010,16 @@ void QuatIntegrator::initialize(
                                 d_model_parameters.useUpwindScheme()));
       }
    }
+
+   if (d_model_parameters.withRBmotion()) {
+      std::vector<double> mobilities;
+      mobilities.push_back(d_model_parameters.rbMobilityA());
+      d_rb_motion.reset(
+          new RigidBodyMotionRHS(d_phase_scratch_id, d_weight_id, mobilities));
+      d_rb_motion_conc.reset(new RigidBodyMotionConcRHS(d_phase_scratch_id,
+                                                        d_weight_id,
+                                                        mobilities));
+   }
 }
 
 //-----------------------------------------------------------------------
@@ -2453,6 +2463,16 @@ void QuatIntegrator::evaluatePhaseRHS(
    // save dphidt if needed for other purposes
    if (needDphiDt()) fillDphiDt(hierarchy, time, phase_rhs_id);
 
+   if (d_model_parameters.withRBmotion()) {
+      d_rb_forces.clear();
+      for (int i = 0; i < d_model_parameters.norderpA(); i++) {
+         std::array<double, NDIM> f;
+         d_model_parameters.rbExternalForce(f);
+         d_rb_forces.push_back(f);
+      }
+      d_rb_motion->addRHS(hierarchy, phase_rhs_id, d_rb_forces);
+   }
+
    if (d_model_parameters.inMovingFrame()) {
       assert(d_movingframe_phi);
       d_movingframe_phi->addRHS(hierarchy, phase_rhs_id, d_frame_velocity);
@@ -2595,6 +2615,14 @@ void QuatIntegrator::evaluateConcentrationRHS(
                                     0);
          }
       }
+   }
+
+   if (d_model_parameters.withRBmotion()) {
+      d_rb_forces.clear();
+      std::array<double, NDIM> f;
+      d_model_parameters.rbExternalForce(f);
+      d_rb_forces.push_back(f);
+      d_rb_motion_conc->addRHS(hierarchy, conc_rhs_id, d_rb_forces);
    }
 
    // add component related to moving frame if moving velocity!=0
