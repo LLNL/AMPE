@@ -28,6 +28,8 @@
 #include "MovingFrameRHS.h"
 #include "AdaptMovingFrame.h"
 #include "QuatFaceCoeff.h"
+#include "RigidBodyMotionRHS.h"
+#include "RigidBodyMotionConcRHS.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -115,35 +117,35 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void setConcentrationModelParameters(const double mobility);
 
    void RegisterVariables(
-       const std::shared_ptr<pdat::CellVariable<double> > phase_var,
-       const std::shared_ptr<pdat::CellVariable<double> > eta_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_cell_var,
-       const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_modulus_var,
-       const std::shared_ptr<pdat::CellVariable<double> > phase_mobility_var,
-       const std::shared_ptr<pdat::CellVariable<double> > eta_mobility_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-       const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
-       const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var,
-       const std::shared_ptr<pdat::CellVariable<double> > weight_var,
-       const std::shared_ptr<pdat::CellVariable<double> > temperature_var,
-       const std::shared_ptr<pdat::CellVariable<double> > cp_var);
+       const std::shared_ptr<pdat::CellVariable<double>> phase_var,
+       const std::shared_ptr<pdat::CellVariable<double>> eta_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_grad_cell_var,
+       const std::shared_ptr<pdat::SideVariable<double>> quat_grad_side_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_grad_modulus_var,
+       const std::shared_ptr<pdat::CellVariable<double>> phase_mobility_var,
+       const std::shared_ptr<pdat::CellVariable<double>> eta_mobility_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_mobility_var,
+       const std::shared_ptr<pdat::SideVariable<double>> quat_diffs_var,
+       const std::shared_ptr<pdat::SideVariable<int>> quat_symm_rotation_var,
+       const std::shared_ptr<pdat::CellVariable<double>> weight_var,
+       const std::shared_ptr<pdat::CellVariable<double>> temperature_var,
+       const std::shared_ptr<pdat::CellVariable<double>> cp_var);
 
    void RegisterConcentrationVariables(
-       const std::shared_ptr<pdat::CellVariable<double> > conc_var,
-       const std::vector<std::shared_ptr<pdat::SideVariable<double> > >
+       const std::shared_ptr<pdat::CellVariable<double>> conc_var,
+       const std::vector<std::shared_ptr<pdat::SideVariable<double>>>
            conc_pfm_diffusion_var,
-       const std::shared_ptr<pdat::SideVariable<double> >
+       const std::shared_ptr<pdat::SideVariable<double>>
            conc_phase_coupling_diffusion_var,
-       const std::shared_ptr<pdat::SideVariable<double> >
+       const std::shared_ptr<pdat::SideVariable<double>>
            conc_eta_coupling_diffusion_var,
-       const std::shared_ptr<pdat::SideVariable<double> > conc_diffusion_var);
+       const std::shared_ptr<pdat::SideVariable<double>> conc_diffusion_var);
 
    void RegisterFreeEnergyVariables(
-       const std::shared_ptr<pdat::CellVariable<double> > f_l_var,
-       const std::shared_ptr<pdat::CellVariable<double> > f_a_var,
-       const std::shared_ptr<pdat::CellVariable<double> > f_b_var);
+       const std::shared_ptr<pdat::CellVariable<double>> f_l_var,
+       const std::shared_ptr<pdat::CellVariable<double>> f_a_var,
+       const std::shared_ptr<pdat::CellVariable<double>> f_b_var);
 
    void RegisterWithVisit(
        std::shared_ptr<appu::VisItDataWriter> visit_data_writer);
@@ -275,7 +277,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
  protected:
    void evaluatePhaseRHS(
        const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> y_dot_samvect,
        int fd_flag)
    {
       const int ydot_phase_id =
@@ -287,7 +289,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
 
    void evaluateQuatRHS(
        std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> y_dot_samvect,
        int fd_flag)
    {
       const int ydot_quat_id =
@@ -298,7 +300,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
 
    void evaluateTemperatureRHS(
        std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> y_dot_samvect,
        int fd_flag)
    {
       const int phase_rhs_id = d_with_phase ? d_dphidt_scratch_id : -1;
@@ -326,7 +328,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void resetSolutionVector(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    void fillScratch(double time,
-                    std::shared_ptr<solv::SAMRAIVectorReal<double> > y);
+                    std::shared_ptr<solv::SAMRAIVectorReal<double>> y);
 
    void computeMobilities(double time,
                           std::shared_ptr<hier::PatchHierarchy> hierarchy);
@@ -334,7 +336,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void setUniformDiffusionCoeffForQuat(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   std::shared_ptr<solv::SAMRAIVectorReal<double> > d_solution_vec;
+   std::shared_ptr<solv::SAMRAIVectorReal<double>> d_solution_vec;
 
    // SAMRAIVector component index
    int d_phase_component_index;
@@ -347,30 +349,29 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    // Variables owned by QuatModel
    //
 
-   std::shared_ptr<pdat::CellVariable<double> > d_phase_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_phase_var;
    int d_phase_id;
    int d_phase_scratch_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_temperature_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_temperature_var;
    int d_temperature_id;
    int d_temperature_scratch_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_var;
    int d_quat_id;
    int d_quat_scratch_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_conc_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_conc_var;
    int d_conc_id;
    int d_conc_scratch_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_weight_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_weight_var;
    int d_weight_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_phase_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_phase_mobility_var;
    int d_phase_mobility_id;
 
-   std::shared_ptr<pdat::CellVariable<double> >
-       d_phase_temperature_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_phase_temperature_mobility_var;
    int d_phase_temperature_mobility_id;
    const int d_ncompositions;
 
@@ -426,7 +427,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    /*!
     * diffusion coefficient in preconditioner for composition equation
     */
-   std::vector<std::shared_ptr<pdat::SideVariable<double> > >
+   std::vector<std::shared_ptr<pdat::SideVariable<double>>>
        d_conc_pfm_diffusion_var;
    std::vector<int> d_conc_pfm_diffusion_id;
 
@@ -439,7 +440,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    // Local methods
    //
    virtual void setCoefficients(
-       double time, std::shared_ptr<solv::SAMRAIVectorReal<double> > y,
+       double time, std::shared_ptr<solv::SAMRAIVectorReal<double>> y,
        const bool recompute_quat_sidegrad);
 
    void createSundialsSolver();
@@ -464,18 +465,18 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void RegisterLocalVisitVariables();
 
    void RegisterQuatVariables(
-       const std::shared_ptr<pdat::CellVariable<double> > quat_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_cell_var,
-       const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_modulus_var,
-       const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-       const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
-       const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var);
+       const std::shared_ptr<pdat::CellVariable<double>> quat_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_grad_cell_var,
+       const std::shared_ptr<pdat::SideVariable<double>> quat_grad_side_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_grad_modulus_var,
+       const std::shared_ptr<pdat::CellVariable<double>> quat_mobility_var,
+       const std::shared_ptr<pdat::SideVariable<double>> quat_diffs_var,
+       const std::shared_ptr<pdat::SideVariable<int>> quat_symm_rotation_var);
 
    virtual int applyPhasePreconditioner(
        std::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> z_samvect,
        const double delta, const double gamma);
    int PhasePrecondSolve(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                          int r_phase_id, int z_phase_id, const double delta,
@@ -484,21 +485,21 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
                        int r_eta_id, int z_eta_id, const double delta);
    virtual int applyTemperaturePreconditioner(
        std::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> z_samvect,
        const double delta, const double gamma);
    int TemperaturePrecondSolve(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                                int r_temperature_id, int z_temperature_id,
                                const double delta, const double gamma);
    int ConcentrationPrecondSolve(
        std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> z_samvect,
        const double delta);
    virtual int applyConcentrationPreconditioner(
        std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double>> z_samvect,
        const double delta);
    int QuatPrecondSolve(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int r_quat_id, int z_quat_id, const double delta,
@@ -558,7 +559,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void setSundialsOptions();
 
 #ifdef USE_CPODE
-   std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
+   std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double>>>*
    getCPODESVectorsRequiringRegrid(void);
 #endif
 
@@ -572,7 +573,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    virtual void createSolutionvector(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    virtual void fillScratchComposition(
-       double time, std::shared_ptr<solv::SAMRAIVectorReal<double> > y,
+       double time, std::shared_ptr<solv::SAMRAIVectorReal<double>> y,
        xfer::RefineAlgorithm& copy_to_scratch);
    virtual void resetSolversStateConcentration(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
@@ -625,6 +626,11 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::shared_ptr<MovingFrameRHS> d_movingframe_conc;
    std::shared_ptr<MovingFrameRHS> d_movingframe_temp;
 
+   std::shared_ptr<RigidBodyMotionRHS> d_rb_motion;
+   std::shared_ptr<RigidBodyMotionConcRHS> d_rb_motion_conc;
+
+   std::vector<std::array<double, NDIM>> d_rb_forces;
+
    double d_current_time;
    double d_previous_timestep;
 
@@ -632,153 +638,153 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    // Variables owned by QuatModel
    //
 
-   std::shared_ptr<pdat::CellVariable<double> > d_eta_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_eta_var;
    int d_eta_id;
    int d_eta_scratch_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_cp_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_cp_var;
    int d_cp_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_grad_cell_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_grad_cell_var;
    int d_quat_grad_cell_id;
-   std::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_quat_grad_side_var;
    int d_quat_grad_side_id;
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_grad_modulus_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_grad_modulus_var;
    int d_quat_grad_modulus_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_eta_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_eta_mobility_var;
    int d_eta_mobility_id;
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_mobility_var;
    int d_quat_mobility_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_deriv_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_quat_diffusion_deriv_var;
    int d_quat_diffusion_deriv_id;
 
-   std::shared_ptr<pdat::SideVariable<int> > d_quat_symm_rotation_var;
+   std::shared_ptr<pdat::SideVariable<int>> d_quat_symm_rotation_var;
    int d_quat_symm_rotation_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_conc_diffusion_var;
    int d_conc_diffusion_id;
-   std::shared_ptr<pdat::SideVariable<double> >
+   std::shared_ptr<pdat::SideVariable<double>>
        d_conc_phase_coupling_diffusion_var;
    int d_conc_phase_coupling_diffusion_id;
-   std::shared_ptr<pdat::SideVariable<double> >
+   std::shared_ptr<pdat::SideVariable<double>>
        d_conc_eta_coupling_diffusion_var;
    int d_conc_eta_coupling_diffusion_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffs_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_quat_diffs_var;
    int d_quat_diffs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_f_l_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_f_l_var;
    int d_f_l_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_f_a_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_f_a_var;
    int d_f_a_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_f_b_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_f_b_var;
    int d_f_b_id;
 
    //
    // Variables owned locally
    //
 
-   std::shared_ptr<pdat::CellVariable<double> > d_phase_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_phase_rhs_visit_var;
    int d_phase_rhs_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_driving_force_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_driving_force_visit_var;
    int d_driving_force_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_q_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_q_rhs_visit_var;
    int d_q_rhs_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_modulus_q_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_modulus_q_rhs_visit_var;
    int d_modulus_q_rhs_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_temperature_rhs_visit_var;
    int d_temperature_rhs_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_conc_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_conc_rhs_visit_var;
    int d_conc_rhs_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_q_rhs1_visit_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_q_rhs1_visit_var;
    int d_q_rhs1_visit_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_phase_sol_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_phase_sol_var;
    int d_phase_sol_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_phase_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_phase_rhs_var;
    int d_phase_rhs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_eta_sol_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_eta_sol_var;
    int d_eta_sol_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_eta_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_eta_rhs_var;
    int d_eta_rhs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_temperature_sol_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_temperature_sol_var;
    int d_temperature_sol_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_temperature_rhs_var;
    int d_temperature_rhs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_sol_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_sol_var;
    int d_quat_sol_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_rhs_var;
    int d_quat_rhs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_u_sol_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_u_sol_var;
    int d_u_sol_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_u_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_u_rhs_var;
    int d_u_rhs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_conc_sol_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_conc_sol_var;
    int d_conc_sol_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_conc_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_conc_rhs_var;
    int d_conc_rhs_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_dphidt_scratch_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_dphidt_scratch_var;
    int d_dphidt_scratch_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_deriv_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_quat_mobility_deriv_var;
    int d_quat_mobility_deriv_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_flux_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_flux_var;
    int d_flux_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_flux_conc_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_flux_conc_var;
    int d_flux_conc_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_velocity_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_velocity_var;
    int d_velocity_id;
 
    /*!
     * Possibly lagged copy of d_quat_grad_side_var
     */
-   std::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_copy_var;
+   std::shared_ptr<pdat::SideVariable<double>> d_quat_grad_side_copy_var;
    int d_quat_grad_side_copy_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_noise_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_noise_var;
    int d_noise_id;
 
-   std::shared_ptr<pdat::CellVariable<double> > d_tmp1_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_tmp1_var;
    int d_tmp1_id;
-   std::shared_ptr<pdat::CellVariable<double> > d_tmp2_var;
+   std::shared_ptr<pdat::CellVariable<double>> d_tmp2_var;
    int d_tmp2_id;
 
    std::shared_ptr<DerivDiffusionCoeffForQuat> d_diffusion4quatderiv;
 
    xfer::CoarsenAlgorithm d_conc_diffusion_coarsen;
-   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule>>
        d_conc_diffusion_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_flux_coarsen_algorithm;
-   std::vector<std::shared_ptr<xfer::CoarsenSchedule> > d_flux_coarsen_schedule;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule>> d_flux_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_flux_conc_coarsen_algorithm;
-   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule>>
        d_flux_conc_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_coarsen_alg;

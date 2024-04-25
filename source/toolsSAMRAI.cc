@@ -14,6 +14,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
+#include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 
 using namespace SAMRAI;
 
@@ -66,6 +67,44 @@ void copyDepthCellData(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
          dst->copyDepth(dst_depth, *src, src_depth);
       }
    }
+}
+
+double integralDepthCellData(
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const int data_id,
+    const int depth, const int weight_id)
+{
+   math::PatchCellDataNormOpsReal<double> ops;
+
+   double integral = 0.;
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln) {
+      std::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
+      for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
+           ++ip) {
+         const std::shared_ptr<hier::Patch>& patch = *ip;
+         const hier::Box& pbox = patch->getBox();
+
+         std::shared_ptr<pdat::CellData<double> > data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(data_id)));
+         TBOX_ASSERT(data);
+
+         std::shared_ptr<pdat::CellData<double> > vol(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(weight_id)));
+         TBOX_ASSERT(vol);
+
+         std::shared_ptr<pdat::CellData<double> > data_copy;
+         data_copy.reset(new pdat::CellData<double>(
+             pbox, 1, hier::IntVector(tbox::Dimension(NDIM), 0)));
+         data_copy->copyDepth(0, *data, depth);
+         integral += ops.integral(data_copy, pbox, vol);
+      }
+   }
+
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   mpi.AllReduce(&integral, 1, MPI_SUM);
+
+   return integral;
 }
 
 int checkForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,

@@ -143,6 +143,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/EBSCompositionRHSStrategyWithGradT.cc
             ${CMAKE_SOURCE_DIR}/source/CompositionRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/Grains.cc
+            ${CMAKE_SOURCE_DIR}/source/RigidBodyMotionRHS.cc
+            ${CMAKE_SOURCE_DIR}/source/RigidBodyMotionConcRHS.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureFACSolver.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureFACOps.cc
             ${CMAKE_SOURCE_DIR}/source/TimeLocationIndexRobinBcCoefs.cc )
@@ -176,6 +178,7 @@ set(M4FILESDIM concentrationdiffusion
               quatrhs
               quatrotation
               quattag
+              rbmotion
               settozero
               smoothquat
               temperature )

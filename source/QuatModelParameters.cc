@@ -995,6 +995,19 @@ void QuatModelParameters::readModelParameters(
       d_moving_frame_upwind = false;
    }
 
+   if (model_db->keyExists("RigidBody")) {
+      assert(d_norderp_A > 0);
+      std::shared_ptr<tbox::Database> db(model_db->getDatabase("RigidBody"));
+      d_with_rb_motion = true;
+      db->getDoubleArray("external_force", &d_rb_external_force[0], NDIM);
+      d_rb_mobilities.resize(1);
+      db->getDoubleArray("mobilities", &d_rb_mobilities[0], 1);
+   } else {
+      for (int i = 0; i < NDIM; i++)
+         d_rb_external_force[i] = def_val;
+      d_with_rb_motion = false;
+   }
+
    if (with_third_phase()) initializeEta(model_db);
 
    if (with_orientation()) initializeOrientation(model_db);
