@@ -131,6 +131,7 @@ FortranCInterface_HEADER(
     fc_internal_mangle.h
     MACRO_NAMESPACE "FC_INTERNAL_"
     SYMBOLS
+        AB_DIFFUSION_OF_TEMPERATURE
         CONCENTRATIONFLUX
         ADD_FLUX
         ADD_FLUX_ISO

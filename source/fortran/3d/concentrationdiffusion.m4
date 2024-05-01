@@ -732,4 +732,140 @@ c
 
       return
       end
+c
+c add interface diffusion to A and B diffusion
+c
+      subroutine ab_diffusion_of_temperature(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phia, nphia, phib, nphib, ngphi,
+     &   diffA0, diffA1, diffA2,
+     &   diffB0, diffB1, diffB2, ngdiff,
+     &   temp, ngtemp,
+     &   d0, q0,
+     &   gas_constant_R,
+     &   avg_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer nphia, nphib
+      integer ngphi, ngdiff, ngtemp
+      character*(*) avg_type
+      double precision d0, q0
+      double precision gas_constant_R
+c
+c
+c variables in 2d cell indexed
+      double precision phia(CELL3d(ifirst,ilast,ngphi),nphia)
+      double precision phib(CELL3d(ifirst,ilast,ngphi),nphib)
+      double precision temp(CELL3d(ifirst,ilast,ngtemp))
+      double precision diffA0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffA1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffA2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision diffB0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffB1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2, ip, jp
+      double precision vphi, pa, pb, invT
+      double precision q0_invR
+      double precision dAB
+      double precision average_func
+c
+      q0_invR = q0 / gas_constant_R
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
+               vphi = 0.d0
+               do ip = 1, nphia
+                  vphi = vphi + average_func(
+     &               phia(ic0-1,ic1,ic2,ip), phia(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               pa = vphi
 
+               do ip = 1, nphib
+                  vphi = vphi + average_func(
+     &               phib(ic0-1,ic1,ic2,ip), phib(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               pb = vphi
+
+               invT = 2.0d0 / ( temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2) )
+
+               dAB = 16.d0*pa*pa*pb*pb*d0*exp(-q0_invR*invT)
+
+               diffA0(ic0,ic1,ic2) = diffA0(ic0,ic1,ic2) + dAB
+               diffB0(ic0,ic1,ic2) = diffB0(ic0,ic1,ic2) + dAB
+            end do
+         end do
+      end do
+c
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+
+               vphi = 0.d0
+               do ip = 1, nphia
+                  vphi = vphi + average_func(
+     &               phia(ic0,ic1-1,ic2,ip), phia(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               pa = vphi
+
+               vphi = 0.d0
+               do ip = 1, nphib
+                  vphi = vphi + average_func(
+     &                phib(ic0,ic1-1,ic2,ip), phib(ic0,ic1,ic2,ip),
+     &                avg_type )
+               enddo
+               pb = vphi
+
+               invT = 2.0d0 / ( temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2) )
+
+               dAB = 16.d0*pa*pa*pb*pb*d0*exp(-q0_invR*invT)
+
+               diffA1(ic0,ic1,ic2) = diffA1(ic0,ic1,ic2) + dAB
+               diffB1(ic0,ic1,ic2) = diffB1(ic0,ic1,ic2) + dAB
+
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               vphi = 0.d0
+               do ip = 1, nphia
+                  vphi = vphi + average_func(
+     &               phia(ic0,ic1,ic2-1,ip), phia(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               pa = vphi
+
+               vphi = 0.d0
+               do ip = 1, nphib
+                  vphi = average_func(
+     &               phib(ic0,ic1,ic2-1,ip), phib(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               pb = vphi
+
+               invT = 2.0d0 / ( temp(ic0,ic1,ic2-1)+temp(ic0,ic1,ic2) )
+
+               dAB = 16.d0*pa*pa*pb*pb*d0*exp(-q0_invR*invT)
+
+               diffA2(ic0,ic1,ic2) = diffA2(ic0,ic1,ic2) + dAB
+               diffB2(ic0,ic1,ic2) = diffB2(ic0,ic1,ic2) + dAB
+
+            end do
+         end do
+      end do
+
+      return
+      end

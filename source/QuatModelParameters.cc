@@ -62,9 +62,16 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_D_liquid = def_val;
    d_D_solid_A = def_val;
    d_D_solid_B = def_val;
+   d_D0_AB = def_val;
+   d_D0_LA = def_val;
+   d_D0_LB = def_val;
    d_Q0_liquid = def_val;
    d_Q0_solid_A = def_val;
    d_Q0_solid_B = def_val;
+   d_Q0_AB = def_val;
+   d_Q0_LA = def_val;
+   d_Q0_LB = def_val;
+
    // defaults values of -1 means they were not set
    d_concL_ref = -1.;
    d_concA_ref = -1.;
@@ -256,6 +263,13 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
          d_D_solid_B = conc_db->getDouble("D_solid_B");
          d_Q0_solid_A = conc_db->getDouble("Q0_solid_A");
          d_Q0_solid_B = conc_db->getDouble("Q0_solid_B");
+         // AB interface diffusion 0. by default
+         d_D0_AB = conc_db->getDoubleWithDefault("D0_AB", 0.);
+         d_Q0_AB = conc_db->getDoubleWithDefault("Q0_AB", 0.);
+         d_D0_LA = conc_db->getDoubleWithDefault("D0_LA", 0.);
+         d_Q0_LA = conc_db->getDoubleWithDefault("Q0_LA", 0.);
+         d_D0_LB = conc_db->getDoubleWithDefault("D0_LB", 0.);
+         d_Q0_LB = conc_db->getDoubleWithDefault("Q0_LB", 0.);
       }
    }
    d_conc_mobility = conc_db->getDoubleWithDefault("mobility", 1.);

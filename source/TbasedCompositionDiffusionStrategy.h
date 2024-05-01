@@ -19,11 +19,13 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 {
  public:
    TbasedCompositionDiffusionStrategy(
-       const short norderp, const short norderpA, const bool with3phases,
-       const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
-       const int pfm_diffusion_b_id, const double D_liquid,
-       const double Q0_liquid, const double D_solid_A, const double Q0_solid_A,
-       const double D_solid_B, const double Q0_solid_B,
+       const short norderp, const short norderpA, const short norderpB,
+       const bool with3phases, const int pfm_diffusion_l_id,
+       const int pfm_diffusion_a_id, const int pfm_diffusion_b_id,
+       const double D_liquid, const double Q0_liquid, const double D_solid_A,
+       const double Q0_solid_A, const double D_solid_B, const double Q0_solid_B,
+       const double D0_AB, const double Q0_AB, const double D0_LA,
+       const double Q0_LA, const double D0_LB, const double Q0_LB,
        DiffusionInterpolationType interp_func_type,
        const std::string& avg_func_type);
 
@@ -39,6 +41,7 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
  private:
    const short d_norderp;
    const short d_norderpA;
+   const short d_norderpB;
 
    // distinguish 3 phases implementation (Folch-Plapp)
    const bool d_with3phases;
@@ -51,14 +54,24 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
    int d_pfm_diffusion_a_id;
    int d_pfm_diffusion_b_id;
 
-   double d_D_liquid;
+   double d_D0_liquid;
    double d_Q0_liquid;
 
-   double d_D_solid_A;
-   double d_Q0_solid_A;
+   double d_D0_solidA;
+   double d_Q0_solidA;
 
-   double d_D_solid_B;
-   double d_Q0_solid_B;
+   double d_D0_solidB;
+   double d_Q0_solidB;
+
+   /*!
+    * additional interfacial diffusion
+    */
+   double d_D0_AB;
+   double d_Q0_AB;
+   double d_D0_LA;
+   double d_Q0_LA;
+   double d_D0_LB;
+   double d_Q0_LB;
 
    std::string d_avg_func_type;
 
