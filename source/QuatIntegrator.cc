@@ -2385,7 +2385,7 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
       assert(d_composition_diffusion_strategy);
       d_composition_diffusion_strategy->setDiffusion(hierarchy,
                                                      d_temperature_scratch_id,
-                                                     d_phase_scratch_id, time);
+                                                     d_phase_scratch_id);
    }
 
    std::shared_ptr<KKSCompositionRHSStrategy> kks_rhs =

@@ -169,22 +169,23 @@ void CONCENTRATION_FLUX_SPINODAL(
 #endif
     const int& ngflux);
 
-void CONCENTRATION_PFMDIFFUSION(
-    const int& ifirst0, const int& ilast0, const int& ifirst1,
-    const int& ilast1,
+void CONCENTRATION_PFMDIFFUSION(const int& ifirst0, const int& ilast0,
+                                const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-    const int& ifirst2, const int& ilast2,
+                                const int& ifirst2, const int& ilast2,
 #endif
-    const double* phi, const int& ngphi, const double* eta, const int& ngeta,
-    const double* diff0, const double* diff1,
+                                const double* phi, const int& ngphi,
+                                const double* diff0, const double* diff1,
 #if (NDIM == 3)
-    const double* diff2,
+                                const double* diff2,
 #endif
-    const int& ngdiff, const double* t, const int& ngt, const double& d_phase0,
-    const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
-    const double& d_phase2, const double& q0_phase2,
-    const double& gas_constant_R, const char* phi_interp_type,
-    const char* avg_func_type, const int& three_phase);
+                                const int& ngdiff, const double* t,
+                                const int& ngt, const double& d_phase0,
+                                const double& q0_phase0, const double& d_phase1,
+                                const double& q0_phase1,
+                                const double& gas_constant_R,
+                                const char* phi_interp_type,
+                                const char* avg_func_type);
 
 void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,

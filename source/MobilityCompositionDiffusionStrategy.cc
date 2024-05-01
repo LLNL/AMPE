@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "DiffusionForConcInPhaseStrategy.h"
+#include "MobilityCompositionDiffusionStrategy.h"
 #include "CompositionStrategyMobilities.h"
 #include "FreeEnergyStrategy.h"
 #include "FuncFort.h"
@@ -27,7 +27,7 @@ void small_mat_mult(const short n, const double* const a, const double* const b,
       }
 }
 
-DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
+MobilityCompositionDiffusionStrategy::MobilityCompositionDiffusionStrategy(
     const unsigned short ncompositions, const int conc_l_scratch_id,
     const int conc_a_scratch_id, const int pfm_diffusion_l_id,
     const int pfm_diffusion_a_id, const int diffusion_coeff_l_id,
@@ -54,7 +54,7 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
    d_local_dmat.resize(d_ncompositions * d_ncompositions);
 }
 
-void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
+void MobilityCompositionDiffusionStrategy::computeLocalDiffusionMatrixL(
     const double temperature, const std::vector<double>& c)
 {
    d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(temperature, c,
@@ -68,7 +68,7 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
       assert(d_local_dmat[i] == d_local_dmat[i]);
 }
 
-void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
+void MobilityCompositionDiffusionStrategy::computeLocalDiffusionMatrixA(
     const double temperature, const std::vector<double>& c)
 {
    d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(temperature, c,
@@ -95,11 +95,11 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
       assert(d_local_dmat[i] == d_local_dmat[i]);
 }
 
-void DiffusionForConcInPhaseStrategy::setDiffusion(
+void MobilityCompositionDiffusionStrategy::setDiffusion(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id)
+    const int temperature_id, const int phase_id)
 {
-   // tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffusion"<<endl;
+   // tbox::pout<<"MobilityCompositionDiffusionStrategy::setDiffusion"<<endl;
    assert(phase_id >= 0);
    assert(d_pfm_diffusion_l_id >= 0);
    assert(d_pfm_diffusion_a_id >= 0);
@@ -107,7 +107,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
    assert(d_diffusion_coeff_a_id >= 0);
 
    // compute D_L, D_S, ...
-   setDiffCoeffInEachPhase(hierarchy, temperature_id, eta_id);
+   setDiffCoeffInEachPhase(hierarchy, temperature_id);
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -146,13 +146,11 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
 
 //-----------------------------------------------------------------------
 
-void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
+void MobilityCompositionDiffusionStrategy::setDiffCoeffInEachPhase(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int eta_scratch_id)
+    const int temperature_id)
 {
-   (void)eta_scratch_id;
-
-   // tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase"<<endl;
+   // tbox::pout<<"MobilityCompositionDiffusionStrategy::setDiffCoeffInEachPhase"<<endl;
    assert(temperature_id >= 0);
    assert(d_diffusion_coeff_l_id >= 0);
    assert(d_diffusion_coeff_a_id >= 0);
@@ -196,7 +194,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
 
 //-----------------------------------------------------------------------
 
-void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
+void MobilityCompositionDiffusionStrategy::setDiffCoeffInEachPhaseOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_c_l,
     std::shared_ptr<pdat::CellData<double> > cd_c_a,
     std::shared_ptr<pdat::CellData<double> > cd_temp,
@@ -408,7 +406,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 
 //-----------------------------------------------------------------------
 
-void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
+void MobilityCompositionDiffusionStrategy::setPFMDiffOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_phi,
     std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
     std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
@@ -416,7 +414,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
     std::shared_ptr<pdat::SideData<double> > sd_pfmd_a,  // output
     const hier::Box& pbox)
 {
-   // tbox::pout<<"DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch"<<endl;
+   // tbox::pout<<"MobilityCompositionDiffusionStrategy::setPFMDiffOnPatch"<<endl;
    assert(cd_phi);
    assert(sd_pfmd_l);
    assert(sd_d_coeff_l);

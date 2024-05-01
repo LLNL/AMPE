@@ -172,7 +172,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
    // compute actual diffusion, including phase fraction weight
    d_diffusion_for_conc_in_phase->setDiffusion(hierarchy,
                                                d_temperature_scratch_id,
-                                               d_phase_scratch_id, -1);
+                                               d_phase_scratch_id);
 
    if (d_with_diffusion_for_preconditioner)
       setDiffusionCoeffForPreconditioner(hierarchy);
