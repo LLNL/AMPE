@@ -14,32 +14,27 @@ c
       subroutine concentration_pfmdiffusion(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
-     &   eta, ngeta,
      &   diff0, diff1, ngdiff,
      &   temp, ngtemp,
      &   d_liquid, q0_liquid,
-     &   d_solid_A, q0_solid_A,
-     &   d_solid_B, q0_solid_B,
+     &   d_solidA, q0_solidA,
      &   gas_constant_R,
      &   interp_type,
-     &   avg_type,
-     &   three_phase )
+     &   avg_type )
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
-      integer ngphi, ngeta, ngdiff, ngtemp
+      integer ngphi, ngdiff, ngtemp
       character*(*) avg_type, interp_type
-      double precision d_liquid, d_solid_A, d_solid_B
-      double precision q0_liquid, q0_solid_A, q0_solid_B
+      double precision d_liquid, d_solidA
+      double precision q0_liquid, q0_solidA
       double precision gas_constant_R
-      integer three_phase
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi))
-      double precision eta(CELL2d(ifirst,ilast,ngeta))
       double precision temp(CELL2d(ifirst,ilast,ngtemp))
       double precision diff0(SIDE2d0(ifirst,ilast,ngdiff))
       double precision diff1(SIDE2d1(ifirst,ilast,ngdiff))
@@ -48,15 +43,14 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1
-      double precision vphi, veta, hphi, heta, invT
-      double precision q0_liquid_invR, q0_solid_A_invR, q0_solid_B_invR
-      double precision diff_liquid, diff_solid_A, diff_solid_B
+      double precision vphi, hphi, invT
+      double precision q0_liquid_invR, q0_solidA_invR
+      double precision diff_liquid, diff_solidA
       double precision interp_func
       double precision average_func
 c
       q0_liquid_invR = q0_liquid / gas_constant_R
-      q0_solid_A_invR = q0_solid_A / gas_constant_R
-      q0_solid_B_invR = q0_solid_B / gas_constant_R
+      q0_solidA_invR = q0_solidA / gas_constant_R
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0+1
@@ -68,26 +62,11 @@ c
             invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-
-            if ( three_phase /= 0 ) then
-               veta = average_func(
-     &            eta(ic0-1,ic1), eta(ic0,ic1), avg_type )
-
-               heta = interp_func( veta, interp_type )
-               diff_solid_B =
-     &            d_solid_B * exp( -q0_solid_B_invR * invT )
-            else
-               heta = 0.0d0
-               diff_solid_B = 0.0d0
-            endif
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
 
             diff0(ic0,ic1) =
      &         ( 1.0d0 - hphi ) * diff_liquid +
-     &         hphi * (
-     &            ( 1.0d0 - heta ) * diff_solid_A +
-     &            heta * diff_solid_B
-     &         )
+     &         hphi * diff_solidA
 
          end do
       end do
@@ -103,26 +82,11 @@ c
             invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-
-            if ( three_phase /= 0 ) then
-               veta = average_func(
-     &            eta(ic0,ic1-1), eta(ic0,ic1), avg_type )
-
-               heta = interp_func( veta, interp_type )
-               diff_solid_B =
-     &            d_solid_B * exp( -q0_solid_B_invR * invT )
-            else
-               heta = 0.0d0
-               diff_solid_B = 0.0d0
-            endif
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
 
             diff1(ic0,ic1) =
      &         ( 1.0d0 - hphi ) * diff_liquid +
-     &         hphi * (
-     &            ( 1.0d0 - heta ) * diff_solid_A +
-     &            heta * diff_solid_B
-     &         )
+     &         hphi * diff_solidA
 
          end do
       end do
@@ -137,8 +101,8 @@ c
      &   diff0, diff1, ngdiff,
      &   temp, ngtemp,
      &   d_liquid, q0_liquid,
-     &   d_solid_A, q0_solid_A,
-     &   d_solid_B, q0_solid_B,
+     &   d_solidA, q0_solidA,
+     &   d_solidB, q0_solidB,
      &   gas_constant_R,
      &   interp_type,
      &   avg_type)
@@ -150,8 +114,8 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer ngphi, ngdiff, ngtemp
       character*(*) avg_type, interp_type
-      double precision d_liquid, d_solid_A, d_solid_B
-      double precision q0_liquid, q0_solid_A, q0_solid_B
+      double precision d_liquid, d_solidA, d_solidB
+      double precision q0_liquid, q0_solidA, q0_solidB
       double precision gas_constant_R
       integer three_phase
 c
@@ -166,14 +130,14 @@ c***********************************************************************
 c
       integer ic0, ic1
       double precision vphi, phi1, phi2, phi3, invT
-      double precision q0_liquid_invR, q0_solid_A_invR, q0_solid_B_invR
-      double precision diff_liquid, diff_solid_A, diff_solid_B
+      double precision q0_liquid_invR, q0_solidA_invR, q0_solidB_invR
+      double precision diff_liquid, diff_solidA, diff_solidB
       double precision interp_func
       double precision average_func
 c
       q0_liquid_invR = q0_liquid / gas_constant_R
-      q0_solid_A_invR = q0_solid_A / gas_constant_R
-      q0_solid_B_invR = q0_solid_B / gas_constant_R
+      q0_solidA_invR = q0_solidA / gas_constant_R
+      q0_solidB_invR = q0_solidB / gas_constant_R
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0+1
@@ -196,12 +160,12 @@ c
             invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-            diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+            diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
 
             diff0(ic0,ic1) = phi1 * diff_liquid
-     &                     + phi2 * diff_solid_A
-     &                     + phi3 * diff_solid_B
+     &                     + phi2 * diff_solidA
+     &                     + phi3 * diff_solidB
 
          end do
       end do
@@ -224,12 +188,12 @@ c
             invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-            diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+            diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
 
             diff1(ic0,ic1) = phi1 * diff_liquid
-     &                     + phi2 * diff_solid_A
-     &                     + phi3 * diff_solid_B
+     &                     + phi2 * diff_solidA
+     &                     + phi3 * diff_solidB
 
          end do
       end do
@@ -248,7 +212,7 @@ c
      &   diffA0, diffA1, ngdiff,
      &   temp, ngtemp,
      &   d_liquid, q0_liquid,
-     &   d_solid_A, q0_solid_A,
+     &   d_solidA, q0_solidA,
      &   gas_constant_R,
      &   interp_type,
      &   avg_type)
@@ -260,8 +224,8 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer ngphi, ngdiff, ngtemp
       character*(*) avg_type, interp_type
-      double precision d_liquid, d_solid_A
-      double precision q0_liquid, q0_solid_A
+      double precision d_liquid, d_solidA
+      double precision q0_liquid, q0_solidA
       double precision gas_constant_R
 c
 c variables in 2d cell indexed
@@ -277,13 +241,13 @@ c***********************************************************************
 c
       integer ic0, ic1
       double precision vphi, hphi, invT
-      double precision q0_liquid_invR, q0_solid_A_invR
-      double precision diff_liquid, diff_solid_A
+      double precision q0_liquid_invR, q0_solidA_invR
+      double precision diff_liquid, diff_solidA
       double precision interp_func
       double precision average_func
 c
       q0_liquid_invR = q0_liquid / gas_constant_R
-      q0_solid_A_invR = q0_solid_A / gas_constant_R
+      q0_solidA_invR = q0_solidA / gas_constant_R
 c
       do ic1 = ifirst1-ngdiff, ilast1+ngdiff
          do ic0 = ifirst0, ilast0+1
@@ -296,12 +260,12 @@ c
             invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
 
             diffL0(ic0,ic1) =
      &         ( 1.0d0 - hphi ) * diff_liquid
             diffA0(ic0,ic1) =
-     &         hphi * diff_solid_A
+     &         hphi * diff_solidA
 
          end do
       end do
@@ -317,12 +281,12 @@ c
             invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
 
             diffL1(ic0,ic1) =
      &         ( 1.0d0 - hphi ) * diff_liquid
             diffA1(ic0,ic1) =
-     &         hphi * diff_solid_A
+     &         hphi * diff_solidA
          end do
       end do
 c
@@ -431,8 +395,8 @@ c
      &   diffB0, diffB1, ngdiff,
      &   temp, ngtemp,
      &   d_liquid, q0_liquid,
-     &   d_solid_A, q0_solid_A,
-     &   d_solid_B, q0_solid_B,
+     &   d_solidA, q0_solidA,
+     &   d_solidB, q0_solidB,
      &   gas_constant_R,
      &   interp_type,
      &   avg_type)
@@ -444,8 +408,8 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer nphi, nphia, ngphi, ngdiff, ngtemp, three_phases
       character*(*) avg_type, interp_type
-      double precision d_liquid, d_solid_A, d_solid_B
-      double precision q0_liquid, q0_solid_A, q0_solid_B
+      double precision d_liquid, d_solidA, d_solidB
+      double precision q0_liquid, q0_solidA, q0_solidB
       double precision gas_constant_R
 c
 c variables in 2d cell indexed
@@ -460,14 +424,14 @@ c variables in 2d cell indexed
 c
       integer ic0, ic1, ip
       double precision vphi, phiL, phiA, phiB, invT
-      double precision q0_liquid_invR, q0_solid_A_invR, q0_solid_B_invR
-      double precision diff_liquid, diff_solid_A, diff_solid_B
+      double precision q0_liquid_invR, q0_solidA_invR, q0_solidB_invR
+      double precision diff_liquid, diff_solidA, diff_solidB
       double precision interp_func
       double precision average_func
 c
       q0_liquid_invR = q0_liquid / gas_constant_R
-      q0_solid_A_invR = q0_solid_A / gas_constant_R
-      q0_solid_B_invR = q0_solid_B / gas_constant_R
+      q0_solidA_invR = q0_solidA / gas_constant_R
+      q0_solidB_invR = q0_solidB / gas_constant_R
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0+1
@@ -493,12 +457,12 @@ c
             invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-            diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+            diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
 
             diffL0(ic0,ic1) = phiL * diff_liquid
-            diffA0(ic0,ic1) = phiA * diff_solid_A
-            diffB0(ic0,ic1) = phiB * diff_solid_B
+            diffA0(ic0,ic1) = phiA * diff_solidA
+            diffB0(ic0,ic1) = phiB * diff_solidB
          end do
       end do
 c
@@ -526,12 +490,12 @@ c
             invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
 
             diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
-            diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-            diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+            diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+            diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
 
             diffL1(ic0,ic1) = phiL * diff_liquid
-            diffA1(ic0,ic1) = phiA * diff_solid_A
-            diffB1(ic0,ic1) = phiB * diff_solid_B
+            diffA1(ic0,ic1) = phiA * diff_solidA
+            diffB1(ic0,ic1) = phiB * diff_solidB
 
          end do
       end do
@@ -620,8 +584,8 @@ c
      &   diffB0, diffB1, ngdiff,
      &   temp, ngtemp,
      &   d_liquid, q0_liquid,
-     &   d_solid_A, q0_solid_A,
-     &   d_solid_B, q0_solid_B,
+     &   d_solidA, q0_solidA,
+     &   d_solidB, q0_solidB,
      &   gas_constant_R, three_phases)
 c***********************************************************************
       implicit none
@@ -630,8 +594,8 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer ngdiff, ngtemp, three_phases
-      double precision d_liquid, d_solid_A, d_solid_B
-      double precision q0_liquid, q0_solid_A, q0_solid_B
+      double precision d_liquid, d_solidA, d_solidB
+      double precision q0_liquid, q0_solidA, q0_solidB
       double precision gas_constant_R
 c
 c variables in 2d cell indexed
@@ -650,11 +614,11 @@ c***********************************************************************
 c
       integer ic0, ic1
       double precision invT
-      double precision q0_liquid_invR, q0_solid_A_invR, q0_solid_B_invR
+      double precision q0_liquid_invR, q0_solidA_invR, q0_solidB_invR
 c
       q0_liquid_invR = q0_liquid / gas_constant_R
-      q0_solid_A_invR = q0_solid_A / gas_constant_R
-      q0_solid_B_invR = q0_solid_B / gas_constant_R
+      q0_solidA_invR = q0_solidA / gas_constant_R
+      q0_solidB_invR = q0_solidB / gas_constant_R
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0+1
@@ -662,10 +626,10 @@ c
             invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
 
             diffL0(ic0,ic1) = d_liquid * exp( -q0_liquid_invR * invT )
-            diffA0(ic0,ic1) = d_solid_A * exp( -q0_solid_A_invR * invT )
+            diffA0(ic0,ic1) = d_solidA * exp( -q0_solidA_invR * invT )
             if( three_phases /= 0 ) then
                diffB0(ic0,ic1) =
-     &           d_solid_B * exp( -q0_solid_B_invR * invT )
+     &           d_solidB * exp( -q0_solidB_invR * invT )
             endif
          end do
       end do
@@ -676,10 +640,10 @@ c
             invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
 
             diffL1(ic0,ic1) = d_liquid * exp( -q0_liquid_invR * invT )
-            diffA1(ic0,ic1) = d_solid_A * exp( -q0_solid_A_invR * invT )
+            diffA1(ic0,ic1) = d_solidA * exp( -q0_solidA_invR * invT )
             if( three_phases /= 0 ) then
                diffB1(ic0,ic1) =
-     &            d_solid_B * exp( -q0_solid_B_invR * invT )
+     &            d_solidB * exp( -q0_solidB_invR * invT )
             endif
          end do
       end do

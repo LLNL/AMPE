@@ -81,7 +81,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/GradientTemperatureStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/toolsSAMRAI.cc
             ${CMAKE_SOURCE_DIR}/source/TbasedCompositionDiffusionStrategy.cc
-            ${CMAKE_SOURCE_DIR}/source/DiffusionForConcInPhaseStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/MobilityCompositionDiffusionStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/DerivDiffusionCoeffForQuat.cc
             ${CMAKE_SOURCE_DIR}/source/QuatIntegrator.cc
             ${CMAKE_SOURCE_DIR}/source/BeckermannCompositionRHSStrategy.cc

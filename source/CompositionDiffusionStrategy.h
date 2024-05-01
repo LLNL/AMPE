@@ -29,7 +29,7 @@ class CompositionDiffusionStrategy
     */
    virtual void setDiffusion(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int phase_id, const int eta_id) = 0;
+       const int temperature_id, const int phase_id) = 0;
 
    char interpChar() const
    {

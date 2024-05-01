@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_DIFFUSIONFORCONCINPHASESTRATEGY
-#define included_DIFFUSIONFORCONCINPHASESTRATEGY
+#ifndef included_MobilityCompositionDiffusionStrategy
+#define included_MobilityCompositionDiffusionStrategy
 
 #include "FuncAvgFort.h"
 #include "CompositionDiffusionStrategy.h"
@@ -24,10 +24,10 @@ using namespace SAMRAI;
 class CompositionStrategyMobilities;
 class FreeEnergyStrategy;
 
-class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
+class MobilityCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 {
  public:
-   DiffusionForConcInPhaseStrategy(
+   MobilityCompositionDiffusionStrategy(
        const unsigned short ncompositions, const int conc_l_scratch_id,
        const int conc_a_scratch_id, const int pfm_diffusion_l_id,
        const int pfm_diffusion_a_id, const int diffusion_coeff_l_id,
@@ -36,15 +36,14 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
        CompositionStrategyMobilities* mobilities_strategy,
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy);
 
-   ~DiffusionForConcInPhaseStrategy(){};
+   ~MobilityCompositionDiffusionStrategy(){};
 
    /*
     * compute actual diffusion in each phase by weighting diffusion coefficients
     * in each phase with phase variable
     */
    void setDiffusion(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                     const int temperature_id, const int phase_id,
-                     const int eta_id);
+                     const int temperature_id, const int phase_id);
 
  private:
    double average(const double a, const double b) const
@@ -57,7 +56,7 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
     */
    void setDiffCoeffInEachPhase(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int eta_scratch_id);
+       const int temperature_id);
 
    /*
     * compute PFM diffusion in each phase based on diffusion coefficients

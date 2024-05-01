@@ -11,7 +11,7 @@
 #ifndef included_CompositionDiffusionStrategyFactory
 #define included_CompositionDiffusionStrategyFactory
 
-#include "DiffusionForConcInPhaseStrategy.h"
+#include "MobilityCompositionDiffusionStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 
 class CompositionDiffusionStrategyFactory
@@ -31,7 +31,7 @@ class CompositionDiffusionStrategyFactory
 
       if (model_parameters.conDiffusionStrategyIsCTD()) {
          tbox::pout << "Uses composition dependent diffusion" << std::endl;
-         strategy.reset(new DiffusionForConcInPhaseStrategy(
+         strategy.reset(new MobilityCompositionDiffusionStrategy(
              ncompositions, conc_l_scratch_id, conc_a_scratch_id,
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
              conc_diffusion_coeff_l_id, conc_diffusion_coeff_a_id,

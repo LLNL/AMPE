@@ -50,10 +50,8 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
 
 void TbasedCompositionDiffusionStrategy::setDiffusion(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id)
+    const int temperature_id, const int phase_id)
 {
-   (void)eta_id;
-
    //   tbox::plog<<"TbasedCompositionDiffusionStrategy::setDiffusion()"<<std::endl;
    assert(temperature_id >= 0);
    assert(phase_id >= 0);

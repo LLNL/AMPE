@@ -34,7 +34,7 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
     */
    virtual void setDiffusion(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int phase_id, const int eta_id);
+       const int temperature_id, const int phase_id);
 
  private:
    const short d_norderp;

@@ -116,13 +116,12 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
     const int temperature_id, const int phase_id, const int eta_id,
     const int conc_pfm_diffusion_id)
 {
+   (void)eta_id;
+
    // tbox::pout<<"KKSCompositionRHSStrategy::setDiffCoeffForConcentration()"<<endl;
    assert(temperature_id >= 0);
    assert(phase_id >= 0);
    assert(conc_pfm_diffusion_id >= 0);
-   if (d_with_third_phase) {
-      assert(eta_id >= 0);
-   }
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -153,33 +152,19 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
                  patch->getPatchData(conc_pfm_diffusion_id)));
          assert(pfm_diffusion->getDepth() == 1);
 
-         int three_phase = 0;
-         double* ptr_eta = nullptr;
-         int ngeta = 0;
-         std::shared_ptr<pdat::CellData<double> > eta;
-         if (d_with_third_phase) {
-            three_phase = 1;
-            eta =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(eta_id));
-            ptr_eta = eta->getPointer();
-            ngeta = eta->getGhostCellWidth()[0];
-         }
-
          CONCENTRATION_PFMDIFFUSION(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
 #endif
-             phi->getPointer(), phi->getGhostCellWidth()[0], ptr_eta, ngeta,
+             phi->getPointer(), phi->getGhostCellWidth()[0],
              pfm_diffusion->getPointer(0), pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
              pfm_diffusion->getPointer(2),
 #endif
              0, temperature->getPointer(), temperature->getGhostCellWidth()[0],
-             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A, d_D_solid_B,
-             d_Q0_solid_B, gas_constant_R_JpKpmol, &interpf,
-             d_avg_func_type.c_str(), three_phase);
+             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
+             gas_constant_R_JpKpmol, &interpf, d_avg_func_type.c_str());
       }
    }
 }
