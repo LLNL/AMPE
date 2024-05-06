@@ -255,6 +255,7 @@ FortranCInterface_HEADER(
         SET_STENCIL3D
         SET_SYMMETRIC_STENCIL2D
         SET_SYMMETRIC_STENCIL3D
+        SIDE2CELL
         COPY2D
         COPY3D
         ADJUST_BDRY2D

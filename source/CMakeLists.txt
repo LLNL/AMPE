@@ -180,6 +180,7 @@ set(M4FILESDIM concentrationdiffusion
               quattag
               rbmotion
               settozero
+              side2cell
               smoothquat
               temperature )
 

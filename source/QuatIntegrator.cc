@@ -2400,6 +2400,8 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
       d_conc_diffusion_coarsen_schedule[amr_level]->coarsenData();
    }
 
+   d_quat_model->setDiffusionVisit(hierarchy);
+
    t_set_diffcoeff_conc_timer->stop();
 }
 

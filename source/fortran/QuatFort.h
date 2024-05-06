@@ -19,6 +19,17 @@ void SETTOZERO(const int&, const int&, const int&, const int&, const int&,
                const int&, const int&, const int&, const int&,
 #endif
                const double*);
+
+void SIDE2CELL(const int&, const int&, const int&, const int&,
+#if (NDIM == 3)
+               const int&, const int&,
+#endif
+               const double*, const double*,
+#if (NDIM == 3)
+               const double*,
+#endif
+               const int&, const double*, const int&);
+
 void SOURCE_TEMPERATURE(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
                         const int&, const int&,
