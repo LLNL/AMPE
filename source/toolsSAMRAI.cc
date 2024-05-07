@@ -16,6 +16,8 @@
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 
+#include "QuatFort.h"
+
 using namespace SAMRAI;
 
 
@@ -105,6 +107,45 @@ double integralDepthCellData(
    mpi.AllReduce(&integral, 1, MPI_SUM);
 
    return integral;
+}
+
+void sideToCell(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                const int cdata_id, const int cdepth, const int sdata_id,
+                const int sdepth)
+{
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln) {
+      std::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
+      for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
+           ++ip) {
+         const std::shared_ptr<hier::Patch>& patch = *ip;
+         const hier::Box& pbox = patch->getBox();
+         const hier::Index& ifirst = pbox.lower();
+         const hier::Index& ilast = pbox.upper();
+
+         std::shared_ptr<pdat::CellData<double> > cdata(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(cdata_id)));
+         assert(cdata);
+         assert(cdepth < cdata->getDepth());
+
+         std::shared_ptr<pdat::SideData<double> > sdata(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(sdata_id)));
+         assert(sdata);
+         assert(sdepth < sdata->getDepth());
+
+         SIDE2CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                   ifirst(2), ilast(2),
+#endif
+                   sdata->getPointer(0, sdepth), sdata->getPointer(1, sdepth),
+#if (NDIM == 3)
+                   sdata->getPointer(2, sdepth),
+#endif
+                   sdata->getGhostCellWidth()[0], cdata->getPointer(cdepth),
+                   cdata->getGhostCellWidth()[0]);
+      }
+   }
 }
 
 int checkForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,

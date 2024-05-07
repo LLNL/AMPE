@@ -294,6 +294,9 @@ class QuatModel : public PFModel
    double computeThermalEnergy(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
+   void setDiffusionVisit(
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
+
  private:
    void setIntegratorModelParameters();
 
@@ -478,6 +481,15 @@ class QuatModel : public PFModel
    std::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_b_var;
    int d_conc_pfm_diffusion_b_id;
 
+   std::shared_ptr<pdat::CellVariable<double> >
+       d_visit_conc_pfm_diffusion_l_var;
+   int d_visit_conc_pfm_diffusion_l_id;
+   std::shared_ptr<pdat::CellVariable<double> >
+       d_visit_conc_pfm_diffusion_a_var;
+   int d_visit_conc_pfm_diffusion_a_id;
+   std::shared_ptr<pdat::CellVariable<double> >
+       d_visit_conc_pfm_diffusion_b_var;
+   int d_visit_conc_pfm_diffusion_b_id;
 
    /*!
     * holds data for diffusion coefficients in each individual phase

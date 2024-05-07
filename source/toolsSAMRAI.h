@@ -23,6 +23,10 @@ void copyDepthCellData(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
                        const int dst_id, const int dst_depth, const int src_id,
                        const int src_depth);
 
+void sideToCell(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                const int cdata_id, const int cdepth, const int sdata_id,
+                const int sdepth);
+
 double integralDepthCellData(
     const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const int data_id,
     const int depth, const int weight_id);
