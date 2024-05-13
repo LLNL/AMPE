@@ -20,32 +20,45 @@
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 
 TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
-    const short norderp, const short norderpA, const bool with3phases,
-    const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
-    const int pfm_diffusion_b_id, const double D_liquid, const double Q0_liquid,
-    const double D_solid_A, const double Q0_solid_A, const double D_solid_B,
-    const double Q0_solid_B, const DiffusionInterpolationType interp_func_type,
+    const short norderp, const short norderpA, const short norderpB,
+    const bool with3phases, const int pfm_diffusion_l_id,
+    const int pfm_diffusion_a_id, const int pfm_diffusion_b_id,
+    const double D0_liquid, const double Q0_liquid, const double D0_solidA,
+    const double Q0_solidA, const double D0_solidB, const double Q0_solidB,
+    const double D0_AB, const double Q0_AB, const double D0_LA,
+    const double Q0_LA, const double D0_LB, const double Q0_LB,
+    const DiffusionInterpolationType interp_func_type,
     const std::string& avg_func_type)
     : CompositionDiffusionStrategy(interp_func_type),
       d_norderp(norderp),
       d_norderpA(norderpA),
+      d_norderpB(norderpB),
       d_with3phases(with3phases),
       d_pfm_diffusion_l_id(pfm_diffusion_l_id),
       d_pfm_diffusion_a_id(pfm_diffusion_a_id),
       d_pfm_diffusion_b_id(pfm_diffusion_b_id),
-      d_D_liquid(D_liquid),
+      d_D0_liquid(D0_liquid),
       d_Q0_liquid(Q0_liquid),
-      d_D_solid_A(D_solid_A),
-      d_Q0_solid_A(Q0_solid_A),
-      d_D_solid_B(D_solid_B),
-      d_Q0_solid_B(Q0_solid_B),
+      d_D0_solidA(D0_solidA),
+      d_Q0_solidA(Q0_solidA),
+      d_D0_solidB(D0_solidB),
+      d_Q0_solidB(Q0_solidB),
+      d_D0_AB(D0_AB),
+      d_Q0_AB(Q0_AB),
+      d_D0_LA(D0_LA),
+      d_Q0_LA(Q0_LA),
+      d_D0_LB(D0_LB),
+      d_Q0_LB(Q0_LB),
       d_avg_func_type(avg_func_type),
       d_with_phaseB(d_pfm_diffusion_b_id >= 0)
 {
    assert(D_liquid >= 0.);
    assert(Q0_liquid >= 0.);
-   assert(Q0_solid_A >= 0.);
-   assert(D_solid_A >= 0.);
+   assert(Q0_solidA >= 0.);
+   assert(D_solidA >= 0.);
+
+   tbox::plog << "TbasedCompositionDiffusionStrategy: D0_AB = " << D0_AB
+              << std::endl;
 }
 
 void TbasedCompositionDiffusionStrategy::setDiffusion(
@@ -113,13 +126,22 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
             assert(phi->getDepth() == d_norderp);
 
             // distinguish 3 phases and multiple phases conventions
-            const double DL = d_with3phases ? d_D_solid_B : d_D_liquid;
-            const double DA = d_with3phases ? d_D_liquid : d_D_solid_A;
-            const double DB = d_with3phases ? d_D_solid_A : d_D_solid_B;
+            const double* const phiL = d_with3phases
+                                           ? phi->getPointer(0)
+                                           : phi->getPointer(d_norderp - 1);
+            const double* const phiA =
+                d_with3phases ? phi->getPointer(1) : phi->getPointer(0);
+            const double* const phiB = d_with3phases
+                                           ? phi->getPointer(2)
+                                           : phi->getPointer(d_norderpA);
 
-            const double QL = d_with3phases ? d_Q0_solid_B : d_Q0_liquid;
-            const double QA = d_with3phases ? d_Q0_liquid : d_Q0_solid_A;
-            const double QB = d_with3phases ? d_Q0_solid_A : d_Q0_solid_B;
+            const double DL = d_with3phases ? d_D0_solidB : d_D0_liquid;
+            const double DA = d_with3phases ? d_D0_liquid : d_D0_solidA;
+            const double DB = d_with3phases ? d_D0_solidA : d_D0_solidB;
+
+            const double QL = d_with3phases ? d_Q0_solidB : d_Q0_liquid;
+            const double QA = d_with3phases ? d_Q0_liquid : d_Q0_solidA;
+            const double QB = d_with3phases ? d_Q0_solidA : d_Q0_solidB;
 
             const double* diffLptr0 = d_with3phases
                                           ? pfm_diffusionB->getPointer(0, 0)
@@ -181,6 +203,77 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
                 DL, QL, DA, QA, DB, QB, gas_constant_R_JpKpmol,
                 &interp_func_type, d_avg_func_type.c_str());
+
+            if (d_D0_AB > 0.) {
+               AB_DIFFUSION_OF_TEMPERATURE(
+                   ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                   ifirst(2), ilast(2),
+#endif
+                   phiA, d_norderpA, phiB, d_norderpB,
+                   phi->getGhostCellWidth()[0],
+                   pfm_diffusionA->getPointer(0, 0),
+                   pfm_diffusionA->getPointer(1, 0),
+#if (NDIM == 3)
+                   pfm_diffusionA->getPointer(2, 0),
+#endif
+                   pfm_diffusionB->getPointer(0, 0),
+                   pfm_diffusionB->getPointer(1, 0),
+#if (NDIM == 3)
+                   pfm_diffusionB->getPointer(2, 0),
+#endif
+                   pfm_diffusionL->getGhostCellWidth()[0],
+                   temperature->getPointer(),
+                   temperature->getGhostCellWidth()[0], d_D0_AB, d_Q0_AB,
+                   gas_constant_R_JpKpmol, d_avg_func_type.c_str());
+            }
+
+            if (d_D0_LA > 0.) {
+               AB_DIFFUSION_OF_TEMPERATURE(
+                   ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                   ifirst(2), ilast(2),
+#endif
+                   phiL, 1, phiA, d_norderpA, phi->getGhostCellWidth()[0],
+                   pfm_diffusionL->getPointer(0, 0),
+                   pfm_diffusionL->getPointer(1, 0),
+#if (NDIM == 3)
+                   pfm_diffusionL->getPointer(2, 0),
+#endif
+                   pfm_diffusionA->getPointer(0, 0),
+                   pfm_diffusionA->getPointer(1, 0),
+#if (NDIM == 3)
+                   pfm_diffusionA->getPointer(2, 0),
+#endif
+                   pfm_diffusionL->getGhostCellWidth()[0],
+                   temperature->getPointer(),
+                   temperature->getGhostCellWidth()[0], d_D0_LA, d_Q0_LA,
+                   gas_constant_R_JpKpmol, d_avg_func_type.c_str());
+            }
+
+            if (d_D0_LB > 0.) {
+               AB_DIFFUSION_OF_TEMPERATURE(
+                   ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                   ifirst(2), ilast(2),
+#endif
+                   phiL, 1, phiB, d_norderpB, phi->getGhostCellWidth()[0],
+                   pfm_diffusionL->getPointer(0, 0),
+                   pfm_diffusionL->getPointer(1, 0),
+#if (NDIM == 3)
+                   pfm_diffusionL->getPointer(2, 0),
+#endif
+                   pfm_diffusionB->getPointer(0, 0),
+                   pfm_diffusionB->getPointer(1, 0),
+#if (NDIM == 3)
+                   pfm_diffusionB->getPointer(2, 0),
+#endif
+                   pfm_diffusionL->getGhostCellWidth()[0],
+                   temperature->getPointer(),
+                   temperature->getGhostCellWidth()[0], d_D0_LB, d_Q0_LB,
+                   gas_constant_R_JpKpmol, d_avg_func_type.c_str());
+            }
+
          } else if (phi->getDepth() > 1) {
             CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_MULTIPHASES(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
@@ -200,7 +293,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #endif
                 pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
-                d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
+                d_D0_liquid, d_Q0_liquid, d_D0_solidA, d_Q0_solidA,
                 gas_constant_R_JpKpmol, &interp_func_type,
                 d_avg_func_type.c_str());
          } else {
@@ -222,7 +315,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #endif
                 pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
-                d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
+                d_D0_liquid, d_Q0_liquid, d_D0_solidA, d_Q0_solidA,
                 gas_constant_R_JpKpmol, &interp_func_type,
                 d_avg_func_type.c_str());
          }

@@ -46,11 +46,15 @@ class CompositionDiffusionStrategyFactory
                     << std::endl;
          strategy.reset(new TbasedCompositionDiffusionStrategy(
              model_parameters.norderp(), model_parameters.norderpA(),
-             model_parameters.with_three_phases(), conc_pfm_diffusion_l_id,
-             conc_pfm_diffusion_a_id, conc_pfm_diffusion_b_id,
-             model_parameters.D_liquid(), model_parameters.Q0_liquid(),
-             model_parameters.D_solid_A(), model_parameters.Q0_solid_A(),
-             model_parameters.D_solid_B(), model_parameters.Q0_solid_B(),
+             model_parameters.norderpB(), model_parameters.with_three_phases(),
+             conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
+             conc_pfm_diffusion_b_id, model_parameters.D_liquid(),
+             model_parameters.Q0_liquid(), model_parameters.D_solid_A(),
+             model_parameters.Q0_solid_A(), model_parameters.D_solid_B(),
+             model_parameters.Q0_solid_B(), model_parameters.D0_AB(),
+             model_parameters.Q0_AB(), model_parameters.D0_LA(),
+             model_parameters.Q0_LA(), model_parameters.D0_LB(),
+             model_parameters.Q0_LB(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
       }
