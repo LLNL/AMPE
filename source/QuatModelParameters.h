@@ -218,15 +218,19 @@ class QuatModelParameters
    double D_liquid() const { return d_D_liquid; }
    double D_solid_A() const { return d_D_solid_A; }
    double D_solid_B() const { return d_D_solid_B; }
+   double D0_AA() const { return d_D0_AA; }
    double D0_AB() const { return d_D0_AB; }
+   double D0_BB() const { return d_D0_BB; }
    double D0_LA() const { return d_D0_LA; }
    double D0_LB() const { return d_D0_LB; }
    double Q0_liquid() const { return d_Q0_liquid; }
    double Q0_solid_A() const { return d_Q0_solid_A; }
    double Q0_solid_B() const { return d_Q0_solid_B; }
-   double Q0_AB() const { return d_Q0_AB; }
    double Q0_LA() const { return d_Q0_LA; }
    double Q0_LB() const { return d_Q0_LB; }
+   double Q0_AA() const { return d_Q0_AA; }
+   double Q0_AB() const { return d_Q0_AB; }
+   double Q0_BB() const { return d_Q0_BB; }
 
    std::string conc_avg_func_type() const { return d_conc_avg_func_type; }
 
@@ -606,15 +610,22 @@ class QuatModelParameters
    double d_D_liquid;
    double d_D_solid_A;
    double d_D_solid_B;
-   double d_D0_AB;
+
    double d_D0_LA;
    double d_D0_LB;
+   double d_D0_AA;
+   double d_D0_AB;
+   double d_D0_BB;
+
    double d_Q0_liquid;
    double d_Q0_solid_A;
    double d_Q0_solid_B;
-   double d_Q0_AB;
+
    double d_Q0_LA;
    double d_Q0_LB;
+   double d_Q0_AA;
+   double d_Q0_AB;
+   double d_Q0_BB;
 
    std::string d_conc_avg_func_type;
 

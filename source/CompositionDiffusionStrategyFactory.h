@@ -44,17 +44,25 @@ class CompositionDiffusionStrategyFactory
          // are not set
          tbox::pout << "Uses temperature based composition diffusion"
                     << std::endl;
+
+         const bool three_phases_model = model_parameters.with_three_phases();
+         const short norderpA =
+             three_phases_model ? 1 : model_parameters.norderpA();
+         const short norderpB =
+             three_phases_model ? 1 : model_parameters.norderpB();
+
          strategy.reset(new TbasedCompositionDiffusionStrategy(
-             model_parameters.norderp(), model_parameters.norderpA(),
-             model_parameters.norderpB(), model_parameters.with_three_phases(),
+             model_parameters.norderp(), norderpA, norderpB, three_phases_model,
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
              conc_pfm_diffusion_b_id, model_parameters.D_liquid(),
              model_parameters.Q0_liquid(), model_parameters.D_solid_A(),
              model_parameters.Q0_solid_A(), model_parameters.D_solid_B(),
-             model_parameters.Q0_solid_B(), model_parameters.D0_AB(),
-             model_parameters.Q0_AB(), model_parameters.D0_LA(),
+             model_parameters.Q0_solid_B(), model_parameters.D0_LA(),
              model_parameters.Q0_LA(), model_parameters.D0_LB(),
-             model_parameters.Q0_LB(),
+             model_parameters.Q0_LB(), model_parameters.D0_AA(),
+             model_parameters.Q0_AA(), model_parameters.D0_AB(),
+             model_parameters.Q0_AB(), model_parameters.D0_BB(),
+             model_parameters.Q0_BB(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
       }

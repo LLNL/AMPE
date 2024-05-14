@@ -24,9 +24,10 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
        const int pfm_diffusion_a_id, const int pfm_diffusion_b_id,
        const double D_liquid, const double Q0_liquid, const double D_solid_A,
        const double Q0_solid_A, const double D_solid_B, const double Q0_solid_B,
-       const double D0_AB, const double Q0_AB, const double D0_LA,
-       const double Q0_LA, const double D0_LB, const double Q0_LB,
-       DiffusionInterpolationType interp_func_type,
+       const double D0_LA, const double Q0_LA, const double D0_LB,
+       const double Q0_LB, const double D0_AA, const double Q0_AA,
+       const double D0_AB, const double Q0_AB, const double D0_BB,
+       const double Q0_BB, DiffusionInterpolationType interp_func_type,
        const std::string& avg_func_type);
 
 
@@ -66,12 +67,16 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
    /*!
     * additional interfacial diffusion
     */
-   double d_D0_AB;
-   double d_Q0_AB;
-   double d_D0_LA;
-   double d_Q0_LA;
-   double d_D0_LB;
-   double d_Q0_LB;
+   double d_d0_LA;
+   double d_q0_LA;
+   double d_d0_LB;
+   double d_q0_LB;
+   double d_d0_AA;
+   double d_q0_AA;
+   double d_d0_AB;
+   double d_q0_AB;
+   double d_d0_BB;
+   double d_q0_BB;
 
    std::string d_avg_func_type;
 

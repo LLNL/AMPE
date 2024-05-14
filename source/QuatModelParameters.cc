@@ -264,12 +264,16 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
          d_Q0_solid_A = conc_db->getDouble("Q0_solid_A");
          d_Q0_solid_B = conc_db->getDouble("Q0_solid_B");
          // AB interface diffusion 0. by default
-         d_D0_AB = conc_db->getDoubleWithDefault("D0_AB", 0.);
-         d_Q0_AB = conc_db->getDoubleWithDefault("Q0_AB", 0.);
          d_D0_LA = conc_db->getDoubleWithDefault("D0_LA", 0.);
          d_Q0_LA = conc_db->getDoubleWithDefault("Q0_LA", 0.);
          d_D0_LB = conc_db->getDoubleWithDefault("D0_LB", 0.);
          d_Q0_LB = conc_db->getDoubleWithDefault("Q0_LB", 0.);
+         d_D0_AA = conc_db->getDoubleWithDefault("D0_AA", 0.);
+         d_Q0_AA = conc_db->getDoubleWithDefault("Q0_AA", 0.);
+         d_D0_AB = conc_db->getDoubleWithDefault("D0_AB", 0.);
+         d_Q0_AB = conc_db->getDoubleWithDefault("Q0_AB", 0.);
+         d_D0_BB = conc_db->getDoubleWithDefault("D0_BB", 0.);
+         d_Q0_BB = conc_db->getDoubleWithDefault("Q0_BB", 0.);
       }
    }
    d_conc_mobility = conc_db->getDoubleWithDefault("mobility", 1.);
