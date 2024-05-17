@@ -13,6 +13,9 @@
 
 #include "CompositionDiffusionStrategy.h"
 
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/SideData.h"
+
 #include <cstring>
 
 class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
@@ -81,6 +84,20 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
    std::string d_avg_func_type;
 
    bool d_with_phaseB;
+
+   void setDiffusion(std::shared_ptr<hier::Patch> patch,
+                     std::shared_ptr<pdat::CellData<double>> phi,
+                     std::shared_ptr<pdat::CellData<double>> temperature,
+                     std::shared_ptr<pdat::SideData<double>> pfm_diffusionL,
+                     std::shared_ptr<pdat::SideData<double>> pfm_diffusionA,
+                     std::shared_ptr<pdat::SideData<double>> pfm_diffusionB);
+   void setDiffusionInterfaces(
+       std::shared_ptr<hier::Patch> patch,
+       std::shared_ptr<pdat::CellData<double>> phi,
+       std::shared_ptr<pdat::CellData<double>> temperature,
+       std::shared_ptr<pdat::SideData<double>> pfm_diffusionL,
+       std::shared_ptr<pdat::SideData<double>> pfm_diffusionA,
+       std::shared_ptr<pdat::SideData<double>> pfm_diffusionB);
 };
 
 #endif
