@@ -30,6 +30,7 @@
 #include "QuatFaceCoeff.h"
 #include "RigidBodyMotionRHS.h"
 #include "RigidBodyMotionConcRHS.h"
+#include "RigidBodyForces.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -247,6 +248,12 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void setPhaseFluxStrategy(std::shared_ptr<PhaseFluxStrategy>);
    void setTemperatureStrategy(std::shared_ptr<TemperatureStrategy>);
    void setHeatCapacityStrategy(HeatCapacityStrategy*);
+
+   void setRigidBodyForces(std::shared_ptr<RigidBodyForces> rigid_body_forces)
+   {
+      assert(rigid_body_forces);
+      d_rigid_body_forces = rigid_body_forces;
+   };
 
    void setPartitionCoefficientStrategy(
        PartitionCoefficientStrategy* partition_coeff_strategy)
@@ -629,6 +636,9 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::shared_ptr<RigidBodyMotionRHS> d_rb_motion;
    std::shared_ptr<RigidBodyMotionConcRHS> d_rb_motion_conc;
 
+   /*!
+    * NDIM-dimensional forces acting on each grain
+    */
    std::vector<std::array<double, NDIM>> d_rb_forces;
 
    double d_current_time;
@@ -916,6 +926,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
     * Velocity of moving frame
     */
    double d_frame_velocity;
+
+   std::shared_ptr<RigidBodyForces> d_rigid_body_forces;
 
    solv::LocationIndexRobinBcCoefs* d_phase_bc_coefs;
    solv::LocationIndexRobinBcCoefs* d_eta_bc_coefs;

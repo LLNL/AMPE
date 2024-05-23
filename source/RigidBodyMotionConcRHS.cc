@@ -15,20 +15,16 @@
 #include "SAMRAI/pdat/CellData.h"
 
 
-RigidBodyMotionConcRHS::RigidBodyMotionConcRHS(
-    const int data_id, const int weight_id,
-    const std::vector<double>& mobilities)
-    : d_data_id(data_id), d_weight_id(weight_id), d_mobilities(mobilities)
+RigidBodyMotionConcRHS::RigidBodyMotionConcRHS(const int data_id,
+                                               const int weight_id,
+                                               const double mobility)
+    : d_data_id(data_id), d_weight_id(weight_id), d_mobility(mobility)
 {
 }
 
 void RigidBodyMotionConcRHS::computeVolumes(
-    std::shared_ptr<hier::PatchHierarchy> hierarchy)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy, const unsigned nbodies)
 {
-   assert(d_mobilities.size() > 0);
-
-   const unsigned nbodies = d_mobilities.size();
-
    d_volumes.resize(nbodies);
    for (unsigned i = 0; i < nbodies; i++) {
       d_volumes[i] =
@@ -41,7 +37,7 @@ void RigidBodyMotionConcRHS::addRHS(
     std::shared_ptr<hier::PatchHierarchy> hierarchy, const int ydot_id,
     const std::vector<std::array<double, NDIM>>& forces)
 {
-   computeVolumes(hierarchy);
+   computeVolumes(hierarchy, forces.size());
 
    assert(forces.size() == d_volumes.size());
    for (unsigned i = 0; i < d_volumes.size(); i++)
@@ -50,7 +46,7 @@ void RigidBodyMotionConcRHS::addRHS(
    std::vector<std::array<double, NDIM>> velocities(forces);
    for (unsigned i = 0; i < forces.size(); i++)
       for (int j = 0; j < NDIM; j++)
-         velocities[i][j] *= (1. / d_volumes[i]);
+         velocities[i][j] *= (d_mobility / d_volumes[i]);
 
    // for (unsigned i = 0; i < forces.size(); i++)
    //   for (int j = 0; j < NDIM; j++)

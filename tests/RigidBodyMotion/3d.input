@@ -24,9 +24,9 @@ ModelParameters {
    norderp_A = 1
 
    RigidBody{
-      external_force = 10., 10., 10.
-      // mobilities of grains of type A
-      mobilities = 2.
+      external_force = 5., 5., 5.
+      // mobilities of grains
+      mobility = 2.
    }
  
    temperature = 1000.

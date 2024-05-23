@@ -23,6 +23,7 @@
 #include "EventInterval.h"
 #include "EnergyEvaluationStrategy.h"
 #include "MultiOrderPEnergyEvaluationStrategy.h"
+#include "RigidBodyForces.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -605,6 +606,8 @@ class QuatModel : public PFModel
    std::shared_ptr<EnergyEvaluationStrategy> d_energy_eval_strategy;
 
    std::shared_ptr<MultiOrderPEnergyEvaluationStrategy> d_multiorderp_energy;
+
+   std::shared_ptr<RigidBodyForces> d_rigid_body_forces;
 
    ///
    /// number of ghost cells for main field: phase, conc, temperature,...

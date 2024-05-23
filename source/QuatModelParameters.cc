@@ -1017,9 +1017,13 @@ void QuatModelParameters::readModelParameters(
       assert(d_norderp_A > 0);
       std::shared_ptr<tbox::Database> db(model_db->getDatabase("RigidBody"));
       d_with_rb_motion = true;
-      db->getDoubleArray("external_force", &d_rb_external_force[0], NDIM);
-      d_rb_mobilities.resize(1);
-      db->getDoubleArray("mobilities", &d_rb_mobilities[0], 1);
+      if (db->keyExists("external_force"))
+         db->getDoubleArray("external_force", &d_rb_external_force[0], NDIM);
+      else
+         for (int i = 0; i < NDIM; i++)
+            d_rb_external_force[i] = 0.;
+      d_rb_mobility = db->getDoubleWithDefault("mobility", 1.);
+      d_rb_stiffness = db->getDoubleWithDefault("stiffness", 0.);
    } else {
       for (int i = 0; i < NDIM; i++)
          d_rb_external_force[i] = def_val;
