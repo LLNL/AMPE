@@ -299,15 +299,15 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 
-set( PROJECT_LINK_LIBS1 libSAMRAI_tbox.a )
-set( PROJECT_LINK_LIBS2 libSAMRAI_math.a )
-set( PROJECT_LINK_LIBS3 libSAMRAI_hier.a )
-set( PROJECT_LINK_LIBS4 libSAMRAI_pdat.a )
-set( PROJECT_LINK_LIBS5 libSAMRAI_xfer.a )
-set( PROJECT_LINK_LIBS6 libSAMRAI_geom.a )
-set( PROJECT_LINK_LIBS7 libSAMRAI_mesh.a )
-set( PROJECT_LINK_LIBS8 libSAMRAI_solv.a )
-set( PROJECT_LINK_LIBS9 libSAMRAI_appu.a )
+set( PROJECT_LINK_LIBS1 libSAMRAI_tbox.so )
+set( PROJECT_LINK_LIBS2 libSAMRAI_math.so )
+set( PROJECT_LINK_LIBS3 libSAMRAI_hier.so )
+set( PROJECT_LINK_LIBS4 libSAMRAI_pdat.so )
+set( PROJECT_LINK_LIBS5 libSAMRAI_xfer.so )
+set( PROJECT_LINK_LIBS6 libSAMRAI_geom.so )
+set( PROJECT_LINK_LIBS7 libSAMRAI_mesh.so )
+set( PROJECT_LINK_LIBS8 libSAMRAI_solv.so )
+set( PROJECT_LINK_LIBS9 libSAMRAI_appu.so )
 set( PROJECT_LINK_LIBS_SAMRAI ${PROJECT_LINK_LIBS9}
                               ${PROJECT_LINK_LIBS8}
                               ${PROJECT_LINK_LIBS7}
@@ -321,7 +321,8 @@ set( PROJECT_LINK_LIBS_SAMRAI ${PROJECT_LINK_LIBS9}
 set( PROJECT_LINK_LIBS_HYPRE libHYPRE.so )
 
 message(STATUS "Link with Sundials...")
-set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.a )
+#set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.a )
+set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.so )
 
 include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )
