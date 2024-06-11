@@ -1024,6 +1024,8 @@ void QuatModelParameters::readModelParameters(
             d_rb_external_force[i] = 0.;
       d_rb_mobility = db->getDoubleWithDefault("mobility", 1.);
       d_rb_stiffness = db->getDoubleWithDefault("stiffness", 0.);
+      d_rb_threshold = db->getDoubleWithDefault("threshold", 0.);
+      if (d_rb_threshold > 0.) d_rb_equil_gb = db->getDouble("equil_gb");
    } else {
       for (int i = 0; i < NDIM; i++)
          d_rb_external_force[i] = def_val;

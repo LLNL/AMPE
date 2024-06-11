@@ -45,15 +45,25 @@ void RigidBodyForces::evaluatePairForces(
       for (auto& fij : fi)
          fij = zero;
 
+   std::vector<double> forces(d_forces.size() * d_forces.size() * NDIM);
    int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
          std::shared_ptr<hier::Patch> patch = *p;
-         evaluatePairForces(patch);
+         evaluatePairForces(patch, forces);
       }
    }
+
+   const double siffness = d_model_parameters.rbStiffness();
+   int count = 0;
+   for (auto& fi : d_forces)
+      for (auto& fij : fi)
+         for (auto& f : fij) {
+            f = forces[count] * siffness;
+            count++;
+         }
 
    std::vector<double> tmp;
    for (auto& fi : d_forces)
@@ -74,12 +84,12 @@ void RigidBodyForces::evaluatePairForces(
 
 void RigidBodyForces::printPairForces(std::ostream& os)
 {
-   os << "Grain pair forces:" << std::endl;
+   os << "## Grain pair forces:" << std::endl;
    int counti = 0;
    int countj = 0;
    for (auto& fi : d_forces) {
       for (auto& fij : fi) {
-         os << counti << ", " << countj << " :";
+         os << "RB Force " << counti << ", " << countj << " :";
          for (auto& f : fij)
             os << " " << f;
          os << std::endl;
@@ -95,50 +105,4 @@ void RigidBodyForces::getPairForce(const short i, const short j,
                                    std::array<double, NDIM>& f)
 {
    f = d_forces[i][j];
-}
-
-void RigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch)
-{
-   const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                              hier::PatchGeometry>(patch->getPatchGeometry()));
-   const double* dx = patch_geom->getDx();
-
-   const hier::Box& pbox = patch->getBox();
-   const hier::Index& ifirst = pbox.lower();
-   const hier::Index& ilast = pbox.upper();
-
-   std::shared_ptr<pdat::CellData<double> > phase(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch->getPatchData(d_phase_id)));
-   std::shared_ptr<pdat::CellData<double> > weight(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch->getPatchData(d_weight_id)));
-
-   assert(phase);
-   assert(weight);
-
-   assert(weight->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-
-   // printf("orient_interp_func_type2 =%s\n",
-   // d_model_parameters.orient_interp_func_type2().c_str()[0]);
-   std::vector<double> forces(d_forces.size() * d_forces.size() * NDIM);
-   PHIPHI_FORCES(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                 ifirst(2), ilast(2),
-#endif
-                 dx, phase->getPointer(), phase->getGhostCellWidth()[0],
-                 phase->getDepth() - 1, d_model_parameters.gamma(),
-                 d_model_parameters.m_moelans2011(), weight->getPointer(),
-                 &forces[0]);
-
-   const double siffness = d_model_parameters.rbStiffness();
-   int count = 0;
-   for (auto& fi : d_forces)
-      for (auto& fij : fi)
-         for (auto& f : fij) {
-            f = forces[count] * siffness;
-            count++;
-         }
 }

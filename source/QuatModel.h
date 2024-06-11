@@ -23,7 +23,7 @@
 #include "EventInterval.h"
 #include "EnergyEvaluationStrategy.h"
 #include "MultiOrderPEnergyEvaluationStrategy.h"
-#include "RigidBodyForces.h"
+#include "PhaseRigidBodyForces.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"

@@ -473,6 +473,8 @@ class QuatModelParameters
          force[i] = d_rb_external_force[i];
    }
    double rbMobility() const { return d_rb_mobility; }
+   double rbThreshold() const { return d_rb_threshold; }
+   double rbEquilGB() const { return d_rb_equil_gb; }
 
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
@@ -686,6 +688,8 @@ class QuatModelParameters
    double d_rb_mobility;
    double d_rb_external_force[NDIM];
    double d_rb_stiffness;
+   double d_rb_threshold;
+   double d_rb_equil_gb;
 
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
 };
