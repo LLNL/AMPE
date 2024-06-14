@@ -49,6 +49,7 @@
 #include "TwoPhasesEnergyEvaluationStrategy.h"
 #include "computeQDiffs.h"
 #include "HierarchyStencilOps.h"
+#include "WangRigidBodyForces.h"
 
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
@@ -747,9 +748,15 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
 
       if (d_model_parameters.withRBmotion()) {
 
-         d_rigid_body_forces.reset(new RigidBodyForces(d_model_parameters,
-                                                       d_phase_scratch_id,
-                                                       d_weight_id));
+         if (d_model_parameters.rbThreshold() > 0.) {
+            d_rigid_body_forces.reset(
+                new WangRigidBodyForces(d_model_parameters, d_phase_scratch_id,
+                                        d_conc_id, d_weight_id));
+         } else {
+            d_rigid_body_forces.reset(
+                new PhaseRigidBodyForces(d_model_parameters, d_phase_scratch_id,
+                                         d_weight_id));
+         }
          d_integrator->setRigidBodyForces(d_rigid_body_forces);
       }
    }

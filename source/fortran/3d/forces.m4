@@ -77,3 +77,90 @@ c integral over domain
 
       return
       end
+c
+c
+c
+      subroutine wang_forces(
+     &   lo0, hi0, lo1, hi1, lo2, hi2,
+     &   dx,
+     &   phi, pghosts, nphases,
+     &   conc, ngc, nc,
+     &   rhoe, cthreshold,
+     &   weight, forces
+     &   )
+
+      implicit none
+
+      integer lo0, hi0, lo1, hi1, lo2, hi2
+      integer pghosts, nphases, ngc, nc
+      double precision rhoe, cthreshold
+      double precision phi(CELL3d(lo,hi,pghosts), nphases)
+      double precision weight(CELL3d(lo,hi,0))
+      double precision conc(CELL3d(lo,hi,ngc), nc)
+      double precision dx(0:NDIM-1)
+      double precision forces(NDIM*nphases*nphases)
+
+      integer i, j, k, p1, p2, offset, ic
+      double precision dxinv, dyinv, dzinv
+      double precision diffx1, diffy1, diffz1
+      double precision diffx2, diffy2, diffz2
+      double precision fx, fy, fz
+      double precision pp, cdiff, cutoff_slope, cfactor
+c
+      double precision interp_func
+c
+      cutoff_slope = 10.d0
+c
+      dxinv = 0.5d0 / dx(0)
+      dyinv = 0.5d0 / dx(1)
+      dzinv = 0.5d0 / dx(2)
+c
+      do p1 = 1, nphases
+         do p2 = 1, nphases
+            if( p1 .ne. p2 )then
+              offset = NDIM*nphases*(p1-1)+p2*2-1
+c integral over domain
+               do k = lo2, hi2
+                  do j = lo1, hi1
+                     do i = lo0, hi0
+                        diffx1 = dxinv * (
+     &                     phi(i+1,j,k,p1) - phi(i-1,j,k,p1))
+                        diffy1 = dyinv * (
+     &                     phi(i,j+1,k,p1) - phi(i,j-1,k,p1))
+                        diffz1 = dzinv * (
+     &                     phi(i,j,k+1,p1) - phi(i,j,k-1,p1))
+                        diffx2 = dxinv * (
+     &                     phi(i+1,j,k,p2) - phi(i-1,j,k,p2))
+                        diffy2 = dyinv * (
+     &                     phi(i,j+1,k,p2) - phi(i,j-1,k,p2))
+                        diffz2 = dzinv * (
+     &                     phi(i,j,k+1,p2) - phi(i,j,k-1,p2))
+c smooth cutoff
+                        pp = 0.5d0
+     &                     + (phi(i,j,k,p1)*phi(i,j,k,p2)-cthreshold)
+     &                       *cutoff_slope
+                        cfactor = interp_func( pp, 'p')
+                        cdiff = 0.d0
+                        do ic = 1, nc
+                           cdiff = cdiff + conc(i,j,k,ic)
+                        enddo
+                        cdiff = cdiff-rhoe
+                        fx = cdiff*cfactor*(diffx1-diffx2)
+                        fy = cdiff*cfactor*(diffy1-diffx2)
+                        fz = cdiff*cfactor*(diffz1-diffz2)
+c add force density to integral over domain
+                        forces(offset)   = forces(offset)
+     &                                   + fx*weight(i,j,k)
+                        forces(offset+1) = forces(offset+1)
+     &                                   + fy*weight(i,j,k)
+                        forces(offset+2) = forces(offset+2)
+     &                                   + fz*weight(i,j,k)
+                     enddo
+                  enddo
+               enddo
+            endif
+         enddo
+      enddo
+
+      return
+      end
