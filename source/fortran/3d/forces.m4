@@ -118,7 +118,7 @@ c
       do p1 = 1, nphases
          do p2 = 1, nphases
             if( p1 .ne. p2 )then
-              offset = NDIM*nphases*(p1-1)+p2*2-1
+              offset = NDIM*nphases*(p1-1)+(p2-1)*NDIM+1
 c integral over domain
                do k = lo2, hi2
                   do j = lo1, hi1
