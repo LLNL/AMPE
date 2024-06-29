@@ -115,30 +115,34 @@ c
 c integral over domain
                do j = lo1, hi1
                   do i = lo0, hi0
-                     diffx1 = dxinv * (
-     &                  phi(i+1,j,p1) - phi(i-1,j,p1))
-                     diffy1 = dyinv * (
-     &                  phi(i,j+1,p1) - phi(i,j-1,p1))
-                     diffx2 = dxinv * (
-     &                  phi(i+1,j,p2) - phi(i-1,j,p2))
-                     diffy2 = dyinv * (
-     &                  phi(i,j+1,p2) - phi(i,j-1,p2))
 c smooth cutoff
                      pp = 0.5d0+(phi(i,j,p1)*phi(i,j,p2)-cthreshold)
      &                         *cutoff_slope
-                     cfactor = interp_func( pp, 'p')
-                     cdiff = 0.d0
-                     do ic = 1, nc
-                        cdiff = cdiff + conc(i,j,ic)
-                     enddo
-                     cdiff = cdiff-rhoe
-                     fx = cdiff*cfactor*(diffx1-diffx2)
-                     fy = cdiff*cfactor*(diffy1-diffx2)
+                     if( pp .gt. 0.d0 )then
+                        cfactor = interp_func( pp, 'p')
+                        cdiff = 0.d0
+                        do ic = 1, nc
+                           cdiff = cdiff + conc(i,j,ic)
+                        enddo
+                        cdiff = cdiff-rhoe
+
+                        diffx1 = dxinv * (
+     &                     phi(i+1,j,p1) - phi(i-1,j,p1))
+                        diffy1 = dyinv * (
+     &                     phi(i,j+1,p1) - phi(i,j-1,p1))
+                        diffx2 = dxinv * (
+     &                     phi(i+1,j,p2) - phi(i-1,j,p2))
+                        diffy2 = dyinv * (
+     &                     phi(i,j+1,p2) - phi(i,j-1,p2))
+
+                        fx = cdiff*cfactor*(diffx1-diffx2)
+                        fy = cdiff*cfactor*(diffy1-diffx2)
 c add force density to integral over domain
-                     forces(offset)   = forces(offset)
-     &                                + fx*weight(i,j)
-                     forces(offset+1) = forces(offset+1)
-     &                                + fy*weight(i,j)
+                        forces(offset)   = forces(offset)
+     &                                   + fx*weight(i,j)
+                        forces(offset+1) = forces(offset+1)
+     &                                   + fy*weight(i,j)
+                     endif
                   enddo
                enddo
             endif
