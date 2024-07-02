@@ -269,6 +269,8 @@ QuatIntegrator::QuatIntegrator(
        tman->getTimer("AMPE::QuatIntegrator::ConcPrecondSolve()");
    t_quat_grad_timer =
        tman->getTimer("AMPE::QuatIntegrator::computeQuatGradients()");
+   t_phase_rhs_timer =
+       tman->getTimer("AMPE::QuatIntegrator::evaluatePhaseRHS()");
 
    std::shared_ptr<tbox::Database> integrator_db =
        db->getDatabase("Integrator");
@@ -2459,6 +2461,8 @@ void QuatIntegrator::evaluatePhaseRHS(
    assert(phase_id >= 0);
    assert(phase_rhs_id >= 0);
 
+   t_phase_rhs_timer->start();
+
    d_phase_rhs_strategy->evaluateRHS(time, hierarchy, phase_rhs_id, eval_flag);
 
    // save dphidt if needed for other purposes
@@ -2509,6 +2513,8 @@ void QuatIntegrator::evaluatePhaseRHS(
    double l2rhs = cellops.L2Norm(phase_rhs_id);
    assert(l2rhs == l2rhs);
 #endif
+
+   t_phase_rhs_timer->stop();
 }
 
 //-----------------------------------------------------------------------

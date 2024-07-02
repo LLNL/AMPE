@@ -28,6 +28,10 @@ RigidBodyForces::RigidBodyForces(const QuatModelParameters& model_parameters,
    d_forces.resize(nforces);
    for (auto& f : d_forces)
       f.resize(nforces);
+   // Get timers
+   tbox::TimerManager* tman = tbox::TimerManager::getManager();
+   t_eval_pair_forces_timer =
+       tman->getTimer("AMPE::RigidBodyForces::evaluatePairForces()");
 }
 
 void RigidBodyForces::evaluatePairForces(
@@ -35,6 +39,8 @@ void RigidBodyForces::evaluatePairForces(
 {
    assert(d_phase_id >= 0);
    assert(!d_forces.empty());
+
+   t_eval_pair_forces_timer->start();
 
 #if (NDIM == 2)
    std::array<double, NDIM> zero{0., 0.};
@@ -80,6 +86,8 @@ void RigidBodyForces::evaluatePairForces(
             f = *ptmp;
             ptmp++;
          }
+
+   t_eval_pair_forces_timer->stop();
 }
 
 void RigidBodyForces::printPairForces(std::ostream& os)
