@@ -151,7 +151,7 @@ c if pp<0., cfactor=0.
      &                        phi(i,j,k+1,p2) - phi(i,j,k-1,p2))
 
                            fx = cdiff*cfactor*(diffx1-diffx2)
-                           fy = cdiff*cfactor*(diffy1-diffx2)
+                           fy = cdiff*cfactor*(diffy1-diffy2)
                            fz = cdiff*cfactor*(diffz1-diffz2)
 c add force density to integral over domain
                            forces(offset)   = forces(offset)

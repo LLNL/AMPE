@@ -136,7 +136,7 @@ c smooth cutoff
      &                     phi(i,j+1,p2) - phi(i,j-1,p2))
 
                         fx = cdiff*cfactor*(diffx1-diffx2)
-                        fy = cdiff*cfactor*(diffy1-diffx2)
+                        fy = cdiff*cfactor*(diffy1-diffy2)
 c add force density to integral over domain
                         forces(offset)   = forces(offset)
      &                                   + fx*weight(i,j)
