@@ -43,6 +43,10 @@ class RigidBodyForces
 
    virtual void evaluatePairForces(std::shared_ptr<hier::Patch> patch,
                                    std::vector<double>& forces) = 0;
+
+ private:
+   // Timers
+   std::shared_ptr<tbox::Timer> t_eval_pair_forces_timer;
 };
 
 #endif

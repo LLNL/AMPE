@@ -948,6 +948,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::shared_ptr<tbox::Timer> t_phase_precond_timer;
    std::shared_ptr<tbox::Timer> t_conc_precond_timer;
    std::shared_ptr<tbox::Timer> t_quat_grad_timer;
+   std::shared_ptr<tbox::Timer> t_phase_rhs_timer;
 };
 
 #endif
