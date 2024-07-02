@@ -187,6 +187,8 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
    assert(!std::isnan(l2f));
 #endif
 
+   std::vector<double> tmp(pbox.size());
+
    // first compute component from interfacial energy
    // for all phases
    assert(phase_flux->getDepth() == phase_flux->getDepth());
@@ -203,7 +205,7 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
 #endif
                         phase_flux->getGhostCellWidth()[0], d_gamma, d_m,
                         phase->getPointer(), phase->getGhostCellWidth()[0],
-                        phase_rhs->getPointer(),
+                        tmp.data(), phase_rhs->getPointer(),
                         phase_rhs->getGhostCellWidth()[0]);
 
 #ifndef NDEBUG

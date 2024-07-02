@@ -219,7 +219,7 @@ for g in range(nspheres):
   for k in range( nz ) :
     z = k + 0.5
     dz2=distance2_1d_z(z,center[2])
-    print("z = {}".format(z))
+    #print("z = {}".format(z))
     if dz2<threshold or nz==1:
       for j in range( ny ) :
         y = j + 0.5

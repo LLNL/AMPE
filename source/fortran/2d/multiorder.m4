@@ -21,6 +21,7 @@ c
      &   ngflux,
      &   dgamma, m,
      &   phi, ngphi,
+     &   phi2sum,
      &   rhs, ngrhs)
 c***********************************************************************
       implicit none
@@ -35,6 +36,7 @@ c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi),norder)
       double precision rhs(CELL2d(ifirst,ilast,ngrhs),norder)
+      double precision phi2sum(CELL2d(ifirst,ilast,0))
 
 c variables in 2d side indexed
       double precision
@@ -58,6 +60,23 @@ c
       dyinv = 1.d0 / dx(2)
       fac = 1.d0 / norder
 c
+c precompute sum of phi**2 at each cell
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0
+            phi2sum(ic0,ic1) =
+     &         phi(ic0,ic1,1)*phi(ic0,ic1,1)
+         enddo
+      enddo
+
+      do ip = 2, norder
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               phi2sum(ic0,ic1) = phi2sum(ic0,ic1)
+     &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
+            enddo
+         enddo
+      enddo
+
       do ip = 1, norder
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
@@ -76,11 +95,7 @@ c  Phase energy well
                g_prime =
      &            phi(ic0,ic1,ip)*phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
      &            - phi(ic0,ic1,ip)
-               dsum = 0.d0
-               do jp = 1, norder
-                 dsum = dsum +  phi(ic0,ic1,jp)*phi(ic0,ic1,jp)
-               enddo
-               dsum = dsum - phi(ic0,ic1,ip)
+               dsum = phi2sum(ic0,ic1) - phi(ic0,ic1,ip)
                g_prime = g_prime + 2.*phi(ic0,ic1,ip)*dgamma*dsum
 
                rhs(ic0,ic1,ip) = rhs(ic0,ic1,ip) - m * g_prime
