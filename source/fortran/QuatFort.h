@@ -135,7 +135,7 @@ void COMPUTERHSMULTIORDER(const int& ifirst0, const int& ilast0,
 #endif
                           const int& ngphaseflux, const double& gamma,
                           const double& m, const double* phi, const int& ngphi,
-                          double* rhs, const int& ngrhs);
+                          double* tmp, double* rhs, const int& ngrhs);
 
 void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,

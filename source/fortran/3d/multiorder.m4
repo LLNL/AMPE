@@ -22,6 +22,7 @@ c
      &   ngflux,
      &   dgamma, m,
      &   phi, ngphi,
+     &   phi2sum,
      &   rhs, ngrhs)
 c***********************************************************************
       implicit none
@@ -36,6 +37,7 @@ c
 c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi),norder)
       double precision rhs(CELL3d(ifirst,ilast,ngrhs),norder)
+      double precision phi2sum(CELL3d(ifirst,ilast,0))
 
 c variables in 3d side indexed
       double precision
@@ -62,6 +64,28 @@ c
       dzinv = 1.d0 / dx(3)
       fac = 1.d0 / norder
 c
+c precompute sum of phi**2 at each cell
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               phi2sum(ic0,ic1,ic2) =
+     &            phi(ic0,ic1,ic2,1)*phi(ic0,ic1,ic2,1)
+            enddo
+         enddo
+      enddo
+
+      do ip = 2, norder
+         do ic2 = ifirst2, ilast2
+            do ic1 = ifirst1, ilast1
+               do ic0 = ifirst0, ilast0
+
+                  phi2sum(ic0,ic1,ic2) = phi2sum(ic0,ic1,ic2)
+     &               + phi(ic0,ic1,ic2,ip)*phi(ic0,ic1,ic2,ip)
+               enddo
+            enddo
+         enddo
+      enddo
+c
       do ip = 1, norder
          do ic2 = ifirst2, ilast2
             do ic1 = ifirst1, ilast1
@@ -83,12 +107,7 @@ c  Phase energy well
                   g_prime =
      &               phi(ic0,ic1,ic2,ip)
      &               * (phi(ic0,ic1,ic2,ip)*phi(ic0,ic1,ic2,ip)-1.d0)
-                  dsum = 0.d0
-                  do jp = 1, norder
-                    dsum = dsum 
-     &                   + phi(ic0,ic1,ic2,jp)*phi(ic0,ic1,ic2,jp)
-                  enddo
-                  dsum = dsum - phi(ic0,ic1,ic2,ip)
+                  dsum = phi2sum(ic0,ic1,ic2) - phi(ic0,ic1,ic2,ip)
                   g_prime = g_prime + 2.*phi(ic0,ic1,ic2,ip)*dgamma*dsum
 
                   rhs(ic0,ic1,ic2,ip) = rhs(ic0,ic1,ic2,ip) - m*g_prime
