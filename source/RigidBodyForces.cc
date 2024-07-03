@@ -51,7 +51,7 @@ void RigidBodyForces::evaluatePairForces(
       for (auto& fij : fi)
          fij = zero;
 
-   std::vector<double> forces(d_forces.size() * d_forces.size() * NDIM);
+   std::vector<double> forces(d_forces.size() * d_forces.size() * NDIM, 0.);
    int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);

@@ -49,7 +49,8 @@ void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
    assert(phase);
    assert(weight);
    assert(conc);
-
+   assert(forces.size() ==
+          NDIM * (phase->getDepth() - 1) * (phase->getDepth() - 1));
    assert(weight->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
@@ -63,5 +64,5 @@ void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
                phase->getDepth() - 1, conc->getPointer(),
                conc->getGhostCellWidth()[0], conc->getDepth(),
                d_model_parameters.rbEquilGB(), d_model_parameters.rbThreshold(),
-               weight->getPointer(), &forces[0]);
+               weight->getPointer(), forces.data());
 }

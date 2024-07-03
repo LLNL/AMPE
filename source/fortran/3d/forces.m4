@@ -100,7 +100,8 @@ c
       double precision dx(0:NDIM-1)
       double precision forces(NDIM*nphases*nphases)
 
-      integer i, j, k, p1, p2, offset, ic
+      integer i, j, k, p1, p2, ic
+      integer offset1, offset2
       double precision dxinv, dyinv, dzinv
       double precision diffx1, diffy1, diffz1
       double precision diffx2, diffy2, diffz2
@@ -116,55 +117,61 @@ c
       dzinv = 0.5d0 / dx(2)
 c
       do p1 = 1, nphases
-         do p2 = 1, nphases
-            if( p1 .ne. p2 )then
-              offset = NDIM*nphases*(p1-1)+(p2-1)*NDIM+1
+         do p2 = 1, p1-1
+           offset1 = NDIM*(nphases*(p1-1)+(p2-1))
+           offset2 = NDIM*(nphases*(p2-1)+(p1-1))
 c integral over domain
-               do k = lo2, hi2
-                  do j = lo1, hi1
-                     do i = lo0, hi0
+            do k = lo2, hi2
+               do j = lo1, hi1
+                  do i = lo0, hi0
 c smooth cutoff
-                        pp = 0.5d0
-     &                     + (phi(i,j,k,p1)*phi(i,j,k,p2)-cthreshold)
-     &                       *cutoff_slope
+                     pp = 0.5d0
+     &                  + (phi(i,j,k,p1)*phi(i,j,k,p2)-cthreshold)
+     &                    *cutoff_slope
 c screen out zero contributions
 c if pp<0., cfactor=0.
-                        if( pp .gt. 0d0 )then
-                           cfactor = interp_func( pp, 'p')
-                           cdiff = 0.d0
-                           do ic = 1, nc
-                              cdiff = cdiff + conc(i,j,k,ic)
-                           enddo
-                           cdiff = cdiff-rhoe
+                     if( pp .gt. 0d0 )then
+                        cfactor = interp_func( pp, 'p')
+                        cdiff = 0.d0
+                        do ic = 1, nc
+                           cdiff = cdiff + conc(i,j,k,ic)
+                        enddo
+                        cdiff = cdiff-rhoe
 
-                           diffx1 = dxinv * (
-     &                        phi(i+1,j,k,p1) - phi(i-1,j,k,p1))
-                           diffy1 = dyinv * (
-     &                        phi(i,j+1,k,p1) - phi(i,j-1,k,p1))
-                           diffz1 = dzinv * (
-     &                        phi(i,j,k+1,p1) - phi(i,j,k-1,p1))
-                           diffx2 = dxinv * (
-     &                        phi(i+1,j,k,p2) - phi(i-1,j,k,p2))
-                           diffy2 = dyinv * (
-     &                        phi(i,j+1,k,p2) - phi(i,j-1,k,p2))
-                           diffz2 = dzinv * (
-     &                        phi(i,j,k+1,p2) - phi(i,j,k-1,p2))
+                        diffx1 = dxinv * (
+     &                     phi(i+1,j,k,p1) - phi(i-1,j,k,p1))
+                        diffy1 = dyinv * (
+     &                     phi(i,j+1,k,p1) - phi(i,j-1,k,p1))
+                        diffz1 = dzinv * (
+     &                     phi(i,j,k+1,p1) - phi(i,j,k-1,p1))
 
-                           fx = cdiff*cfactor*(diffx1-diffx2)
-                           fy = cdiff*cfactor*(diffy1-diffy2)
-                           fz = cdiff*cfactor*(diffz1-diffz2)
+                        diffx2 = dxinv * (
+     &                     phi(i+1,j,k,p2) - phi(i-1,j,k,p2))
+                        diffy2 = dyinv * (
+     &                     phi(i,j+1,k,p2) - phi(i,j-1,k,p2))
+                        diffz2 = dzinv * (
+     &                     phi(i,j,k+1,p2) - phi(i,j,k-1,p2))
+
+                        fx = cdiff*cfactor*(diffx1-diffx2)
+                        fy = cdiff*cfactor*(diffy1-diffy2)
+                        fz = cdiff*cfactor*(diffz1-diffz2)
 c add force density to integral over domain
-                           forces(offset)   = forces(offset)
-     &                                      + fx*weight(i,j,k)
-                           forces(offset+1) = forces(offset+1)
-     &                                      + fy*weight(i,j,k)
-                           forces(offset+2) = forces(offset+2)
-     &                                      + fz*weight(i,j,k)
-                        endif
-                     enddo
+                        forces(offset1+1) = forces(offset1+1)
+     &                                    + fx*weight(i,j,k)
+                        forces(offset1+2) = forces(offset1+2)
+     &                                    + fy*weight(i,j,k)
+                        forces(offset1+3) = forces(offset1+3)
+     &                                    + fz*weight(i,j,k)
+                        forces(offset2+1) = forces(offset2+1)
+     &                                    - fx*weight(i,j,k)
+                        forces(offset2+2) = forces(offset2+2)
+     &                                    - fy*weight(i,j,k)
+                        forces(offset2+3) = forces(offset2+3)
+     &                                    - fz*weight(i,j,k)
+                     endif
                   enddo
                enddo
-            endif
+            enddo
          enddo
       enddo
 
