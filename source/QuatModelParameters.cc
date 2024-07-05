@@ -243,7 +243,7 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       d_D_liquid = conc_db->getDouble("D_liquid");
       d_Q0_liquid = conc_db->getDoubleWithDefault("Q0_liquid", 0.);
 
-      if (!d_with_three_phases) {
+      if (!withPhaseB()) {
          if (conc_db->keyExists("D_solid_A"))
             d_D_solid_A = conc_db->getDouble("D_solid_A");
          else
@@ -252,17 +252,12 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid_A", 0.);
          else
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid", 0.);
-         if (conc_db->keyExists("D_solid_B"))
-            d_D_solid_B = conc_db->getDouble("D_solid_B");
-         if (conc_db->keyExists("Q0_solid_B"))
-            d_Q0_solid_B = conc_db->getDouble("Q0_solid_B");
-         else
-            d_Q0_solid_B = 0.;
       } else {
          d_D_solid_A = conc_db->getDouble("D_solid_A");
          d_D_solid_B = conc_db->getDouble("D_solid_B");
-         d_Q0_solid_A = conc_db->getDouble("Q0_solid_A");
-         d_Q0_solid_B = conc_db->getDouble("Q0_solid_B");
+         // optional diffusion values
+         d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid_A", 0.);
+         d_Q0_solid_B = conc_db->getDoubleWithDefault("Q0_solid_B", 0.);
          // AB interface diffusion 0. by default
          d_D0_LB = conc_db->getDoubleWithDefault("D0_LB", 0.);
          d_Q0_LB = conc_db->getDoubleWithDefault("Q0_LB", 0.);
