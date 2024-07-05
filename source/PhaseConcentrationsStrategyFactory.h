@@ -76,11 +76,23 @@ class PhaseConcentrationsStrategyFactory
                   if (model_parameters.withMultipleOrderP()) {
                      tbox::plog << "Multi-order parameters..." << std::endl;
                      // multi-order parameters model
-                     phase_conc_strategy.reset(
-                         new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases(
-                             model_parameters.norderpA(), conc_l_scratch_id,
-                             conc_a_scratch_id, conc_b_scratch_id,
-                             model_parameters, conc_db, newton_db));
+                     if (subl) {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                                model_parameters.norderpA(), conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters, conc_db, newton_db));
+                     } else {
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                                model_parameters.norderpA(), conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters, conc_db, newton_db));
+                     }
                   } else {
                      // three phases model
                      if (subl) {

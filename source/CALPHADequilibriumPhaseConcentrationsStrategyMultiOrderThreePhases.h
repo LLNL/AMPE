@@ -18,6 +18,7 @@
 
 #include <string>
 
+template <class FreeEnergyType>
 class CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases
     : public EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases
 {
@@ -38,8 +39,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases
    }
 
  private:
-   std::shared_ptr<Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>
-       d_fenergy;
+   std::shared_ptr<FreeEnergyType> d_fenergy;
 };
 
 #endif
