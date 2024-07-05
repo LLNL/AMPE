@@ -9,6 +9,8 @@
 // Please also read AMPE/LICENSE.
 //
 #include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases.h"
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "Database2JSON.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -17,7 +19,9 @@
 #include <boost/property_tree/ptree.hpp>
 namespace pt = boost::property_tree;
 
-CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases::
+template <class FreeEnergyType>
+CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+    FreeEnergyType>::
     CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases(
         const short norderp_A, const int conc_l_id, const int conc_a_id,
         const int conc_b_id, const QuatModelParameters& model_parameters,
@@ -45,7 +49,15 @@ CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases::
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
 
-   d_fenergy.reset(new Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase(
-       calphad_pt, newton_pt, Thermo4PFM::EnergyInterpolationType::LINEAR,
-       model_parameters.conc_interp_func_type()));
+   d_fenergy.reset(
+       new FreeEnergyType(calphad_pt, newton_pt,
+                          Thermo4PFM::EnergyInterpolationType::LINEAR,
+                          model_parameters.conc_interp_func_type()));
 }
+
+template class
+    CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+        Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>;
+template class
+    CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+        Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
