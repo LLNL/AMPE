@@ -31,10 +31,10 @@ class CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
    ~CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder() {}
 
  protected:
-   virtual void computePhaseConcentrations(const double t, double* c,
-                                           double* hphi, double* x)
+   virtual int computePhaseConcentrations(const double t, double* c,
+                                          double* hphi, double* x)
    {
-      d_fenergy->computePhaseConcentrations(t, c, hphi, x);
+      return d_fenergy->computePhaseConcentrations(t, c, hphi, x);
    }
 
  private:

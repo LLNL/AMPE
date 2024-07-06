@@ -12,6 +12,7 @@
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 #include "FuncFort.h"
 
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 EquilibriumPhaseConcentrationsBinaryMultiOrder::
     EquilibriumPhaseConcentrationsBinaryMultiOrder(
@@ -45,6 +46,8 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
 
    (void)cd_eta;
    (void)cd_c_b;
+
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    const int norderp = cd_phi->getDepth();
 
@@ -128,7 +131,15 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
             double t = ptr_temp[idx_temp];
 
             double x[2];
-            computePhaseConcentrations(t, &c, &hphi, x);
+            int status = computePhaseConcentrations(t, &c, &hphi, x);
+            if (status < 0) {
+               std::cerr << "computePhaseConcentrations failed for T=" << t
+                         << ", " << norder << " phases, hphi=";
+               std::cerr << hphi << ", ";
+               std::cerr << ", c=" << c << std::endl;
+               std::cerr << "x=" << x[0] << "," << x[1] << std::endl;
+               MPI_Abort(mpi.getCommunicator(), -1);
+            }
 
             ptr_c_l[idx_c_i] = x[0];
             ptr_c_a[idx_c_i] = x[1];
