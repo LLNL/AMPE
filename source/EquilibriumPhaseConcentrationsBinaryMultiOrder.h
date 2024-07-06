@@ -38,8 +38,8 @@ class EquilibriumPhaseConcentrationsBinaryMultiOrder
        std::shared_ptr<pdat::CellData<double> > cd_c_b,
        std::shared_ptr<hier::Patch> patch);
 
-   virtual void computePhaseConcentrations(const double t, double* c,
-                                           double* hphi, double* x) = 0;
+   virtual int computePhaseConcentrations(const double t, double* c,
+                                          double* hphi, double* x) = 0;
 
  private:
    Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;

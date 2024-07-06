@@ -10,7 +10,6 @@
 //
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/MemoryDatabase.h"
