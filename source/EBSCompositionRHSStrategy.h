@@ -79,7 +79,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    int d_diffusion_a_id;
    int d_diffusion_b_id;
 
-   bool d_with_three_phases;
+   bool d_with_phaseB;
 
    bool d_with_diffusion_for_preconditioner;
    std::vector<int> d_diffusion_precond_id;

@@ -233,7 +233,8 @@ void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
 #if (NDIM == 3)
     const int& ifirst2, const int& ilast2,
 #endif
-    const double* phi, const int& nphi, const int& norderpA, const int& ngphi,
+    const double* phiL, const int& nphiL, const double* phiA, const int& nphiA,
+    const double* phiB, const int& nphiB, const int& ngphi,
     const double* diffl0, const double* diffl1,
 #if (NDIM == 3)
     const double* diffl2,

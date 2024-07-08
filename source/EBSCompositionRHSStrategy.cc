@@ -143,7 +143,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 
    d_diffusion_precond_id = diffusion_precond_id;
 
-   d_with_three_phases = (conc_b_scratch_id >= 0);
+   d_with_phaseB = (conc_b_scratch_id >= 0);
 
    d_with_diffusion_for_preconditioner = (!diffusion_precond_id.empty());
    if (flux_type == "isotropic")
@@ -153,7 +153,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    else
       d_add_flux = add_flux_ebs;
 
-   if (d_with_three_phases)
+   if (d_with_phaseB)
       tbox::plog << "EBSCompositionRHSStrategy with three phases" << std::endl;
 }
 
@@ -336,7 +336,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
 
    assert(d_diffusion_l_id >= 0);
    assert(d_diffusion_a_id >= 0);
-   if (d_with_three_phases) {
+   if (d_with_phaseB) {
       assert(d_diffusion_b_id >= 0);
    }
    assert(!d_diffusion_precond_id.empty());
@@ -359,7 +359,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
                  patch->getPatchData(d_diffusion_a_id)));
          std::shared_ptr<pdat::SideData<double> > db;
 
-         if (d_with_three_phases) {
+         if (d_with_phaseB) {
             db =
                 SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                     patch->getPatchData(d_diffusion_b_id));
@@ -483,7 +483,7 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
 
    // now compute concentration flux anti-trapping correction
    const int norderp = phase->getDepth();
-   if (d_with_three_phases) {
+   if (d_with_phaseB) {
       std::shared_ptr<pdat::CellData<double> > cb(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_conc_b_scratch_id)));
