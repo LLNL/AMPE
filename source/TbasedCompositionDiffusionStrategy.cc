@@ -230,70 +230,39 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
       assert(phi->getDepth() == d_norderp);
 
       {
-         const double DL = d_with3phases ? d_D0_solidB : d_D0_liquid;
-         const double DA = d_with3phases ? d_D0_liquid : d_D0_solidA;
-         const double DB = d_with3phases ? d_D0_solidA : d_D0_solidB;
+         // Folch-Plapp three phases model assumes order phiL, phiA, phiB
+         double* phiL = d_with3phases ? phi->getPointer(0)
+                                      : phi->getPointer(d_norderp - 1);
+         double* phiA = d_with3phases ? phi->getPointer(1) : phi->getPointer(0);
+         double* phiB =
+             d_with3phases ? phi->getPointer(2) : phi->getPointer(d_norderpA);
 
-         const double QL = d_with3phases ? d_Q0_solidB : d_Q0_liquid;
-         const double QA = d_with3phases ? d_Q0_liquid : d_Q0_solidA;
-         const double QB = d_with3phases ? d_Q0_solidA : d_Q0_solidB;
+         const int nphiL = 1;
+         const int nphiA = d_with3phases ? 1 : d_norderpA;
+         const int nphiB = d_with3phases ? 1 : d_norderpB;
 
-         const double* diffLptr0 = d_with3phases
-                                       ? pfm_diffusionB->getPointer(0, 0)
-                                       : pfm_diffusionL->getPointer(0, 0);
-         const double* diffLptr1 = d_with3phases
-                                       ? pfm_diffusionB->getPointer(1, 0)
-                                       : pfm_diffusionL->getPointer(1, 0);
-#if (NDIM == 3)
-         const double* diffLptr2 = d_with3phases
-                                       ? pfm_diffusionB->getPointer(2, 0)
-                                       : pfm_diffusionL->getPointer(2, 0);
-#endif
-
-         const double* diffAptr0 = d_with3phases
-                                       ? pfm_diffusionL->getPointer(0, 0)
-                                       : pfm_diffusionA->getPointer(0, 0);
-         const double* diffAptr1 = d_with3phases
-                                       ? pfm_diffusionL->getPointer(1, 0)
-                                       : pfm_diffusionA->getPointer(1, 0);
-#if (NDIM == 3)
-         const double* diffAptr2 = d_with3phases
-                                       ? pfm_diffusionL->getPointer(2, 0)
-                                       : pfm_diffusionA->getPointer(2, 0);
-#endif
-
-         const double* diffBptr0 = d_with3phases
-                                       ? pfm_diffusionA->getPointer(0, 0)
-                                       : pfm_diffusionB->getPointer(0, 0);
-         const double* diffBptr1 = d_with3phases
-                                       ? pfm_diffusionA->getPointer(1, 0)
-                                       : pfm_diffusionB->getPointer(1, 0);
-#if (NDIM == 3)
-         const double* diffBptr2 = d_with3phases
-                                       ? pfm_diffusionA->getPointer(2, 0)
-                                       : pfm_diffusionB->getPointer(2, 0);
-#endif
-
+         // this call assumes the order phiA, phiB, phiL
          CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
 #endif
-             phi->getPointer(), d_norderp, d_norderpA,
-             phi->getGhostCellWidth()[0], diffLptr0, diffLptr1,
+             phiL, nphiL, phiA, nphiA, phiB, nphiB, phi->getGhostCellWidth()[0],
+             pfm_diffusionL->getPointer(0, 0), pfm_diffusionL->getPointer(1, 0),
 #if (NDIM == 3)
-             diffLptr2,
+             pfm_diffusionL->getPointer(2, 0),
 #endif
-             diffAptr0, diffAptr1,
+             pfm_diffusionA->getPointer(0, 0), pfm_diffusionA->getPointer(1, 0),
 #if (NDIM == 3)
-             diffAptr2,
+             pfm_diffusionA->getPointer(2, 0),
 #endif
-             diffBptr0, diffBptr1,
+             pfm_diffusionB->getPointer(0, 0), pfm_diffusionB->getPointer(1, 0),
 #if (NDIM == 3)
-             diffBptr2,
+             pfm_diffusionB->getPointer(2, 0),
 #endif
              pfm_diffusionL->getGhostCellWidth()[0], temperature->getPointer(),
-             temperature->getGhostCellWidth()[0], DL, QL, DA, QA, DB, QB,
+             temperature->getGhostCellWidth()[0], d_D0_liquid, d_Q0_liquid,
+             d_D0_solidA, d_Q0_solidA, d_D0_solidB, d_Q0_solidB,
              gas_constant_R_JpKpmol, &interp_func_type,
              d_avg_func_type.c_str());
       }
