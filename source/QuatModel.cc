@@ -131,6 +131,7 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_quat_mobility_id = -1;
    d_quat_norm_error_id = -1;
    d_weight_id = -1;
+   d_weight_diagnostics_id = -1;
    d_work_id = -1;
    d_conc_diffusion_id = -1;
    d_conc_phase_coupling_diffusion_id = -1;
@@ -510,6 +511,8 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    d_scalar_diag_interval.reset(
        new EventInterval(input_db, "ScalarDiagnostics", 0.0, "step"));
 
+   for (int i = 0; i < NDIM; i++)
+      d_subdomain_diagnostics[i] = 0.;
    if (d_scalar_diag_interval->isActive()) {
 
       std::shared_ptr<tbox::Database> tmp_db =
@@ -517,6 +520,11 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
 
       d_extra_energy_detail =
           tmp_db->getBoolWithDefault("extra_energy_detail", false);
+
+      // default value of 0 will lead to no diagnostics
+      if (tmp_db->keyExists("domain_fraction"))
+         tmp_db->getDoubleArray("domain_fraction", &d_subdomain_diagnostics[0],
+                                NDIM);
    }
 
    d_grain_extend_interval.reset(
@@ -731,6 +739,9 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
          d_phase_threshold = g_diag_db->getDouble("phase_threshold");
       }
    }
+
+   if (d_subdomain_diagnostics[0] > 0.)
+      computeVectorWeightsDiagnostics(d_patch_hierarchy);
 
    InitializeIntegrator();
 
@@ -1800,6 +1811,16 @@ void QuatModel::RegisterVariables(void)
    d_weight_id = variable_db->registerVariableAndContext(
        d_weight_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
 
+   if (d_subdomain_diagnostics[0] > 0.) {
+      d_weight_diagnostics_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                         "weight_diagnostics"));
+      assert(d_weight_diagnostics_var);
+      d_weight_diagnostics_id = variable_db->registerVariableAndContext(
+          d_weight_diagnostics_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+   }
+
    d_work_var.reset(
        new pdat::CellVariable<double>(tbox::Dimension(NDIM), "work"));
    assert(d_work_var);
@@ -2614,6 +2635,11 @@ void QuatModel::printScalarDiagnostics(void)
          }
       }
    }
+
+   if (d_model_parameters.norderp() > 1 && d_subdomain_diagnostics[0] > 0.) {
+      const double density = computeDensityDiagnostics();
+      tbox::pout << "  Density = " << density << std::endl;
+   }
 }
 
 //=======================================================================
@@ -2642,6 +2668,29 @@ void QuatModel::computeGrainDiagnostics(void)
                                               d_conc_id, d_weight_id);
       }
    }
+}
+
+double QuatModel::computeDensityDiagnostics(void)
+{
+   assert(d_weight_diagnostics_id != -1);
+   assert(d_work_id != -1);
+
+   // compute volume fraction of porosity
+   const int depth_void = d_model_parameters.norderp() - 1;
+
+   math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
+
+   const double volume =
+       mathops.sumControlVolumes(d_weight_id, d_weight_diagnostics_id);
+   // tbox::pout << "volume = " << volume << std::endl;
+
+   copyDepthCellData(d_patch_hierarchy, d_work_id, 0, d_phase_id, depth_void);
+   const double integral = mathops.integral(d_work_id, d_weight_diagnostics_id);
+   // tbox::pout << "integral = " << integral << std::endl;
+   assert(volume > 0.);
+
+   // return relative density
+   return 1. - integral / volume;
 }
 
 //=======================================================================
@@ -3174,6 +3223,10 @@ void QuatModel::AllocateLocalPatchData(
    AllocateAndZeroData<pdat::CellData<double> >(d_weight_id, level, time,
                                                 zero_data);
 
+   if (d_subdomain_diagnostics[0] > 0.)
+      AllocateAndZeroData<pdat::CellData<double> >(d_weight_diagnostics_id,
+                                                   level, time, zero_data);
+
    AllocateAndZeroData<pdat::CellData<double> >(d_work_id, level, time,
                                                 zero_data);
 
@@ -3323,7 +3376,7 @@ void QuatModel::resetHierarchyConfiguration(
                                             finest_level);
    }
 
-   computeVectorWeights(d_patch_hierarchy, -1, -1);
+   computeVectorWeights(d_patch_hierarchy);
 }
 
 //=======================================================================
@@ -4604,25 +4657,17 @@ void QuatModel::checkQuatNorm(
  *              Default to finest level in hierarchy.
  */
 void QuatModel::computeVectorWeights(
-    std::shared_ptr<hier::PatchHierarchy> hierarchy, int coarsest_ln,
-    int finest_ln)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(d_weight_id != -1);
 
-   if (coarsest_ln == -1) coarsest_ln = 0;
-   if (finest_ln == -1) finest_ln = hierarchy->getFinestLevelNumber();
-   if (finest_ln < coarsest_ln) {
-      TBOX_ERROR(d_object_name << ": Illegal level number range.  finest_ln "
-                                  "< "
-                                  "coarsest_ln.");
-   }
+   int coarsest_ln = 0;
+   int finest_ln = hierarchy->getFinestLevelNumber();
+   assert(finest_ln >= coarsest_ln);
 
    for (int ln = finest_ln; ln >= coarsest_ln; --ln) {
 
-      /*
-       * On every level, first assign cell volume to std::vector weight.
-       */
-
+      // On every level, first assign cell volume to weight
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
            ++p) {
@@ -4631,7 +4676,7 @@ void QuatModel::computeVectorWeights(
              SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
                                     hier::PatchGeometry>(
                  patch->getPatchGeometry()));
-         TBOX_ASSERT(patch_geometry);
+         assert(patch_geometry);
 
          const double* dx = patch_geometry->getDx();
          double cell_vol = dx[0];
@@ -4645,61 +4690,146 @@ void QuatModel::computeVectorWeights(
          std::shared_ptr<pdat::CellData<double> > w(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_weight_id)));
-         if (!w) {
-            TBOX_ERROR(d_object_name << ": weight id must refer to a "
-                                        "pdat::CellVariable");
-         }
+         assert(w);
          w->fillAll(cell_vol);
       }
+   }
 
-      /*
-       * On all but the finest level, assign 0 to std::vector
-       * weight to cells covered by finer cells.
-       */
+   zeroOutLowerLevelWeights(hierarchy);
+}
 
-      if (ln < finest_ln) {
+void QuatModel::computeVectorWeightsDiagnostics(
+    std::shared_ptr<hier::PatchHierarchy> hierarchy)
+{
+   assert(d_weight_diagnostics_id != -1);
 
-         /*
-          * First get the boxes that describe index space of the next finer
-          * level and coarsen them to describe corresponding index space
-          * at this level.
-          */
+   int coarsest_ln = 0;
+   int finest_ln = hierarchy->getFinestLevelNumber();
+   assert(finest_ln >= coarsest_ln);
 
-         std::shared_ptr<hier::PatchLevel> next_finer_level =
-             hierarchy->getPatchLevel(ln + 1);
-         hier::BoxContainer coarsened_boxes = next_finer_level->getBoxes();
-         hier::IntVector coarsen_ratio =
-             next_finer_level->getRatioToLevelZero();
-         coarsen_ratio /= level->getRatioToLevelZero();
-         coarsened_boxes.coarsen(coarsen_ratio);
+   // get bounds of physical domain
+   const double* low = d_grid_geometry->getXLower();
+   const double* up = d_grid_geometry->getXUpper();
 
-         /*
-          * Then set std::vector weight to 0 wherever there is
-          * a nonempty intersection with the next finer level.
-          * Note that all assignments are local.
-          */
+   // create diagnostics domain defined by dlow, dup by removing
+   // a fraction of the original domain
+   double dd[NDIM];
+   for (int d = 0; d < NDIM; d++)
+      dd[d] = (up[d] - low[d]);
+   assert(dd[0] > 0.);
 
-         for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
-              ++p) {
+   // compute size of part to remove
+   for (int d = 0; d < NDIM; d++)
+      dd[d] *= (1. - d_subdomain_diagnostics[d]);
 
-            std::shared_ptr<hier::Patch> patch = *p;
-            for (hier::BoxContainer::const_iterator i = coarsened_boxes.begin();
-                 i != coarsened_boxes.end(); ++i) {
+   // remove half from each side
+   double dlow[NDIM];
+   for (int d = 0; d < NDIM; d++)
+      dlow[d] = low[d] + 0.5 * dd[d];
+   double dup[NDIM];
+   for (int d = 0; d < NDIM; d++)
+      dup[d] = up[d] - 0.5 * dd[d];
+   tbox::plog << "Diagnostics subdomain: [" << dlow[0] << "," << dup[0]
+              << "] x [" << dlow[1] << "," << dup[1] << "]"
+#if NDIM > 2
+              << " x [" << dlow[2] << "," << dup[2] << "]"
+#endif
+              << std::endl;
 
-               hier::Box coarse_box = *i;
-               hier::Box intersection = coarse_box * (patch->getBox());
-               if (!intersection.empty()) {
-                  std::shared_ptr<pdat::CellData<double> > w(
-                      SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                             hier::PatchData>(
-                          patch->getPatchData(d_weight_id)));
-                  w->fillAll(0.0, intersection);
+   for (int ln = finest_ln; ln >= coarsest_ln; --ln) {
 
-               }  // assignment only in non-empty intersection
-            }     // loop over coarsened boxes from finer level
-         }        // loop over patches in level
-      }           // all levels except finest
-   }              // loop over levels
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
+           ++p) {
+         std::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
+             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                                    hier::PatchGeometry>(
+                 patch->getPatchGeometry()));
+         assert(patch_geometry);
+
+         const hier::Box& pbox = patch->getBox();
+
+         const double* dx = patch_geometry->getDx();
+         double cell_vol = dx[0];
+         if (NDIM > 1) {
+            cell_vol *= dx[1];
+         }
+         if (NDIM > 2) {
+            cell_vol *= dx[2];
+         }
+         assert(cell_vol > 0.);
+
+         std::shared_ptr<pdat::CellData<double> > w(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_weight_diagnostics_id)));
+         assert(w);
+
+         w->fillAll(cell_vol);
+         // zero out cells outside diagnostics domain
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for (pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i != iend;
+              ++i) {
+            pdat::CellIndex cell = *i;
+            for (int d = 0; d < NDIM; d++) {
+               double x = low[d] + cell(d) * dx[d];
+
+               if (x < dlow[d]) (*w)(cell) = 0.;
+               if (x > dup[d]) (*w)(cell) = 0.;
+            }
+         }
+      }
+   }
+
+   zeroOutLowerLevelWeights(hierarchy);
+}
+
+void QuatModel::zeroOutLowerLevelWeights(
+    std::shared_ptr<hier::PatchHierarchy> hierarchy)
+{
+   int coarsest_ln = 0;
+   int finest_ln = hierarchy->getFinestLevelNumber();
+
+   // On all but the finest level, assign 0 to
+   // weight to cells covered by finer cells.
+   for (int ln = finest_ln - 1; ln >= coarsest_ln; --ln) {
+
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      // First get the boxes that describe index space of the next finer
+      // level and coarsen them to describe corresponding index space
+      // at this level.
+      std::shared_ptr<hier::PatchLevel> next_finer_level =
+          hierarchy->getPatchLevel(ln + 1);
+      hier::BoxContainer coarsened_boxes = next_finer_level->getBoxes();
+      hier::IntVector coarsen_ratio = next_finer_level->getRatioToLevelZero();
+      coarsen_ratio /= level->getRatioToLevelZero();
+      coarsened_boxes.coarsen(coarsen_ratio);
+
+      // Then set weight to 0 wherever there is
+      // a nonempty intersection with the next finer level.
+      // Note that all assignments are local.
+      for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
+           ++p) {
+
+         std::shared_ptr<hier::Patch> patch = *p;
+         for (hier::BoxContainer::const_iterator i = coarsened_boxes.begin();
+              i != coarsened_boxes.end(); ++i) {
+
+            hier::Box coarse_box = *i;
+            hier::Box intersection = coarse_box * (patch->getBox());
+            if (!intersection.empty()) {
+               std::shared_ptr<pdat::CellData<double> > w(
+                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
+                                          hier::PatchData>(
+                       patch->getPatchData(d_weight_id)));
+               w->fillAll(0.0, intersection);
+
+            }  // assignment only in non-empty intersection
+         }     // loop over coarsened boxes from finer level
+      }        // loop over patches in level
+   }           // loop over levels
 }
 
 //=======================================================================

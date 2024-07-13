@@ -220,7 +220,9 @@ class QuatModel : public PFModel
        const std::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
        int& mobility_deriv_id, const double time);
 
-   void computeVectorWeights(std::shared_ptr<hier::PatchHierarchy>, int, int);
+   void computeVectorWeights(std::shared_ptr<hier::PatchHierarchy>);
+   void computeVectorWeightsDiagnostics(
+       std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void evaluateEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const double time, double& total_energy,
@@ -357,6 +359,9 @@ class QuatModel : public PFModel
                               std::shared_ptr<tbox::Database>);
    void initializeAmr(std::shared_ptr<tbox::Database> amr_db);
 
+   void zeroOutLowerLevelWeights(
+       std::shared_ptr<hier::PatchHierarchy> hierarchy);
+
    void resetRefPhaseConcentrations();
    void setPhaseConcentrationsToEquilibrium(const double* const ceq);
    void setRefPhaseConcentrationsToEquilibrium(const double* const ceq);
@@ -366,6 +371,7 @@ class QuatModel : public PFModel
    void findAndNumberGrains(void);
    void computeGrainDiagnostics(void);
    void extendGrainOrientation(void);
+   double computeDensityDiagnostics(void);
 
    void smoothQuat(const std::shared_ptr<hier::PatchLevel> patch_level);
    void smoothQuat(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
@@ -382,6 +388,12 @@ class QuatModel : public PFModel
 
    bool d_symmetry_aware;
    bool d_extra_energy_detail;
+
+   /*
+    * (linear) fraction of domain for density diagnostics
+    * for instance 0.8 -> evaluation in 0.1-0.9 of domain of size 1
+    */
+   double d_subdomain_diagnostics[NDIM];
 
    std::shared_ptr<EventInterval> d_test_interval;
    std::shared_ptr<EventInterval> d_fundamental_interval;
@@ -542,6 +554,14 @@ class QuatModel : public PFModel
     */
    std::shared_ptr<pdat::CellVariable<double> > d_weight_var;
    int d_weight_id;
+
+   /*
+    * Variable containing volume weights used in composite grid norm
+    * partial volume diagnostics.
+    */
+
+   std::shared_ptr<pdat::CellVariable<double> > d_weight_diagnostics_var;
+   int d_weight_diagnostics_id;
 
    /*
     * Variable containing temporary work data of depth 1
