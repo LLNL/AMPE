@@ -31,6 +31,7 @@ QuadraticFreeEnergyStrategyMultiOrder::QuadraticFreeEnergyStrategyMultiOrder(
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
 
+   // From J/mol -> pJ/um**3
    d_energy_conv_factor_L = 1.e-6 / vml;
    d_energy_conv_factor_A = 1.e-6 / vma;
 
