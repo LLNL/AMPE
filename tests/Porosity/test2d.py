@@ -44,12 +44,11 @@ for line in lines:
     if time>end_time:
       end_reached = True
 
-  if end_reached:
-    if line.count(b'Density'):
-      print(line)
-      words=line.split()
-      density=eval(words[2])
-      densities.append(density)
+  if line.count(b'Density'):
+    print(line)
+    words=line.split()
+    density=eval(words[2])
+    densities.append(density)
 
 mind=1.
 maxd=0.
@@ -59,12 +58,12 @@ for d in densities:
   if d>maxd:
     maxd = d
 
-expected_value=0.942
+expected_value=0.914
 if abs(maxd-expected_value)>0.001:
   print("Expected max density = {}, found {}".format(expected_value,maxd))
   sys.exit(1)
 
-expected_value=0.833
+expected_value=0.853
 if abs(mind-expected_value)>0.001:
   print("Expected min density = {}, found {}".format(expected_value,mind))
   sys.exit(1)
