@@ -1,11 +1,10 @@
-// Units are:
-//   length: um = 10^-6 m
-//   energy: pJ = 10^-12 J
+// Based on Shi et al., Journal of the European Ceramic Society 41 (2021), p. 211-231
+// dimensionless parameters
 //
 model_type = "Quat"
 
-max_timesteps       = 30
-end_time            = 3.5e-7
+max_timesteps       = 160
+end_time            = 600.
 
 Verbosity {  // optional, block
    initial_energy_diagnostics = TRUE  // optional, default=FALSE
@@ -31,12 +30,11 @@ ModelParameters {
    temperature = 1000.
 
    Interface{
-      sigma = 1.
-      delta = 0.025
+      sigma = 0.015
+      delta = 1.
    }
 
-//   phi_mobility     = 5.4e3
-   phi_mobility     = 5.4e3
+   phi_mobility     = 1.08
 
    phi_interp_func_type ="pbg"
    avg_func_type = "arithmetic"
@@ -47,23 +45,19 @@ ModelParameters {
       rhs_form = "ebs"
       model    = "quadratic"
       diffusion_type = "temperature_dependent"
-      molar_volume_solid_A = 1.e-5 // [m^3/mol]
-      molar_volume_solid_B = 1.e-5 // [m^3/mol]
-      molar_volume_liquid  = 1.e-5 // [m^3/mol]
-//      D_solid_A =  15.e-9 //um**2/s
-//      D_liquid  = 15.e-10  // 0.1*D_solid_A
-//      D0_LA     = 15.e-7  // 100*D_solid_A
-//      D0_AA     = 15.e-8  // 10*D_solid_A
-      D_solid_A = 15.e-4  //um**2/s
-      D_liquid  = 0.
-      D0_LA     = 15.e+0
-      D0_AA     = 15.e+2 // artificially high to see pore shrink
+      molar_volume_solid_A = 1.e-6 // [m^3/mol]
+      molar_volume_solid_B = 1.e-6 // [m^3/mol]
+      molar_volume_liquid  = 1.e-6 // [m^3/mol]
+      D_solid_A = 1.5e-2  //um**2/s
+      D_liquid  = 1.5e-3
+      D0_LA     = 1.5e+0
+      D0_AA     = 1.5e-1
       Quadratic {
          T_ref = 1000.
          m_liquid = 0.
          m_solid = 0.
-         A_liquid  = 5.e4
-         A_solid = 5.e4
+         A_liquid = 1. // J/mol
+         A_solid  = 1. // J/mol
          Ceq_liquid  = 0.
          Ceq_solid = 1.
       }
@@ -96,5 +90,5 @@ InitialConditions {
 Geometry{
    coarsest_level_resolution = 96, 96, 64
    x_lo         =  0.0, 0.0, 0.0 // lower end of computational domain.
-   x_up         =  2.4, 2.4, 1.6 // upper end of computational domain.
+   x_up         =  96., 96., 64. // upper end of computational domain.
 }

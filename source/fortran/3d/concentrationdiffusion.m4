@@ -745,21 +745,21 @@ c
      &   temp, ngtemp,
      &   d0, q0,
      &   gas_constant_R,
-     &   avg_type)
+     &   avg_type, dupl)
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer nphia, nphib
+      integer nphia, nphib, dupl
       integer ngphi, ngdiff, ngtemp
       character*(*) avg_type
       double precision d0, q0
       double precision gas_constant_R
 c
 c
-c variables in 2d cell indexed
+c variables in 3d cell indexed
       double precision phia(CELL3d(ifirst,ilast,ngphi),nphia)
       double precision phib(CELL3d(ifirst,ilast,ngphi),nphib)
       double precision temp(CELL3d(ifirst,ilast,ngtemp))
@@ -770,103 +770,82 @@ c variables in 2d cell indexed
       double precision diffB1(SIDE3d1(ifirst,ilast,ngdiff))
       double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
 c
-      integer ic0, ic1, ic2, ip, jp
-      double precision vphi, pa, pb, invT
+      integer ic0, ic1, ic2, ipa, ipb
+      double precision pa, pb, invT, factorT
       double precision q0_invR
       double precision dAB
       double precision average_func
 c
       q0_invR = q0 / gas_constant_R
 c
-      do ic2 = ifirst2, ilast2
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0+1
-               vphi = 0.d0
-               do ip = 1, nphia
-                  vphi = vphi + average_func(
-     &               phia(ic0-1,ic1,ic2,ip), phia(ic0,ic1,ic2,ip),
+      do ipa = 1, nphia
+        do ipb = 1, nphib
+          if((dupl.eq.0) .or. (ipa.ne.ipb))then
+            do ic2 = ifirst2, ilast2
+              do ic1 = ifirst1, ilast1
+                do ic0 = ifirst0, ilast0+1
+                  invT = 2.0d0 / (temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2))
+                  factorT = d0*exp(-q0_invR*invT)
+
+                  pa = average_func(
+     &               phia(ic0-1,ic1,ic2,ipa), phia(ic0,ic1,ic2,ipa),
      &               avg_type )
-               enddo
-               pa = vphi
-
-               do ip = 1, nphib
-                  vphi = vphi + average_func(
-     &               phib(ic0-1,ic1,ic2,ip), phib(ic0,ic1,ic2,ip),
+                  pb = average_func(
+     &               phib(ic0-1,ic1,ic2,ipb), phib(ic0,ic1,ic2,ipb),
      &               avg_type )
-               enddo
-               pb = vphi
 
-               invT = 2.0d0 / ( temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2) )
+                  dAB = 16.d0*pa*pa*pb*pb*factorT
 
-               dAB = 16.d0*pa*pa*pb*pb*d0*exp(-q0_invR*invT)
-
-               diffA0(ic0,ic1,ic2) = diffA0(ic0,ic1,ic2) + dAB
-               diffB0(ic0,ic1,ic2) = diffB0(ic0,ic1,ic2) + dAB
+                  diffA0(ic0,ic1,ic2) = diffA0(ic0,ic1,ic2) + dAB
+                  diffB0(ic0,ic1,ic2) = diffB0(ic0,ic1,ic2) + dAB
+                end do
+              end do
             end do
-         end do
-      end do
 c
-c
-      do ic2 = ifirst2, ilast2
-         do ic1 = ifirst1, ilast1+1
-            do ic0 = ifirst0, ilast0
+            do ic2 = ifirst2, ilast2
+              do ic1 = ifirst1, ilast1+1
+                do ic0 = ifirst0, ilast0
+                  invT = 2.0d0 / (temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2))
+                  factorT = d0*exp(-q0_invR*invT)
 
-               vphi = 0.d0
-               do ip = 1, nphia
-                  vphi = vphi + average_func(
-     &               phia(ic0,ic1-1,ic2,ip), phia(ic0,ic1,ic2,ip),
+                  pa = average_func(
+     &               phia(ic0,ic1-1,ic2,ipa), phia(ic0,ic1,ic2,ipa),
      &               avg_type )
-               enddo
-               pa = vphi
 
-               vphi = 0.d0
-               do ip = 1, nphib
-                  vphi = vphi + average_func(
-     &                phib(ic0,ic1-1,ic2,ip), phib(ic0,ic1,ic2,ip),
-     &                avg_type )
-               enddo
-               pb = vphi
+                  pb = average_func(
+     &               phib(ic0,ic1-1,ic2,ipb), phib(ic0,ic1,ic2,ipb),
+     &               avg_type )
 
-               invT = 2.0d0 / ( temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2) )
+                  dAB = 16.d0*pa*pa*pb*pb*factorT
 
-               dAB = 16.d0*pa*pa*pb*pb*d0*exp(-q0_invR*invT)
-
-               diffA1(ic0,ic1,ic2) = diffA1(ic0,ic1,ic2) + dAB
-               diffB1(ic0,ic1,ic2) = diffB1(ic0,ic1,ic2) + dAB
-
+                  diffA1(ic0,ic1,ic2) = diffA1(ic0,ic1,ic2) + dAB
+                  diffB1(ic0,ic1,ic2) = diffB1(ic0,ic1,ic2) + dAB
+                end do
+              end do
             end do
-         end do
-      end do
 c
-      do ic2 = ifirst2, ilast2+1
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0
-
-               vphi = 0.d0
-               do ip = 1, nphia
-                  vphi = vphi + average_func(
-     &               phia(ic0,ic1,ic2-1,ip), phia(ic0,ic1,ic2,ip),
+            do ic2 = ifirst2, ilast2+1
+              do ic1 = ifirst1, ilast1
+                do ic0 = ifirst0, ilast0
+                  invT = 2.0d0 / (temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2))
+                  factorT = d0*exp(-q0_invR*invT)
+                  pa = average_func(
+     &               phia(ic0,ic1,ic2-1,ipa), phia(ic0,ic1,ic2,ipa),
      &               avg_type )
-               enddo
-               pa = vphi
 
-               vphi = 0.d0
-               do ip = 1, nphib
-                  vphi = average_func(
-     &               phib(ic0,ic1,ic2-1,ip), phib(ic0,ic1,ic2,ip),
+                  pb = average_func(
+     &               phib(ic0,ic1,ic2-1,ipb), phib(ic0,ic1,ic2,ipb),
      &               avg_type )
-               enddo
-               pb = vphi
 
-               invT = 2.0d0 / ( temp(ic0,ic1,ic2-1)+temp(ic0,ic1,ic2) )
+                  dAB = 16.d0*pa*pa*pb*pb*factorT
 
-               dAB = 16.d0*pa*pa*pb*pb*d0*exp(-q0_invR*invT)
-
-               diffA2(ic0,ic1,ic2) = diffA2(ic0,ic1,ic2) + dAB
-               diffB2(ic0,ic1,ic2) = diffB2(ic0,ic1,ic2) + dAB
-
+                  diffA2(ic0,ic1,ic2) = diffA2(ic0,ic1,ic2) + dAB
+                  diffB2(ic0,ic1,ic2) = diffB2(ic0,ic1,ic2) + dAB
+                end do
+              end do
             end do
-         end do
+          endif
+        end do
       end do
 
       return

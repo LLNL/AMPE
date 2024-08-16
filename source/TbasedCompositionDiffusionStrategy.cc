@@ -128,10 +128,14 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
    const hier::Index& ilast = pbox.upper();
 
    const short nphases = d_with_phaseB ? 3 : 2;
+   // std::cout << "nphases = " << nphases << std::endl;
+   // if (d_with3phases) std::cout << "with 3 phases..." << std::endl;
+   // std::cout << "d_norderpA = " << d_norderpA << std::endl;
 
    // distinguish 3 phases and multiple phases conventions
    const double* const phiL =
        d_with3phases ? phi->getPointer(0) : phi->getPointer(d_norderp - 1);
+
    const double* const phiA =
        d_with3phases ? phi->getPointer(1) : phi->getPointer(0);
    const double* phiB = nullptr;
@@ -166,17 +170,21 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
    q0[2].push_back(d_q0_LB);
    q0[2].push_back(d_q0_AB);
    q0[2].push_back(d_q0_BB);
+
+   // loop over phases L, A, B
    for (int i = 0; i < nphases; i++)
       for (int j = 0; j <= i; j++) {
          if (d0[i][j] > 0.) {
             assert(norderp[i] > 0);
             assert(norderp[j] > 0);
             // to avoid adding interface diffusion twice to an
-            // interface between two grains of same phase, add factor
-            // 0.5
-            const double dval = (i == j) ? 0.5 * d0[i][j] : d0[i][j];
+            // interface between two grains of same phase, flag
+            // case with dupl=1
+            const int dupl = (i == j) ? 1 : 0;
+            const double dval = d0[i][j];
             // std::cout << "i=" << i << ", j=" << j << ", d = " << dval
             //          << std::endl;
+
             AB_DIFFUSION_OF_TEMPERATURE(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -196,8 +204,8 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
 #endif
                 pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
-                dval, q0[i][j], gas_constant_R_JpKpmol,
-                d_avg_func_type.c_str());
+                dval, q0[i][j], gas_constant_R_JpKpmol, d_avg_func_type.c_str(),
+                dupl);
          }
       }
 }
