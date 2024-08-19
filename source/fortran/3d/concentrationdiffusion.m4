@@ -745,16 +745,15 @@ c
      &   temp, ngtemp,
      &   d0, q0,
      &   gas_constant_R,
-     &   avg_type, dupl)
+     &   same_phase)
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer nphia, nphib, dupl
+      integer nphia, nphib, same_phase
       integer ngphi, ngdiff, ngtemp
-      character*(*) avg_type
       double precision d0, q0
       double precision gas_constant_R
 c
@@ -770,83 +769,67 @@ c variables in 3d cell indexed
       double precision diffB1(SIDE3d1(ifirst,ilast,ngdiff))
       double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
 c
-      integer ic0, ic1, ic2, ipa, ipb
+      integer ic0, ic1, ic2, ipa, ipb, ipbmin
       double precision pa, pb, invT, factorT
       double precision q0_invR
       double precision dAB
-      double precision average_func
+      double precision threshold, factor
 c
+      threshold = 1.0d-2
+      factor = 1.d0/(0.5d0-threshold)
+      factor = factor**4
       q0_invR = q0 / gas_constant_R
 c
-      do ipa = 1, nphia
-        do ipb = 1, nphib
-          if((dupl.eq.0) .or. (ipa.ne.ipb))then
-            do ic2 = ifirst2, ilast2
-              do ic1 = ifirst1, ilast1
-                do ic0 = ifirst0, ilast0+1
-                  invT = 2.0d0 / (temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2))
-                  factorT = d0*exp(-q0_invR*invT)
+      do ic2 = ifirst2, ilast2
+        do ic1 = ifirst1, ilast1
+          do ic0 = ifirst0, ilast0
+            invT = 1.0d0 / temp(ic0,ic1,ic2)
+            factorT = d0*exp(-q0_invR*invT)
 
-                  pa = average_func(
-     &               phia(ic0-1,ic1,ic2,ipa), phia(ic0,ic1,ic2,ipa),
-     &               avg_type )
-                  pb = average_func(
-     &               phib(ic0-1,ic1,ic2,ipb), phib(ic0,ic1,ic2,ipb),
-     &               avg_type )
+            do ipa = 1, nphia
+              pa =  phia(ic0,ic1,ic2,ipa)
+              if( pa.gt.threshold )then
+                pa = pa - threshold
+                ipbmin = 1
+                if( same_phase.eq.1 )then
+                  ipbmin = ipa+1
+                endif
+                do ipb = ipbmin, nphib
+                  pb = phib(ic0,ic1,ic2,ipb)
+                  if( pb.gt.threshold )then
+                    pb = pb - threshold
 
-                  dAB = 16.d0*pa*pa*pb*pb*factorT
+c factor 0.5 for two contributions, one from each side
+                    dAB = 0.5d0*factor*pa*pa*pb*pb*factorT
 
-                  diffA0(ic0,ic1,ic2) = diffA0(ic0,ic1,ic2) + dAB
-                  diffB0(ic0,ic1,ic2) = diffB0(ic0,ic1,ic2) + dAB
+c add contribution to six sides of each cell
+                    diffA0(ic0,ic1,ic2)   = diffA0(ic0,ic1,ic2) + dAB
+                    diffA0(ic0+1,ic1,ic2) = diffA0(ic0+1,ic1,ic2) + dAB
+                    diffA1(ic0,ic1,ic2)   = diffA1(ic0,ic1,ic2) + dAB
+                    diffA1(ic0,ic1+1,ic2) = diffA1(ic0,ic1+1,ic2) + dAB
+                    diffA2(ic0,ic1,ic2)   = diffA2(ic0,ic1,ic2) + dAB
+                    diffA2(ic0,ic1,ic2+1) = diffA2(ic0,ic1,ic2+1) + dAB
+                    if( same_phase.eq.0 )then
+                      diffB0(ic0,ic1,ic2)   = diffB0(ic0,ic1,ic2)
+     &                                      + dAB
+                      diffB0(ic0+1,ic1,ic2) = diffB0(ic0+1,ic1,ic2)
+     &                                      + dAB
+                      diffB1(ic0,ic1,ic2)   = diffB1(ic0,ic1,ic2)
+     &                                      + dAB
+                      diffB1(ic0,ic1+1,ic2) = diffB1(ic0,ic1+1,ic2)
+     &                                      + dAB
+                      diffB2(ic0,ic1,ic2)   = diffB2(ic0,ic1,ic2)
+     &                                      + dAB
+                      diffB2(ic0,ic1,ic2+1) = diffB2(ic0,ic1,ic2+1)
+     &                                      + dAB
+                    endif
+                  endif
                 end do
-              end do
+              endif 
             end do
-c
-            do ic2 = ifirst2, ilast2
-              do ic1 = ifirst1, ilast1+1
-                do ic0 = ifirst0, ilast0
-                  invT = 2.0d0 / (temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2))
-                  factorT = d0*exp(-q0_invR*invT)
-
-                  pa = average_func(
-     &               phia(ic0,ic1-1,ic2,ipa), phia(ic0,ic1,ic2,ipa),
-     &               avg_type )
-
-                  pb = average_func(
-     &               phib(ic0,ic1-1,ic2,ipb), phib(ic0,ic1,ic2,ipb),
-     &               avg_type )
-
-                  dAB = 16.d0*pa*pa*pb*pb*factorT
-
-                  diffA1(ic0,ic1,ic2) = diffA1(ic0,ic1,ic2) + dAB
-                  diffB1(ic0,ic1,ic2) = diffB1(ic0,ic1,ic2) + dAB
-                end do
-              end do
-            end do
-c
-            do ic2 = ifirst2, ilast2+1
-              do ic1 = ifirst1, ilast1
-                do ic0 = ifirst0, ilast0
-                  invT = 2.0d0 / (temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2))
-                  factorT = d0*exp(-q0_invR*invT)
-                  pa = average_func(
-     &               phia(ic0,ic1,ic2-1,ipa), phia(ic0,ic1,ic2,ipa),
-     &               avg_type )
-
-                  pb = average_func(
-     &               phib(ic0,ic1,ic2-1,ipb), phib(ic0,ic1,ic2,ipb),
-     &               avg_type )
-
-                  dAB = 16.d0*pa*pa*pb*pb*factorT
-
-                  diffA2(ic0,ic1,ic2) = diffA2(ic0,ic1,ic2) + dAB
-                  diffB2(ic0,ic1,ic2) = diffB2(ic0,ic1,ic2) + dAB
-                end do
-              end do
-            end do
-          endif
+          end do
         end do
       end do
-
+c
       return
       end

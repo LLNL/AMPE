@@ -1,7 +1,6 @@
 // Based on Shi et al., Journal of the European Ceramic Society 41 (2021), p. 211-231
 // dimensionless parameters
 //
-model_type = "Quat"
 
 max_timesteps       = 160
 end_time            = 600.
@@ -56,9 +55,9 @@ ModelParameters {
          T_ref = 1000.
          m_liquid = 0.
          m_solid = 0.
-         A_liquid = 1. // J/mol
-         A_solid  = 1. // J/mol
-         Ceq_liquid  = 0.
+         A_liquid = 1.
+         A_solid  = 1.
+         Ceq_liquid = 0.
          Ceq_solid = 1.
       }
    }

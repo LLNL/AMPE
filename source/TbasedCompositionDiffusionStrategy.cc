@@ -180,7 +180,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
             // to avoid adding interface diffusion twice to an
             // interface between two grains of same phase, flag
             // case with dupl=1
-            const int dupl = (i == j) ? 1 : 0;
+            const int same_phase = (i == j) ? 1 : 0;
             const double dval = d0[i][j];
             // std::cout << "i=" << i << ", j=" << j << ", d = " << dval
             //          << std::endl;
@@ -204,8 +204,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
 #endif
                 pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
-                dval, q0[i][j], gas_constant_R_JpKpmol, d_avg_func_type.c_str(),
-                dupl);
+                dval, q0[i][j], gas_constant_R_JpKpmol, same_phase);
          }
       }
 }
