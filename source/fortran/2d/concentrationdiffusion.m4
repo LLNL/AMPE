@@ -665,7 +665,7 @@ c
      &   temp, ngtemp,
      &   d0, q0,
      &   gas_constant_R,
-     &   avg_type, dupl)
+     &   same_phase)
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -673,8 +673,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer nphia, nphib
-      integer ngphi, ngdiff, ngtemp, dupl
-      character*(*) avg_type
+      integer ngphi, ngdiff, ngtemp, same_phase
       double precision d0, q0
       double precision gas_constant_R
 c
@@ -687,52 +686,57 @@ c variables in 2d cell indexed
       double precision diffB0(SIDE2d0(ifirst,ilast,ngdiff))
       double precision diffB1(SIDE2d1(ifirst,ilast,ngdiff))
 c
-      integer ic0, ic1, ipa, ipb
+      integer ic0, ic1, ipa, ipb, ipbmin
       double precision pa, pb, invT, factorT
       double precision q0_invR
       double precision dAB
-      double precision average_func
+      double precision threshold, factor
 c
+      threshold = 1.0d-2
+      factor = 1.d0/(0.5d0-threshold)
+      factor = factor**4
       q0_invR = q0 / gas_constant_R
 c
-      do ipa = 1, nphia
-        do ipb = 1, nphib
-          if((dupl.eq.0) .or. (ipa.ne.ipb))then
-            do ic1 = ifirst1, ilast1
-              do ic0 = ifirst0, ilast0+1
-                invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
-                factorT = d0*exp(-q0_invR*invT)
+      do ic1 = ifirst1, ilast1
+        do ic0 = ifirst0, ilast0
+          invT = 1.0d0 / temp(ic0,ic1)
+          factorT = d0*exp(-q0_invR*invT)
 
-                pa = average_func(
-     &            phia(ic0-1,ic1,ipa), phia(ic0,ic1,ipa), avg_type )
+          do ipa = 1, nphia
+            pa =  phia(ic0,ic1,ipa)
+            if( pa.gt.threshold )then
+              pa = pa - threshold
+              ipbmin = 1
+              if( same_phase.eq.1 )then
+                ipbmin = ipa+1
+              endif
+              do ipb = ipbmin, nphib
+                pb = phib(ic0,ic1,ipb)
+                if( pb.gt.threshold )then
+                  pb = pb - threshold
 
-                pb = average_func(
-     &            phib(ic0-1,ic1,ipb), phib(ic0,ic1,ipb), avg_type )
+c factor 0.5 for two contributions, one from each side
+                  dAB = 0.5d0*factor*pa*pa*pb*pb*factorT
 
-                dAB = 16.d0*pa*pa*pb*pb*factorT
-
-                diffA0(ic0,ic1) = diffA0(ic0,ic1) + dAB
-                diffB0(ic0,ic1) = diffB0(ic0,ic1) + dAB
-              enddo
-            enddo
-            do ic1 = ifirst1, ilast1+1
-              do ic0 = ifirst0, ilast0
-                invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
-                factorT = d0*exp(-q0_invR*invT)
-
-                pa = average_func(
-     &            phia(ic0,ic1-1,ipa), phia(ic0,ic1,ipa), avg_type )
-
-                pb = average_func(
-     &            phib(ic0,ic1-1,ipb), phib(ic0,ic1,ipb), avg_type )
-
-                dAB = 16.d0*pa*pa*pb*pb*factorT
-
-                diffA1(ic0,ic1) = diffA1(ic0,ic1) + dAB
-                diffB1(ic0,ic1) = diffB1(ic0,ic1) + dAB
+c add contribution to four sides of each cell
+                  diffA0(ic0,ic1)   = diffA0(ic0,ic1) + dAB
+                  diffA0(ic0+1,ic1) = diffA0(ic0+1,ic1) + dAB
+                  diffA1(ic0,ic1)   = diffA1(ic0,ic1) + dAB
+                  diffA1(ic0,ic1+1) = diffA1(ic0,ic1+1) + dAB
+                  if( same_phase.eq.0 )then
+                    diffB0(ic0,ic1)   = diffB0(ic0,ic1)
+     &                                    + dAB
+                    diffB0(ic0+1,ic1) = diffB0(ic0+1,ic1)
+     &                                    + dAB
+                    diffB1(ic0,ic1)   = diffB1(ic0,ic1)
+     &                                    + dAB
+                    diffB1(ic0,ic1+1) = diffB1(ic0,ic1+1)
+     &                                    + dAB
+                  endif
+                endif
               end do
-            end do
-          endif
+            endif
+          end do
         end do
       end do
 c
