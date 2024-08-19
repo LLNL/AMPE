@@ -33,12 +33,15 @@ c
 c***********************************************************************
 c
       integer ic0, ic1, ic2
+      double precision onesixth
+c
+      onesixth = 1.d0/6.d0
 c
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
 
-               cdata(ic0,ic1,ic2) = 0.25d0 * (
+               cdata(ic0,ic1,ic2) = onesixth * (
      &            sdata0(ic0,ic1,ic2) + sdata0(ic0+1,ic1,ic2)
      &          + sdata1(ic0,ic1,ic2) + sdata1(ic0,ic1+1,ic2)
      &          + sdata2(ic0,ic1,ic2) + sdata2(ic0,ic1,ic2+1) )
