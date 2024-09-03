@@ -48,13 +48,19 @@ void MultiOrderPEnergyEvaluationStrategy::evaluatePairEnergy(
 
 void MultiOrderPEnergyEvaluationStrategy::printPairEnergy(std::ostream& os)
 {
+   const double threshold = 1.e-8;
+
    int n = d_model_parameters.norderp();
    assert(d_total_energy.size() == n * n);
 
    os << "Interfacial pair energies:" << std::endl;
-   for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++)
-         os << " " << d_total_energy[i * n + j];
+   for (int i = 0; i < n - 1; i++) {
+      os << i << ":";
+      for (int j = 0; j < n - 1; j++) {
+         const double e = d_total_energy[i * n + j];
+         if (std::abs(e) > threshold)
+            os << " (" << j << ") " << d_total_energy[i * n + j];
+      }
       os << std::endl;
    }
 }
