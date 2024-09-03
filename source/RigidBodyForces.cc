@@ -92,17 +92,26 @@ void RigidBodyForces::evaluatePairForces(
 
 void RigidBodyForces::printPairForces(std::ostream& os)
 {
+   const double threshold = 1.e-8;
+
    os << "## Grain pair forces:" << std::endl;
    int counti = 0;
    int countj = 0;
    for (auto& fi : d_forces) {
+      os << "RB Force on particle " << counti << " :";
       for (auto& fij : fi) {
-         os << "RB Force " << counti << ", " << countj << " :";
+         // print only forces larger than threshold
+         bool flag = false;
          for (auto& f : fij)
-            os << " " << f;
-         os << std::endl;
+            if (std::abs(f) > threshold) flag = true;
+         if (flag) {
+            os << " (" << countj << ") ";
+            for (auto& f : fij)
+               os << " " << f;
+         }
          countj++;
       }
+      os << std::endl;
       counti++;
       countj = 0;
    }
