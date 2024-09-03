@@ -1920,7 +1920,9 @@ void QuatModel::RegisterWithVisit(void)
 
    if (d_model_parameters.with_phase()) {
       const int n = d_model_parameters.norderp();
-      for (int i = 0; i < n; i++) {
+      // dump at most 32 order parameters
+      const int i0 = std::max(0, n - 32);
+      for (int i = i0; i < n; i++) {
          std::string visit_name("phase" + std::to_string(i));
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_phase_id, i);
