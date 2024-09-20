@@ -125,6 +125,187 @@ c
       return
       end
 c
+c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
+c
+      subroutine concentration_pfmdiffusion_scalar(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, ngphi,
+     &   diff0, diff1, diff2, ngdiff,
+     &   d_liquid,
+     &   d_solidA,
+     &   interp_type,
+     &   avg_type )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer ngphi, ngdiff
+      character*(*) avg_type, interp_type
+      double precision d_liquid, d_solidA
+c
+c variables in 2d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi))
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2
+      double precision vphi, hphi
+      double precision diff_liquid, diff_solidA
+      double precision interp_func
+      double precision average_func
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
+               vphi = average_func(phi(ic0-1,ic1,ic2), phi(ic0,ic1,ic2),
+     &                          avg_type )
+               hphi = interp_func( vphi, interp_type )
+               diff0(ic0,ic1,ic2) =  (1.d0-hphi) * d_liquid
+     &                        + hphi * d_solidA
+            end do
+         end do
+      end do
+
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+               vphi = average_func(phi(ic0,ic1-1,ic2), phi(ic0,ic1,ic2),
+     &                             avg_type )
+               hphi = interp_func( vphi, interp_type )
+               diff1(ic0,ic1,ic2) =  (1.d0-hphi) * d_liquid
+     &                     + hphi * d_solidA
+            end do
+         end do
+      end do
+
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               vphi = average_func(phi(ic0,ic1,ic2-1), phi(ic0,ic1,ic2),
+     &                             avg_type )
+               hphi = interp_func( vphi, interp_type )
+               diff2(ic0,ic1,ic2) =  (1.d0-hphi) * d_liquid
+     &                     + hphi * d_solidA
+            end do
+         end do
+      end do
+c
+      return
+      end
+c
+c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
+c
+      subroutine concentration_pfmdiffusion_scalar_2phases(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phiL, phiA, nphiA, ngphi,
+     &   diff0, diff1, diff2, ngdiff,
+     &   d_liquid,
+     &   d_solidA,
+     &   interp_type,
+     &   avg_type )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer nphiA, ngphi, ngdiff
+      character*(*) avg_type, interp_type
+      double precision d_liquid, d_solidA
+c
+c variables in 3d cell indexed
+      double precision phiL(CELL3d(ifirst,ilast,ngphi))
+      double precision phiA(CELL3d(ifirst,ilast,ngphi),nphiA)
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2, ip
+      double precision vphi, hphiL, hphiA
+      double precision diff_liquid, diff_solidA
+      double precision interp_func
+      double precision average_func
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
+               vphi = 0.d0
+c assuming the first nphi-1 order parameters are solid phase
+               do ip = 1, nphiA
+                  vphi = vphi + average_func(
+     &               phiA(ic0-1,ic1,ic2,ip), phiA(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               hphiA = interp_func( vphi, interp_type )
+
+               vphi = average_func(phiL(ic0-1,ic1,ic2),
+     &                             phiL(ic0,ic1,ic2),
+     &                             avg_type )
+               hphiL = interp_func( vphi, interp_type )
+               diff0(ic0,ic1,ic2) =  hphiL * d_liquid
+     &                             + hphiA * d_solidA
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+               vphi = 0.d0
+c assuming the first nphi-1 order parameters are solid phase
+               do ip = 1, nphiA
+                  vphi = vphi + average_func(
+     &               phiA(ic0,ic1-1,ic2,ip), phiA(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               hphiA = interp_func( vphi, interp_type )
+
+               vphi = average_func(phiL(ic0,ic1-1,ic2),
+     &                             phiL(ic0,ic1,ic2),
+     &                             avg_type )
+               hphiL = interp_func( vphi, interp_type )
+
+               diff1(ic0,ic1,ic2) = hphiL * d_liquid
+     &                        + hphiA * d_solidA
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               vphi = 0.d0
+c assuming the first nphi-1 order parameters are solid phase
+               do ip = 1, nphiA
+                  vphi = vphi + average_func(
+     &               phiA(ic0,ic1,ic2-1,ip), phiA(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               hphiA = interp_func( vphi, interp_type )
+
+               vphi = average_func(phiL(ic0-1,ic1,ic2),
+     &                             phiL(ic0,ic1,ic2),
+     &                             avg_type )
+               hphiL = interp_func( vphi, interp_type )
+               diff0(ic0,ic1,ic2) =  hphiL * d_liquid
+     &                             + hphiA * d_solidA
+            end do
+         end do
+      end do
+c
+      return
+      end
+c
+c
 c same as function concentrationdiffusion0, without accumulating
 c component into single D
 c
@@ -422,6 +603,138 @@ c
       return
       end
 c
+c
+      subroutine concentration_pfmdiffusion_scalar_3phases(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phiL, nphiL, phiA, nphiA, phiB, nphiB, ngphi,
+     &   diff0, diff1, diff2, ngdiff,
+     &   d_liquid,
+     &   d_solidA,
+     &   d_solidB,
+     &   interp_type,
+     &   avg_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer nphiL, nphiA, nphiB, ngphi, ngdiff
+      character*(*) avg_type, interp_type
+      double precision d_liquid, d_solidA, d_solidB
+c
+c variables in 3d cell indexed
+      double precision phiL(CELL3d(ifirst,ilast,ngphi),nphiL)
+      double precision phiA(CELL3d(ifirst,ilast,ngphi),nphiA)
+      double precision phiB(CELL3d(ifirst,ilast,ngphi),nphiB)
+
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2, ip
+      double precision vphi, vphiL, vphiA, vphiB
+      double precision diff_liquid, diff_solidA, diff_solidB
+      double precision interp_func
+      double precision average_func
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
+               vphi = 0.d0
+               do ip = 1, nphiA
+                  vphi = vphi + average_func(
+     &               phiA(ic0-1,ic1,ic2,ip), phiA(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               vphiA = interp_func( vphi, interp_type )
+
+               vphi = 0.d0
+               do ip = 1, nphiB
+                  vphi = vphi + average_func(
+     &               phiB(ic0-1,ic1,ic2,ip), phiB(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               vphiB = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phiL(ic0-1,ic1,ic2,1), phiL(ic0,ic1,ic2,1), avg_type )
+               vphiL = interp_func( vphi, interp_type )
+
+               diff0(ic0,ic1,ic2) = vphiL * d_liquid
+     &                            + vphiA * d_solidA
+     &                            + vphiB * d_solidB
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+
+               vphi = 0.d0
+               do ip = 1, nphiA
+                  vphi = vphi + average_func(
+     &               phiA(ic0,ic1-1,ic2,ip), phiA(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               vphiA = interp_func( vphi, interp_type )
+
+               vphi = 0.d0
+               do ip = 1, nphiB
+                  vphi = vphi + average_func(
+     &               phiB(ic0,ic1-1,ic2,ip), phiB(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               vphiB = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phiL(ic0,ic1-1,ic2,1), phiL(ic0,ic1,ic2,1),
+     &            avg_type )
+               vphiL = interp_func( vphi, interp_type )
+
+               diff1(ic0,ic1,ic2) = vphiL * d_liquid
+     &                            + vphiA * d_solidA
+     &                            + vphiB * d_solidB
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               vphi = 0.d0
+               do ip = 1, nphiA
+                  vphi = vphi + average_func(
+     &               phiA(ic0,ic1,ic2-1,ip), phiA(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               vphiA = interp_func( vphi, interp_type )
+
+               vphi = 0.d0
+               do ip = 1, nphiB
+                  vphi = vphi + average_func(
+     &               phiB(ic0,ic1,ic2-1,ip), phiB(ic0,ic1,ic2,ip),
+     &               avg_type )
+               enddo
+               vphiB = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phiL(ic0,ic1,ic2-1,1), phiL(ic0,ic1,ic2,1),
+     &            avg_type )
+               vphiL = interp_func( vphi, interp_type )
+
+               diff2(ic0,ic1,ic2) = vphiL * d_liquid
+     &                            + vphiA * d_solidA
+     &                            + vphiB * d_solidB
+            end do
+         end do
+      end do
+c
+      return
+      end
+c
 c Coefficient \tilde D from Beckermann, Diepers, Steinbach, Karma, Tong, 1999
 c
       subroutine concentrationdiffusion_beckermann(
@@ -518,7 +831,8 @@ c
 c
       return
       end
-
+c
+c
       subroutine concentration_diffcoeff_of_temperature(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   diffL0, diffL1, diffL2,
@@ -826,6 +1140,77 @@ c add contribution to six sides of each cell
                   endif
                 end do
               endif 
+            end do
+          end do
+        end do
+      end do
+c
+      return
+      end
+c
+c add interface diffusion to A and B diffusion
+c
+      subroutine add_ab_diffusion(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phia, nphia, phib, nphib, ngphi,
+     &   diff0, diff1, diff2, ngdiff,
+     &   d0,
+     &   same_phase)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer nphia, nphib
+      integer ngphi, ngdiff, same_phase
+      double precision d0
+c
+c variables in 3d cell indexed
+      double precision phia(CELL3d(ifirst,ilast,ngphi),nphia)
+      double precision phib(CELL3d(ifirst,ilast,ngphi),nphib)
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2, ipa, ipb, ipbmin
+      double precision pa, pb, factorT
+      double precision dAB
+      double precision threshold, factor
+c
+      threshold = 1.0d-2
+      factor = 1.d0/(0.5d0-threshold)
+      factor = factor**4
+c
+      do ic2 = ifirst2, ilast2
+        do ic1 = ifirst1, ilast1
+          do ic0 = ifirst0, ilast0
+            do ipa = 1, nphia
+              pa =  phia(ic0,ic1,ic2,ipa)
+              if( pa.gt.threshold )then
+                pa = pa - threshold
+                ipbmin = 1
+                if( same_phase.eq.1 )then
+                  ipbmin = ipa+1
+                endif
+                do ipb = ipbmin, nphib
+                  pb = phib(ic0,ic1,ic2,ipb)
+                  if( pb.gt.threshold )then
+                    pb = pb - threshold
+
+c factor 0.5 for two contributions, one from each side
+                    dAB = 0.5d0*factor*pa*pa*pb*pb
+
+c add contribution to four sides of each cell
+                    diff0(ic0,ic1,ic2)   = diff0(ic0,ic1,ic2) + dAB
+                    diff0(ic0+1,ic1,ic2) = diff0(ic0+1,ic1,ic2) + dAB
+                    diff1(ic0,ic1,ic2)   = diff1(ic0,ic1,ic2) + dAB
+                    diff1(ic0,ic1+1,ic2) = diff1(ic0,ic1+1,ic2) + dAB
+                    diff2(ic0,ic1,ic2)   = diff2(ic0,ic1,ic2) + dAB
+                    diff2(ic0,ic1,ic2+1) = diff2(ic0,ic1,ic2+1) + dAB
+                  endif
+                end do
+              endif
             end do
           end do
         end do

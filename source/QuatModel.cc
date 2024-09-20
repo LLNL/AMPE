@@ -153,6 +153,7 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_f_b_id = -1;
    d_cp_id = -1;
    d_conc_Mq_id = -1;
+   d_visit_conc_pfm_diffusion_id = -1;
 
    d_number_of_grains = -1;
    d_phase_threshold = 0.85;
@@ -382,11 +383,11 @@ void QuatModel::initializeRHSandEnergyStrategies(
              CompositionDiffusionStrategyFactory::create(
                  this, d_model_parameters,
                  static_cast<unsigned short>(d_ncompositions), d_conc_l_id,
-                 d_conc_a_id, d_conc_b_id, d_conc_pfm_diffusion_l_id,
-                 d_conc_pfm_diffusion_a_id, d_conc_pfm_diffusion_b_id,
-                 d_conc_diffusion_coeff_l_id, d_conc_diffusion_coeff_a_id,
-                 d_conc_diffusion_coeff_b_id, d_composition_strategy_mobilities,
-                 d_free_energy_strategy);
+                 d_conc_a_id, d_conc_b_id, d_conc_pfm_diffusion_id,
+                 d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
+                 d_conc_pfm_diffusion_b_id, d_conc_diffusion_coeff_l_id,
+                 d_conc_diffusion_coeff_a_id, d_conc_diffusion_coeff_b_id,
+                 d_composition_strategy_mobilities, d_free_energy_strategy);
       }
 
       d_composition_rhs_strategy = CompositionRHSStrategyFactory::create(
@@ -1283,6 +1284,18 @@ void QuatModel::registerConcentrationVariables(void)
               d_conc_phase_coupling_diffusion_var, current,
               hier::IntVector(tbox::Dimension(NDIM), 0));
       assert(d_conc_phase_coupling_diffusion_id >= 0);
+      if (d_model_parameters.with_extra_visit_output()) {
+         d_visit_conc_pfm_diffusion_var.reset(
+             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                            "visit_conc_pfm_diffusion",
+                                            d_ncompositions * d_ncompositions));
+         assert(d_visit_conc_pfm_diffusion_var);
+         d_visit_conc_pfm_diffusion_id =
+             variable_db->registerVariableAndContext(
+                 d_visit_conc_pfm_diffusion_var, current,
+                 hier::IntVector(tbox::Dimension(NDIM), 0));
+         assert(d_visit_conc_pfm_diffusion_id >= 0);
+      }
    } else {
       {
          // "isotropic" stencil needs some ghost values for diffusion field
@@ -1340,6 +1353,7 @@ void QuatModel::registerConcentrationVariables(void)
       assert(d_conc_diffusion_coeff_a_id >= 0);
 
       if (d_model_parameters.with_extra_visit_output()) {
+         std::cout << "d_model_parameters.concRHSstrategyIsEBS()" << std::endl;
          d_visit_conc_pfm_diffusion_l_var.reset(
              new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                             "visit_conc_pfm_diffusion_l",
@@ -1978,20 +1992,29 @@ void QuatModel::RegisterWithVisit(void)
                }
 
                // diffusion
-               assert(d_visit_conc_pfm_diffusion_l_id >= 0);
-               assert(d_visit_conc_pfm_diffusion_a_id >= 0);
-               std::string vnamel("conc_pfm_diffusion_l" + std::to_string(n));
-               d_visit_data_writer->registerPlotQuantity(
-                   vnamel, "SCALAR", d_visit_conc_pfm_diffusion_l_id, n);
-               std::string vnamea("conc_pfm_diffusion_a" + std::to_string(n));
-               d_visit_data_writer->registerPlotQuantity(
-                   vnamea, "SCALAR", d_visit_conc_pfm_diffusion_a_id, n);
-               if (d_model_parameters.withPhaseB()) {
-                  assert(d_conc_pfm_diffusion_b_id >= 0);
-                  std::string vnameb("conc_pfm_diffusion_b" +
+               if (d_model_parameters.concRHSstrategyIsEBS()) {
+                  assert(d_visit_conc_pfm_diffusion_l_id >= 0);
+                  assert(d_visit_conc_pfm_diffusion_a_id >= 0);
+                  std::string vnamel("conc_pfm_diffusion_l" +
                                      std::to_string(n));
                   d_visit_data_writer->registerPlotQuantity(
-                      vnameb, "SCALAR", d_visit_conc_pfm_diffusion_b_id, n);
+                      vnamel, "SCALAR", d_visit_conc_pfm_diffusion_l_id, n);
+                  std::string vnamea("conc_pfm_diffusion_a" +
+                                     std::to_string(n));
+                  d_visit_data_writer->registerPlotQuantity(
+                      vnamea, "SCALAR", d_visit_conc_pfm_diffusion_a_id, n);
+                  if (d_model_parameters.withPhaseB()) {
+                     assert(d_conc_pfm_diffusion_b_id >= 0);
+                     std::string vnameb("conc_pfm_diffusion_b" +
+                                        std::to_string(n));
+                     d_visit_data_writer->registerPlotQuantity(
+                         vnameb, "SCALAR", d_visit_conc_pfm_diffusion_b_id, n);
+                  }
+               } else {
+                  assert(d_visit_conc_pfm_diffusion_id >= 0);
+                  std::string vnamel("conc_pfm_diffusion" + std::to_string(n));
+                  d_visit_data_writer->registerPlotQuantity(
+                      vnamel, "SCALAR", d_visit_conc_pfm_diffusion_id, n);
                }
             }
          }
@@ -3155,13 +3178,19 @@ void QuatModel::AllocateLocalPatchData(
             AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
                                                          time, zero_data);
          if (d_model_parameters.with_extra_visit_output()) {
-            AllocateAndZeroData<pdat::CellData<double> >(
-                d_visit_conc_pfm_diffusion_l_id, level, time, zero_data);
-            AllocateAndZeroData<pdat::CellData<double> >(
-                d_visit_conc_pfm_diffusion_a_id, level, time, zero_data);
-            if (d_model_parameters.withPhaseB())
+            if (d_model_parameters.concRHSstrategyIsEBS()) {
                AllocateAndZeroData<pdat::CellData<double> >(
-                   d_visit_conc_pfm_diffusion_b_id, level, time, zero_data);
+                   d_visit_conc_pfm_diffusion_l_id, level, time, zero_data);
+               AllocateAndZeroData<pdat::CellData<double> >(
+                   d_visit_conc_pfm_diffusion_a_id, level, time, zero_data);
+               if (d_model_parameters.withPhaseB())
+                  AllocateAndZeroData<pdat::CellData<double> >(
+                      d_visit_conc_pfm_diffusion_b_id, level, time, zero_data);
+            } else {
+               assert(d_visit_conc_pfm_diffusion_id >= 0);
+               AllocateAndZeroData<pdat::CellData<double> >(
+                   d_visit_conc_pfm_diffusion_id, level, time, zero_data);
+            }
          }
       }
 
@@ -5352,14 +5381,21 @@ void QuatModel::setDiffusionVisit(
 {
    if (!d_model_parameters.with_extra_visit_output()) return;
 
-   assert(d_visit_conc_pfm_diffusion_l_id >= 0);
-   assert(d_conc_pfm_diffusion_l_id >= 0);
+   if (d_model_parameters.concRHSstrategyIsEBS()) {
+      assert(d_visit_conc_pfm_diffusion_l_id >= 0);
+      assert(d_conc_pfm_diffusion_l_id >= 0);
 
-   sideToCell(hierarchy, d_visit_conc_pfm_diffusion_l_id, 0,
-              d_conc_pfm_diffusion_l_id, 0);
-   sideToCell(hierarchy, d_visit_conc_pfm_diffusion_a_id, 0,
-              d_conc_pfm_diffusion_a_id, 0);
-   if (d_conc_pfm_diffusion_b_id >= 0)
-      sideToCell(hierarchy, d_visit_conc_pfm_diffusion_b_id, 0,
-                 d_conc_pfm_diffusion_b_id, 0);
+      sideToCell(hierarchy, d_visit_conc_pfm_diffusion_l_id, 0,
+                 d_conc_pfm_diffusion_l_id, 0);
+      sideToCell(hierarchy, d_visit_conc_pfm_diffusion_a_id, 0,
+                 d_conc_pfm_diffusion_a_id, 0);
+      if (d_conc_pfm_diffusion_b_id >= 0)
+         sideToCell(hierarchy, d_visit_conc_pfm_diffusion_b_id, 0,
+                    d_conc_pfm_diffusion_b_id, 0);
+   } else {
+      assert(d_visit_conc_pfm_diffusion_id >= 0);
+      assert(d_conc_pfm_diffusion_id[0] >= 0);
+      sideToCell(hierarchy, d_visit_conc_pfm_diffusion_id, 0,
+                 d_conc_pfm_diffusion_id[0], 0);
+   }
 }

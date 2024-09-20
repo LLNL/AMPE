@@ -1,0 +1,103 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+end_time            = 0.3
+max_delta_cycles    = 900
+
+FreeEnergyDiagnostics{
+   filename = "calphadAuNi.vtk" // where to dump f(phi,c) 
+}
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 0.025
+   interval_type = "time"
+   extra_output  = TRUE
+}
+
+ModelParameters {
+
+   Temperature {
+      type = "scalar"
+      temperature        = 1450. // [K]
+      dtemperaturedt     = -200.
+      target_temperature = 1220.
+   }
+
+   Interface{
+      sigma = 0.372678
+      delta = 0.035
+   }
+
+   PhaseMobility{
+      value = 6.4
+   }
+ 
+   phi_interp_func_type ="pbg"
+
+   avg_func_type = "arithmetic"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "kks"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+      NewtonSolver {
+        max_its = 50
+      }
+      // diffusivities from SingleGrainGrowthAuNi test at 1450 K
+      D_solid  = 0.125
+      D_liquid = 1224.23
+   }
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0."
+         boundary_1 = "slope", "0."
+         boundary_2 = "slope", "0."
+         boundary_3 = "slope", "0."
+      }
+      Conc{
+         boundary_0 = "slope", "0."
+         boundary_1 = "slope", "0."
+         boundary_2 = "slope", "0."
+         boundary_3 = "slope", "0."
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 0.025
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-4
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+      coarse_solver_max_iterations = 5
+      coarse_solver_tolerance      = -1. // to get a fixed number of sweeps
+      coarse_solver_choice = "redblack"
+   }
+}
+
+InitialConditions {
+   filename = "64x64.nc"  // required
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 64, 64
+   x_lo         =  0.,   0.  // [um]
+   x_up         =  1.8,  1.8 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}
