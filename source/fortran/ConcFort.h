@@ -207,6 +207,36 @@ void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
     const double& gas_constant_R, const char* phi_interp_type,
     const char* avg_func_type);
 
+void CONCENTRATION_PFMDIFFUSION_SCALAR_2PHASES(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* phiL, const double* phiA, const int& nphiA, const int& ngphi,
+    const double* diff0, const double* diff1,
+#if (NDIM == 3)
+    const double* diff2,
+#endif
+    const int& ngdiff, const double& d0_phaseL, const double& d0_phaseA,
+    const char* phi_interp_type, const char* avg_func_type);
+
+void CONCENTRATION_PFMDIFFUSION_SCALAR(const int& ifirst0, const int& ilast0,
+                                       const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                                       const int& ifirst2, const int& ilast2,
+#endif
+                                       const double* phi, const int& ngphi,
+                                       const double* diff0, const double* diff1,
+#if (NDIM == 3)
+                                       const double* diff2,
+#endif
+                                       const int& ngdiff,
+                                       const double& d0_phaseL,
+                                       const double& d0_phaseA,
+                                       const char* phi_interp_type,
+                                       const char* avg_func_type);
+
 void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_MULTIPHASES(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
@@ -253,6 +283,23 @@ void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
     const double& gas_constant_R, const char* phi_interp_type,
     const char* avg_func_type);
 
+void CONCENTRATION_PFMDIFFUSION_SCALAR_3PHASES(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* phiL, const int& nphiL, const double* phiA, const int& nphiA,
+    const double* phiB, const int& nphiB, const int& ngphi, const double* diff0,
+    const double* diff1,
+#if (NDIM == 3)
+    const double* diff2,
+#endif
+    const int& ngdiff, const double& d_phaseL, const double& d_phaseA,
+    const double& d_phaseB, const char* phi_interp_type,
+    const char* avg_func_type);
+
+
 void AB_DIFFUSION_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
@@ -270,6 +317,19 @@ void AB_DIFFUSION_OF_TEMPERATURE(
 #endif
     const int& ngdiff, const double* t, const int& ngt, const double& d0,
     const double& q0, const double& gas_constant_R, const int& dupl);
+
+void ADD_AB_DIFFUSION(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                      const int& ilast1,
+#if (NDIM == 3)
+                      const int& ifirst2, const int& ilast2,
+#endif
+                      const double* phia, const int& nphia, const double* phib,
+                      const int& nphib, const int& ngphi, const double* diff0,
+                      const double* diff1,
+#if (NDIM == 3)
+                      const double* diff2,
+#endif
+                      const int& ngdiff, const double& d0, const int& dupl);
 
 void CONCENTRATION_DIFFCOEFF_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,

@@ -479,6 +479,10 @@ class QuatModel : public PFModel
    std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;
 
+   /*!
+    * holds data for diffusion coefficients in composition equation
+    * including weight due to phase fraction
+    */
    std::vector<std::shared_ptr<pdat::SideVariable<double> > >
        d_conc_pfm_diffusion_var;
    std::vector<int> d_conc_pfm_diffusion_id;
@@ -493,6 +497,9 @@ class QuatModel : public PFModel
    int d_conc_pfm_diffusion_a_id;
    std::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_b_var;
    int d_conc_pfm_diffusion_b_id;
+
+   std::shared_ptr<pdat::CellVariable<double> > d_visit_conc_pfm_diffusion_var;
+   int d_visit_conc_pfm_diffusion_id;
 
    std::shared_ptr<pdat::CellVariable<double> >
        d_visit_conc_pfm_diffusion_l_var;

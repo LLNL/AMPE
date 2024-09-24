@@ -13,6 +13,7 @@
 
 #include "MobilityCompositionDiffusionStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
+#include "ScalarCompositionDiffusionStrategy.h"
 
 class CompositionDiffusionStrategyFactory
 {
@@ -21,6 +22,7 @@ class CompositionDiffusionStrategyFactory
        QuatModel* model, QuatModelParameters& model_parameters,
        const short ncompositions, const int conc_l_scratch_id,
        const int conc_a_scratch_id, const int conc_b_scratch_id,
+       const std::vector<int>& conc_pfm_diffusion_id,
        const int conc_pfm_diffusion_l_id, const int conc_pfm_diffusion_a_id,
        const int conc_pfm_diffusion_b_id, const int conc_diffusion_coeff_l_id,
        const int conc_diffusion_coeff_a_id, const int conc_diffusion_coeff_b_id,
@@ -38,10 +40,11 @@ class CompositionDiffusionStrategyFactory
              model_parameters.avg_func_type(),
              model_parameters.diffusion_interp_func_type(),
              composition_strategy_mobilities, free_energy_strategy));
-      } else {
+      } else if (model_parameters.concRHSstrategyIsEBS()) {
          // for T-dependent diffusion, phase fraction weight is
          // included in computation and d_conc_diffusion_coeff_*_id
          // are not set
+         //
          tbox::pout << "Uses temperature based composition diffusion"
                     << std::endl;
 
@@ -65,7 +68,24 @@ class CompositionDiffusionStrategyFactory
              model_parameters.Q0_BB(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
+      } else {
+         const bool three_phases_model = model_parameters.with_three_phases();
+         const short norderpA =
+             three_phases_model ? 1 : model_parameters.norderpA();
+         const short norderpB =
+             three_phases_model ? 1 : model_parameters.norderpB();
+
+         strategy.reset(new ScalarCompositionDiffusionStrategy(
+             model_parameters.norderp(), norderpA, norderpB, three_phases_model,
+             conc_pfm_diffusion_id[0], model_parameters.D_liquid(),
+             model_parameters.D_solid_A(), model_parameters.D_solid_B(),
+             model_parameters.D0_LA(), model_parameters.D0_LB(),
+             model_parameters.D0_AA(), model_parameters.D0_AB(),
+             model_parameters.D0_BB(),
+             model_parameters.diffusion_interp_func_type(),
+             model_parameters.avg_func_type()));
       }
+
       return strategy;
    }
 };

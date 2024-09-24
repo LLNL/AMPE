@@ -28,6 +28,7 @@ set(SOURCES_WPENALTY
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/QuatGradModulusStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/ScalarCompositionDiffusionStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/HierarchyStencilOps.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureHistory.cc
             ${CMAKE_SOURCE_DIR}/source/QuatFaceCoeff.cc
