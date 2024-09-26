@@ -47,14 +47,16 @@ class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 
    void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
    void computeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
    void computeSecondDerivativeEnergyPhaseB(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true);
-   void preRunDiagnostics(const double temperature){};
+   void preRunDiagnostics(const double temperature) override{};
 
  private:
    double d_latent_heat;
