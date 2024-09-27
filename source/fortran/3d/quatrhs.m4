@@ -929,27 +929,8 @@ c
       dyinv2 = 1.d0/(dx(1)*dx(1))
       dzinv2 = 1.d0/(dx(2)*dx(2))
 c
-      do ic2 = ifirst2, ilast2
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0
-
-               diff_term_x = 
-     &           (temp(ic0-1,ic1,ic2)-2.d0*temp(ic0,ic1,ic2)
-     &           +temp(ic0+1,ic1,ic2)) 
-               diff_term_y = 
-     &           (temp(ic0,ic1-1,ic2)-2.d0*temp(ic0,ic1,ic2)
-     &           +temp(ic0,ic1+1,ic2)) 
-               diff_term_z = 
-     &           (temp(ic0,ic1,ic2-1)-2.d0*temp(ic0,ic1,ic2)
-     &           +temp(ic0,ic1,ic2+1)) 
-
-               diff_term = diff_term_x*dxinv2 + diff_term_y*dyinv2
-     &                   + diff_term_z*dzinv2
-
-               rhs(ic0,ic1,ic2) = thermal_diffusivity * diff_term
-            enddo
-         enddo
-      enddo
+      call laplacian(ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &               dx,thermal_diffusivity,temp, ngtemp,rhs, ngrhs )
 
       if( with_phase /= 0 )then
          do ic2 = ifirst2, ilast2

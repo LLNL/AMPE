@@ -792,23 +792,9 @@ c      print*,'thermal diff=',thermal_diffusivity
       dxinv2 = 1.d0/(dx(0)*dx(0))
       dyinv2 = 1.d0/(dx(1)*dx(1))
 c
-      do ic1 = ifirst1, ilast1
-         do ic0 = ifirst0, ilast0
-c check derivative for boundary 0
-c            if( ic0 .eq. 0 )then
-c               print*,ic0,ic1,(temp(ic0,ic1)-temp(ic0-1,ic1))/dx(0)
-c            endif
-            diff_term_x = 
-     &           (temp(ic0-1,ic1)-2.d0*temp(ic0,ic1)+temp(ic0+1,ic1)) 
-            diff_term_y = 
-     &           (temp(ic0,ic1-1)-2.d0*temp(ic0,ic1)+temp(ic0,ic1+1)) 
-
-            diff_term = diff_term_x*dxinv2 + diff_term_y*dyinv2
-
-            rhs(ic0,ic1) = thermal_diffusivity * diff_term
-
-         enddo
-      enddo
+      call laplacian(ifirst0, ilast0, ifirst1, ilast1, dx,
+     &               thermal_diffusivity, temp, ngtemp,
+     &               rhs, ngrhs )
 
       if( with_phase /= 0 )then
          do ic1 = ifirst1, ilast1
