@@ -169,6 +169,7 @@ set(M4FILESDIM concentrationdiffusion
               forces
               grad
               hyprepoisson
+              laplacian
               mobility
               multiorder
               phase
