@@ -16,31 +16,26 @@ c
      &   dx,
      &   conc, ngconc,
      &   phi, ngphi,
-     &   eta, ngeta,
      &   diffconc0,  diffconc1,  diffconc2, ngdiffconc,
      &   dphicoupl0, dphicoupl1, dphicoupl2, ngdphicoupl,
-     &   detacoupl0, detacoupl1, detacoupl2, ngdetacoupl,
-     &   flux0, flux1, flux2, ngflux,
-     &   three_phase )
+     &   flux0, flux1, flux2, ngflux)
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2, ngflux
-      integer three_phase
       double precision 
      &     flux0(SIDE3d0(ifirst,ilast,ngflux)),
      &     flux1(SIDE3d1(ifirst,ilast,ngflux)),
      &     flux2(SIDE3d2(ifirst,ilast,ngflux))
       double precision dx(0:2)
-      integer ngconc, ngphi, ngeta
-      integer ngdiffconc, ngdphicoupl, ngdetacoupl
+      integer ngconc, ngphi
+      integer ngdiffconc, ngdphicoupl
 c
 c variables in 3d cell indexed
       double precision conc(CELL3d(ifirst,ilast,ngconc))
       double precision phi(CELL3d(ifirst,ilast,ngphi))
-      double precision eta(CELL3d(ifirst,ilast,ngphi))
       double precision diffconc0(SIDE3d0(ifirst,ilast,ngdiffconc))
       double precision diffconc1(SIDE3d1(ifirst,ilast,ngdiffconc))
       double precision diffconc2(SIDE3d2(ifirst,ilast,ngdiffconc))
@@ -52,12 +47,6 @@ c variables in 3d side indexed
      &     dphicoupl1(SIDE3d1(ifirst,ilast,ngdphicoupl))
       double precision
      &     dphicoupl2(SIDE3d2(ifirst,ilast,ngdphicoupl))
-      double precision
-     &     detacoupl0(SIDE3d0(ifirst,ilast,ngdetacoupl))
-      double precision
-     &     detacoupl1(SIDE3d1(ifirst,ilast,ngdetacoupl))
-      double precision
-     &     detacoupl2(SIDE3d2(ifirst,ilast,ngdetacoupl))
 c
       double precision dxinv, dyinv, dzinv
       integer          ic0, ic1, ic2
@@ -106,40 +95,6 @@ c
             enddo
          enddo
       enddo
-
-      if ( three_phase /= 0 ) then
-
-         do ic2 = ifirst2, ilast2
-            do ic1 = ifirst1, ilast1
-               do ic0 = ifirst0, ilast0+1
-                  flux0(ic0,ic1,ic2) = flux0(ic0,ic1,ic2)
-     &                 + dxinv * detacoupl0(ic0,ic1,ic2) *
-     &                 ( eta(ic0,ic1,ic2) - eta(ic0-1,ic1,ic2) )
-               enddo
-            enddo
-         enddo
-
-         do ic2 = ifirst2, ilast2
-            do ic1 = ifirst1, ilast1+1
-               do ic0 = ifirst0, ilast0
-                  flux1(ic0,ic1,ic2) = flux1(ic0,ic1,ic2)
-     &                 + dyinv * detacoupl1(ic0,ic1,ic2) *
-     &                 ( eta(ic0,ic1,ic2) - eta(ic0,ic1-1,ic2) )
-               enddo
-            enddo
-         enddo
-
-         do ic2 = ifirst2, ilast2+1
-            do ic1 = ifirst1, ilast1
-               do ic0 = ifirst0, ilast0
-                  flux2(ic0,ic1,ic2) = flux2(ic0,ic1,ic2)
-     &                 + dzinv * detacoupl2(ic0,ic1,ic2) *
-     &                 ( eta(ic0,ic1,ic2) - eta(ic0,ic1,ic2-1) )
-               enddo
-            enddo
-         enddo
-
-      endif
 
       return
       end

@@ -17,31 +17,26 @@ c
      &   dx,
      &   conc, ngconc,
      &   phi, ngphi,
-     &   eta, ngeta,
      &   diffconc0,  diffconc1,  ngdiffconc,
      &   dphicoupl0, dphicoupl1, ngdphicoupl,
-     &   detacoupl0, detacoupl1, ngdetacoupl,
-     &   flux0, flux1, ngflux,
-     &   three_phase )
+     &   flux0, flux1, ngflux)
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ngflux
-      integer three_phase
       double precision 
      &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
      &     flux1(SIDE2d1(ifirst,ilast,ngflux))
       double precision dx(0:1)
 c
-      integer ngconc, ngphi, ngeta
-      integer ngdiffconc, ngdphicoupl, ngdetacoupl
+      integer ngconc, ngphi
+      integer ngdiffconc, ngdphicoupl
 c
 c variables in 2d cell indexed
       double precision conc(CELL2d(ifirst,ilast,ngconc))
       double precision phi(CELL2d(ifirst,ilast,ngphi))
-      double precision eta(CELL2d(ifirst,ilast,ngphi))
       double precision diffconc0(SIDE2d0(ifirst,ilast,ngdiffconc))
       double precision diffconc1(SIDE2d1(ifirst,ilast,ngdiffconc))
 
@@ -50,10 +45,6 @@ c variables in 2d side indexed
      &   dphicoupl0(SIDE2d0(ifirst,ilast,ngdphicoupl))
       double precision
      &   dphicoupl1(SIDE2d1(ifirst,ilast,ngdphicoupl))
-      double precision
-     &   detacoupl0(SIDE2d0(ifirst,ilast,ngdetacoupl))
-      double precision
-     &   detacoupl1(SIDE2d1(ifirst,ilast,ngdetacoupl))
 c
       double precision dxinv, dyinv
       integer          ic0, ic1
@@ -83,26 +74,6 @@ c
      &           )
          enddo
       enddo
-
-      if ( three_phase /= 0 ) then
-
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0+1
-               flux0(ic0,ic1) = flux0(ic0,ic1)
-     &              + dxinv * detacoupl0(ic0,ic1) *
-     &              ( eta(ic0,ic1) - eta(ic0-1,ic1) )
-            enddo
-         enddo
-
-         do ic1 = ifirst1, ilast1+1
-            do ic0 = ifirst0, ilast0
-               flux1(ic0,ic1) = flux1(ic0,ic1)
-     &              + dyinv * detacoupl1(ic0,ic1) *
-     &              ( eta(ic0,ic1) - eta(ic0,ic1-1) )
-            enddo
-         enddo
-
-      endif
 
       return
       end

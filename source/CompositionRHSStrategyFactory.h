@@ -45,11 +45,9 @@ class CompositionRHSStrategyFactory
              conc_scratch_id, phase_scratch_id,
              conc_pfm_diffusion_id[0],  // use 1x1 diffusion matrix
              conc_phase_coupling_diffusion_id, temperature_scratch_id,
-             eta_scratch_id, conc_eta_coupling_diffusion_id, conc_l_scratch_id,
-             conc_a_scratch_id, conc_b_scratch_id, model_parameters.D_liquid(),
-             model_parameters.D_solid_A(), model_parameters.D_solid_B(),
-             model_parameters.Q0_liquid(), model_parameters.Q0_solid_A(),
-             model_parameters.Q0_solid_B(),
+             conc_l_scratch_id, conc_a_scratch_id, model_parameters.D_liquid(),
+             model_parameters.D_solid_A(), model_parameters.Q0_liquid(),
+             model_parameters.Q0_solid_A(),
              model_parameters.energy_interp_func_type(),
              model_parameters.avg_func_type()));
       } else if (model_parameters.concRHSstrategyIsEBS()) {
