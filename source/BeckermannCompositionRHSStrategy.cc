@@ -427,8 +427,6 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
            patch.getPatchData(flux_id)));
    assert(flux);
 
-   int three_phase = 0;
-
 #ifdef DEBUG_CHECK_ASSERTIONS
    SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
    double l2d = ops.L2Norm(sd_conc_diffusion0, pbox);
@@ -439,13 +437,12 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #endif
 
    // now compute concentration flux
-   double* eta = nullptr;
    CONCENTRATIONFLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                      ifirst(2), ilast(2),
 #endif
                      dx, conc->getPointer(), conc->getGhostCellWidth()[0],
-                     phase->getPointer(), phase->getGhostCellWidth()[0], eta, 0,
+                     phase->getPointer(), phase->getGhostCellWidth()[0],
                      sd_conc_diffusion0->getPointer(0),
                      sd_conc_diffusion0->getPointer(1),
 #if (NDIM == 3)
@@ -456,15 +453,11 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                      sd_conc_phase_coupling_diffusion->getPointer(2),
 #endif
-                     0, nullptr, nullptr,
-#if (NDIM == 3)
-                     nullptr,
-#endif
                      0, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
                      flux->getPointer(2),
 #endif
-                     flux->getGhostCellWidth()[0], three_phase);
+                     flux->getGhostCellWidth()[0]);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2f = ops.L2Norm(flux, pbox);

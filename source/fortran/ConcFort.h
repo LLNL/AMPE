@@ -13,31 +13,28 @@
 // Function argument list interfaces
 extern "C" {
 
-void CONCENTRATIONFLUX(
-    const int& ifirst0, const int& ilast0, const int& ifirst1,
-    const int& ilast1,
+void CONCENTRATIONFLUX(const int& ifirst0, const int& ilast0,
+                       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-    const int& ifirst2, const int& ilast2,
+                       const int& ifirst2, const int& ilast2,
 #endif
-    const double* dx, const double* conc, const int& ngconc,
-    const double* phase, const int& ngphase, const double* eta,
-    const int& ngeta, const double* diffconc0, const double* diffconc1,
+                       const double* dx, const double* conc, const int& ngconc,
+                       const double* phase, const int& ngphase,
+                       const double* diffconc0, const double* diffconc1,
 #if (NDIM == 3)
-    const double* diffconc2,
+                       const double* diffconc2,
 #endif
-    const int& ngdiffconc, const double* dphicoupl0, const double* dphicoupl1,
+                       const int& ngdiffconc, const double* dphicoupl0,
+                       const double* dphicoupl1,
 #if (NDIM == 3)
-    const double* dphicoupl2,
+                       const double* dphicoupl2,
 #endif
-    const int& ngdphicoupl, const double* detacoupl0, const double* detacoupl1,
+                       const int& ngdphicoupl, const double* flux0,
+                       const double* flux1,
 #if (NDIM == 3)
-    const double* detacoupl2,
+                       const double* flux2,
 #endif
-    const int& ngdetacoupl, const double* flux0, const double* flux1,
-#if (NDIM == 3)
-    const double* flux2,
-#endif
-    const int& ngflux, const int& three_phase);
+                       const int& ngflux);
 
 void ADDCONCENTRATIONFLUXFROMGRADT(const int& ifirst0, const int& ilast0,
                                    const int& ifirst1, const int& ilast1,

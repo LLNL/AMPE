@@ -25,14 +25,14 @@ const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
     const int conc_scratch_id, const int phase_scratch_id,
     const int conc_pfm_diffusion_id, const int conc_phase_coupling_diffusion_id,
-    const int temperature_scratch_id, const int eta_scratch_id,
-    const int conc_eta_coupling_diffusion_id, const int conc_l_scratch_id,
-    const int conc_a_scratch_id, const int conc_b_scratch_id,
-    const double D_liquid, const double D_solid_A, const double D_solid_B,
-    const double Q0_liquid, const double Q0_solid_A, const double Q0_solid_B,
+    const int temperature_scratch_id, const int conc_l_scratch_id,
+    const int conc_a_scratch_id, const double D_liquid, const double D_solid_A,
+    const double Q0_liquid, const double Q0_solid_A,
     const Thermo4PFM::EnergyInterpolationType phase_interp_func_type,
     const std::string& avg_func_type)
-    : CompositionRHSStrategy(avg_func_type)
+    : CompositionRHSStrategy(avg_func_type),
+      d_conc_scratch_id(conc_scratch_id),
+      d_phase_scratch_id(phase_scratch_id)
 {
    assert(conc_scratch_id >= 0);
    assert(phase_scratch_id >= 0);
@@ -45,38 +45,22 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
    assert(Q0_solid_A >= 0.);
    assert(D_solid_A >= 0.);
 
-   if (eta_scratch_id >= 0) {
-      assert(Q0_solid_B >= 0.);
-      assert(D_solid_B >= 0.);
-   }
-
    d_phase_interp_func_type = phase_interp_func_type;
    d_avg_func_type = avg_func_type;
 
    d_conc_l_scratch_id = conc_l_scratch_id;
    d_conc_a_scratch_id = conc_a_scratch_id;
-   d_conc_b_scratch_id = conc_b_scratch_id;
 
    d_D_liquid = D_liquid;
    d_D_solid_A = D_solid_A;
-   d_D_solid_B = D_solid_B;
 
    d_Q0_liquid = Q0_liquid;
    d_Q0_solid_A = Q0_solid_A;
-   d_Q0_solid_B = Q0_solid_B;
-
-   d_conc_scratch_id = conc_scratch_id;
-   d_phase_scratch_id = phase_scratch_id;
 
    d_pfm_diffusion_id = conc_pfm_diffusion_id;
    d_conc_phase_coupling_diffusion_id = conc_phase_coupling_diffusion_id;
 
    d_temperature_scratch_id = temperature_scratch_id;
-
-   d_eta_scratch_id = eta_scratch_id;
-   d_conc_eta_coupling_diffusion_id = conc_eta_coupling_diffusion_id;
-
-   d_with_third_phase = (eta_scratch_id >= 0);
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_set_diffcoeff_timer =
@@ -96,15 +80,15 @@ void KKSCompositionRHSStrategy::setDiffusionCoeff(
 
    assert(hierarchy);
 
-   // set diffusion coefficients which is a function of the free energy form
+   // set diffusion coefficients for concentration
    setPFMDiffCoeffForConcentration(hierarchy, d_temperature_scratch_id,
-                                   d_phase_scratch_id, d_eta_scratch_id,
-                                   d_pfm_diffusion_id);
+                                   d_phase_scratch_id, d_pfm_diffusion_id);
+
+   // set diffusion coefficients for phase
    setDiffCoeffForGradPhi(hierarchy, d_temperature_scratch_id,
                           d_conc_scratch_id, d_phase_scratch_id,
-                          d_eta_scratch_id, d_pfm_diffusion_id,
-                          d_conc_phase_coupling_diffusion_id,
-                          d_conc_eta_coupling_diffusion_id);
+                          d_pfm_diffusion_id,
+                          d_conc_phase_coupling_diffusion_id);
 
    t_set_diffcoeff_timer->stop();
 }
@@ -113,11 +97,9 @@ void KKSCompositionRHSStrategy::setDiffusionCoeff(
 // compute diffusion for div*D0*grad*c term in concentration equation
 void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id,
+    const int temperature_id, const int phase_id,
     const int conc_pfm_diffusion_id)
 {
-   (void)eta_id;
-
    // tbox::pout<<"KKSCompositionRHSStrategy::setDiffCoeffForConcentration()"<<endl;
    assert(temperature_id >= 0);
    assert(phase_id >= 0);
@@ -170,13 +152,13 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
 }
 
 //=======================================================================
-
+//
+// set diffusion coefficients for div*D*grad*phi term in concentration
+//
 void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int concentration_id, const int phase_id,
-    const int eta_id, const int conc_pfm_diffusion_id,
-    const int conc_phase_coupling_diffusion_id,
-    const int conc_eta_coupling_diffusion_id)
+    const int conc_pfm_diffusion_id, const int conc_phase_coupling_diffusion_id)
 {
    (void)temperature_id;
    (void)concentration_id;
@@ -184,9 +166,6 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
    assert(phase_id >= 0);
    assert(conc_pfm_diffusion_id >= 0);
    assert(conc_phase_coupling_diffusion_id >= 0);
-
-   // now set diffusion coefficients for div*D*grad*phi term in concentration
-   // equation
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -204,8 +183,6 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_phase_coupling_diffusion_id)));
 
-         std::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff;
-
          std::shared_ptr<pdat::SideData<double> > sd_pfmd_coeff(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_pfm_diffusion_id)));
@@ -213,8 +190,6 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
          std::shared_ptr<pdat::CellData<double> > cd_phi(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
-
-         std::shared_ptr<pdat::CellData<double> > cd_eta;
 
          std::shared_ptr<pdat::CellData<double> > cd_c_l(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -224,23 +199,8 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_a_scratch_id)));
 
-         std::shared_ptr<pdat::CellData<double> > cd_c_b;
-
-         if (d_with_third_phase) {
-            cd_eta =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(eta_id));
-            cd_c_b =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_conc_b_scratch_id));
-            sd_eta_diff_coeff =
-                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                    patch->getPatchData(conc_eta_coupling_diffusion_id));
-         }
-
-         setDiffCoeffForPhaseOnPatch(sd_phi_diff_coeff, sd_eta_diff_coeff,
-                                     sd_pfmd_coeff, cd_phi, cd_eta, cd_c_l,
-                                     cd_c_a, cd_c_b, pbox);
+         setDiffCoeffForPhaseOnPatch(sd_phi_diff_coeff, sd_pfmd_coeff, cd_phi,
+                                     cd_c_l, cd_c_a, pbox);
       }
    }
 }
@@ -249,20 +209,14 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
 
 void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
     std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
-    std::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff,
     std::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::CellData<double> > cd_c_l,
-    std::shared_ptr<pdat::CellData<double> > cd_c_a,
-    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+    std::shared_ptr<pdat::CellData<double> > cd_c_a, const hier::Box& pbox)
 {
    double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer(0);
    double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer(1);
    double* ptr_phi_diffz = nullptr;
-   double* ptr_eta_diffx = nullptr;
-   double* ptr_eta_diffy = nullptr;
-   double* ptr_eta_diffz = nullptr;
 
    double* ptr_dx0_coeff = sd_d0_coeff->getPointer(0);
    double* ptr_dy0_coeff = sd_d0_coeff->getPointer(1);
@@ -274,22 +228,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
    }
 
    double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = nullptr;
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
-   double* ptr_c_b = nullptr;
 
-   if (d_with_third_phase) {
-      ptr_eta_diffx = sd_eta_diff_coeff->getPointer(0);
-      ptr_eta_diffy = sd_eta_diff_coeff->getPointer(1);
-      if (NDIM > 2) {
-         ptr_eta_diffz = sd_eta_diff_coeff->getPointer(2);
-      }
-      ptr_eta = cd_eta->getPointer();
-      ptr_c_b = cd_c_b->getPointer();
-   }
-
-   // Assuming d0_coeff, phi_diff_coeff, and eta_diff_coeff have same box
+   // Assuming d0_coeff, phi_diff_coeff have same box
    const hier::Box& dcoeff_gbox = sd_phi_diff_coeff->getGhostBox();
    int imin_dcoeff = dcoeff_gbox.lower(0);
    int jmin_dcoeff = dcoeff_gbox.lower(1);
@@ -301,7 +243,6 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
    kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
 #endif
 
-   // Assuming phi and eta have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -313,7 +254,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
    kp_pf = jp_pf * pf_gbox.numberCells(1);
 #endif
 
-   // Assuming c_l, c_a, and c_b all have same box
+   // Assuming c_l, c_a all have same box
    const hier::Box& c_i_gbox = cd_c_l->getGhostBox();
    int imin_c_i = c_i_gbox.lower(0);
    int jmin_c_i = c_i_gbox.lower(1);
@@ -358,33 +299,12 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
             // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
 
-            double eta = 0.0;
             double c_l = 0.5 * (ptr_c_l[idx_c_i] + ptr_c_l[idxm1_c_i]);
             double c_a = 0.5 * (ptr_c_a[idx_c_i] + ptr_c_a[idxm1_c_i]);
-            double c_b = 0.0;
 
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
-
-            double heta = 0.0;
-
-            if (d_with_third_phase) {
-               eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
-               c_b = 0.5 * (ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i]);
-
-               heta = INTERP_FUNC(eta, &interpf);
-            }
-
-            ptr_phi_diffx[idx_dcoeff] = ptr_dx0_coeff[idx_dcoeff] * hphi_prime *
-                                        (c_l - (1.0 - heta) * c_a - heta * c_b);
-
-            if (d_with_third_phase) {
-               double hphi = INTERP_FUNC(phi, &interpf);
-
-               double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-
-               ptr_eta_diffx[idx_dcoeff] =
-                   ptr_dx0_coeff[idx_dcoeff] * hphi * heta_prime * (c_a - c_b);
-            }
+            ptr_phi_diffx[idx_dcoeff] =
+                ptr_dx0_coeff[idx_dcoeff] * hphi_prime * (c_l - c_a);
          }
       }
    }
@@ -408,33 +328,13 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 
             // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-            double eta = 0.0;
             double c_l = 0.5 * (ptr_c_l[idx_c_i] + ptr_c_l[idxm1_c_i]);
             double c_a = 0.5 * (ptr_c_a[idx_c_i] + ptr_c_a[idxm1_c_i]);
-            double c_b = 0.0;
 
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
 
-            double heta = 0.0;
-
-            if (d_with_third_phase) {
-               eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
-               c_b = 0.5 * (ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i]);
-
-               heta = INTERP_FUNC(eta, &interpf);
-            }
-
-            ptr_phi_diffy[idx_dcoeff] = ptr_dy0_coeff[idx_dcoeff] * hphi_prime *
-                                        (c_l - (1.0 - heta) * c_a - heta * c_b);
-
-            if (d_with_third_phase) {
-               double hphi = INTERP_FUNC(phi, &interpf);
-
-               double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-
-               ptr_eta_diffy[idx_dcoeff] =
-                   ptr_dy0_coeff[idx_dcoeff] * hphi * heta_prime * (c_a - c_b);
-            }
+            ptr_phi_diffy[idx_dcoeff] =
+                ptr_dy0_coeff[idx_dcoeff] * hphi_prime * (c_l - c_a);
          }
       }
    }
@@ -459,256 +359,18 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 
                // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
                double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-               double eta = 0.0;
                double c_l = 0.5 * (ptr_c_l[idx_c_i] + ptr_c_l[idxm1_c_i]);
                double c_a = 0.5 * (ptr_c_a[idx_c_i] + ptr_c_a[idxm1_c_i]);
-               double c_b = 0.0;
 
                double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
 
-               double heta = 0.0;
-
-               if (d_with_third_phase) {
-                  eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
-                  c_b = 0.5 * (ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i]);
-
-                  heta = INTERP_FUNC(eta, &interpf);
-               }
-
                ptr_phi_diffz[idx_dcoeff] =
-                   ptr_dz0_coeff[idx_dcoeff] * hphi_prime *
-                   (c_l - (1.0 - heta) * c_a - heta * c_b);
-
-               if (d_with_third_phase) {
-                  double hphi = INTERP_FUNC(phi, &interpf);
-
-                  double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-
-                  ptr_eta_diffz[idx_dcoeff] = ptr_dz0_coeff[idx_dcoeff] * hphi *
-                                              heta_prime * (c_a - c_b);
-               }
+                   ptr_dz0_coeff[idx_dcoeff] * hphi_prime * (c_l - c_a);
             }
          }
       }
    }  // if ( NDIM > 2 )
 }
-
-//=======================================================================
-
-#if 0
-void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
-   std::shared_ptr< pdat::CellData<double> > cd_temperature,
-   std::shared_ptr< pdat::CellData<double> > cd_phi,
-   std::shared_ptr< pdat::CellData<double> > cd_eta,
-   std::shared_ptr< pdat::CellData<double> > cd_concentration,
-   std::shared_ptr< pdat::SideData<double> > sd_diffusion0,
-   std::shared_ptr< pdat::SideData<double> > sd_diffusion,
-   const hier::Box& pbox )
-{
-   assert( cd_temperature );
-   assert( cd_phi );
-   assert( cd_concentration );
-   assert( sd_diffusion0 );
-   assert( sd_diffusion );
-   
-   //tbox::pout<<"CALPHADFreeEnergyStrategy::computeDiffusionOnPatch()"<<endl;
-
-   const double* const ptr_temp = cd_temperature->getPointer();
-   const double* const ptr_phi  = cd_phi->getPointer();
-   const double* const ptr_conc = cd_concentration->getPointer();
-
-   double* ptr_diffusion0_0 = sd_diffusion0->getPointer(0);
-   double* ptr_diffusion0_1 = sd_diffusion0->getPointer(1);
-   double* ptr_diffusion_0  = sd_diffusion->getPointer(0);
-   double* ptr_diffusion_1  = sd_diffusion->getPointer(1);
-#if (NDIM == 3)
-   double* ptr_diffusion0_2 = sd_diffusion0->getPointer(2);
-   double* ptr_diffusion_2  = sd_diffusion->getPointer(2);
-#endif
-   double* ptr_eta = nullptr;
-   if ( d_with_third_phase ) {
-      assert( cd_eta );
-      ptr_eta = cd_eta->getPointer();
-   }
-
-   const hier::Box& temp_gbox = cd_temperature->getGhostBox();
-   int imin_temp = temp_gbox.lower(0);
-   int jmin_temp = temp_gbox.lower(1);
-   int jp_temp = temp_gbox.numberCells(0);
-   int kmin_temp = 0;
-   int kp_temp = 0;
-#if (NDIM == 3)
-   kmin_temp = temp_gbox.lower(2);
-   kp_temp = jp_temp * temp_gbox.numberCells(1);
-#endif
-
-   // Assuming phi, eta, and concentration all have same box
-   const hier::Box& pf_gbox = cd_phi->getGhostBox();
-   int imin_pf = pf_gbox.lower(0);
-   int jmin_pf = pf_gbox.lower(1);
-   int jp_pf = pf_gbox.numberCells(0);
-   int kmin_pf = 0;
-   int kp_pf = 0;
-#if (NDIM == 3)
-   kmin_pf = pf_gbox.lower(2);
-   kp_pf = jp_pf * pf_gbox.numberCells(1);
-#endif
-
-   const hier::Box& dcoeff_gbox = sd_diffusion->getGhostBox();
-   int imin_dcoeff = dcoeff_gbox.lower(0);
-   int jmin_dcoeff = dcoeff_gbox.lower(1);
-   int jp_dcoeff = dcoeff_gbox.numberCells(0);
-   int kmin_dcoeff = 0;
-   int kp_dcoeff = 0;
-#if (NDIM == 3)
-   kmin_dcoeff = dcoeff_gbox.lower(2);
-   kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
-#endif
-
-   int imin = pbox.lower(0);
-   int imax = pbox.upper(0);
-   int jmin = pbox.lower(1);
-   int jmax = pbox.upper(1);
-   int kmin = 0;
-   int kmax = 0;
-#if (NDIM == 3)
-   kmin = pbox.lower(2);
-   kmax = pbox.upper(2);
-#endif
-   const char interpf = energyInterpChar(d_phase_interp_func_type); 
-   // X-side
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax+1; ii++ ) {
-
-            const int idx_dcoeff = (ii - imin_dcoeff) +
-               (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
-               (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1) );
-
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-            const int idxm1_pf = idx_pf - 1;
-
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
-            const int idxm1_temp = idx_temp - 1;
-
-            double phi = 
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            double c = 
-               average( ptr_conc[idx_pf], ptr_conc[idxm1_pf] );
-            double t = 
-               average( ptr_temp[idx_temp], ptr_temp[idxm1_temp] );
-            
-            const double hphi =
-               INTERP_FUNC(phi, &interpf);
-
-            double heta = 0.0;
-            if ( d_with_third_phase ) {
-               double eta = 
-                  average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
-               heta =
-                  INTERP_FUNC(eta, &interpf);
-            }
-
-            const double invd2fdc2 = computeLocalInvD2fDc2(c, hphi, heta, t);
-            // D=D0*(d2f/dc2)^-1
-            ptr_diffusion_0[idx_dcoeff]
-               = ptr_diffusion0_0[idx_dcoeff]*invd2fdc2;
-         }
-      }
-   }
-
-   // Y-side
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax+1; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
-
-            const int idx_dcoeff = (ii - imin_dcoeff) +
-               (jj - jmin_dcoeff) * jp_dcoeff +
-               (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
-
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-            const int idxm1_pf = idx_pf - jp_pf;
-
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
-            const int idxm1_temp = idx_temp - jp_temp;
-
-            double phi = 
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            double c = 
-               average( ptr_conc[idx_pf], ptr_conc[idxm1_pf] );
-            double t = 
-               average( ptr_temp[idx_temp], ptr_temp[idxm1_temp] );
-            
-            const double hphi =
-               INTERP_FUNC(phi, &interpf);
-
-            double heta = 0.0;
-            if ( d_with_third_phase ) {
-               double eta = 
-                  average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
-               heta =
-                  INTERP_FUNC(eta, &interpf);
-            }
-
-            const double invd2fdc2 = computeLocalInvD2fDc2(c, hphi, heta, t);
-            // D=D0*(d2f/dc2)^-1
-            ptr_diffusion_1[idx_dcoeff]
-               = ptr_diffusion0_1[idx_dcoeff]*invd2fdc2;
-         }
-      }
-   }
-
-#if (NDIM == 3)
-   // Z-side
-   for ( int kk = kmin; kk <= kmax+1; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
-
-            const int idx_dcoeff = (ii - imin_dcoeff) +
-               (jj - jmin_dcoeff) * jp_dcoeff +
-               (kk - kmin_dcoeff) * kp_dcoeff;
-
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-            const int idxm1_pf = idx_pf - kp_pf;
-
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
-            const int idxm1_temp = idx_temp - kp_temp;
-
-            double phi = 
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            double c = 
-               average( ptr_conc[idx_pf], ptr_conc[idxm1_pf] );
-            double t = 
-               average( ptr_temp[idx_temp], ptr_temp[idxm1_temp] );
-            
-            const double hphi =
-               INTERP_FUNC(phi, &interpf);
-
-            double heta = 0.0;
-            if ( d_with_third_phase ) {
-               double eta = 
-                  average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
-               heta =
-                  INTERP_FUNC(eta, &interpf);
-            }
-
-            const double invd2fdc2 = computeLocalInvD2fDc2(c, hphi, heta, t);
-            // D=D0*(d2f/dc2)^-1
-            ptr_diffusion_2[idx_dcoeff]
-               = ptr_diffusion0_2[idx_dcoeff]*invd2fdc2;
-         }
-      }
-   }
-#endif
-
-}
-#endif
 
 //-----------------------------------------------------------------------
 
@@ -752,25 +414,8 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    assert(flux);
    assert(flux->getDepth() == conc->getDepth());
 
-   int three_phase = 0;
-   double* ptr_eta = nullptr;
-   double* ptr_conc_eta_diff0 = nullptr;
-   double* ptr_conc_eta_diff1 = nullptr;
-#if (NDIM == 3)
-   double* ptr_conc_eta_diff2 = nullptr;
-#endif
-   int ngeta = 0;
-   if (d_with_third_phase) {
-      three_phase = 1;
-      std::shared_ptr<pdat::CellData<double> > eta(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch.getPatchData(d_eta_scratch_id)));
-      assert(eta);
-      ptr_eta = eta->getPointer();
-      ngeta = eta->getGhostCellWidth()[0];
-   }
-
    // now compute concentration flux
+   // D_phi*grad phi+D_conc*grad conc
    for (int ic = 0; ic < conc->getDepth(); ++ic)
       CONCENTRATIONFLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -778,7 +423,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #endif
                         dx, conc->getPointer(ic), conc->getGhostCellWidth()[0],
                         phase->getPointer(), phase->getGhostCellWidth()[0],
-                        ptr_eta, ngeta, conc_pfm_diffusion->getPointer(0),
+                        conc_pfm_diffusion->getPointer(0),
                         conc_pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
                         conc_pfm_diffusion->getPointer(2),
@@ -788,13 +433,9 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                         conc_phase_coupling_diffusion->getPointer(2),
 #endif
-                        0, ptr_conc_eta_diff0, ptr_conc_eta_diff1,
-#if (NDIM == 3)
-                        ptr_conc_eta_diff2,
-#endif
                         0, flux->getPointer(0, ic), flux->getPointer(1, ic),
 #if (NDIM == 3)
                         flux->getPointer(2, ic),
 #endif
-                        flux->getGhostCellWidth()[0], three_phase);
+                        flux->getGhostCellWidth()[0]);
 }
