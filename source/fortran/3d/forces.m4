@@ -136,6 +136,7 @@ c if pp<0., cfactor=0.
                         do ic = 1, nc
                            cdiff = cdiff + conc(i,j,k,ic)
                         enddo
+                        cdiff = min(cdiff,1.d0)
                         cdiff = cdiff-rhoe
 
                         diffx1 = dxinv * (
