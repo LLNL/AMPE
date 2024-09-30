@@ -125,6 +125,7 @@ c smooth cutoff
                      do ic = 1, nc
                         cdiff = cdiff + conc(i,j,ic)
                      enddo
+                     cdiff = min(cdiff,1.d0)
                      cdiff = cdiff-rhoe
 
                      diffx1 = dxinv * (
