@@ -80,6 +80,64 @@ c
 
 c***********************************************************************
 c
+c Cahn-Hilliard double well flux
+c
+      subroutine add_cahnhilliarddoublewell_flux(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   dx,
+     &   conc, ngconc,
+     &   mobility,
+     &   ca, cb, well_scale, kappa,
+     &   flux0, flux1, ngflux)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ngflux
+      double precision conc(CELL2d(ifirst,ilast,ngconc))
+      double precision
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux))
+      double precision dx(0:1)
+c
+      integer ngconc
+      double precision mobility, ca, cb, well_scale, kappa
+c
+      double precision dxinv, dyinv, dxinv2, dyinv2
+      double precision c, lap, mu
+      integer          ic0, ic1
+
+      dxinv = 1.d0 / dx(0)
+      dyinv = 1.d0 / dx(1)
+
+      dxinv2 = dxinv*dxinv
+      dyinv2 = dyinv*dyinv
+
+      do ic1 = ifirst1-1, ilast1+1
+         do ic0 = ifirst0-1, ilast0+1
+            lap = dxinv2*(-2.d0*conc(ic0,ic1)
+     &                  + conc(ic0-1,ic1) +conc(ic0+1,ic1))
+     &          + dyinv2*(-2.d0*conc(ic0,ic1)
+     &                  + conc(ic0,ic1-1) +conc(ic0,ic1+1))
+            c = conc(ic0,ic1)
+            mu = 2.d0*well_scale*(c-ca)*(cb-c)*(cb+ca-2.d0*c)-kappa*lap
+            flux0(ic0,ic1)   = flux0(ic0,ic1)
+     &           + mobility*dxinv * mu
+            flux0(ic0+1,ic1) = flux0(ic0+1,ic1)
+     &           - mobility*dxinv * mu
+            flux1(ic0,ic1)   = flux1(ic0,ic1)
+     &           + mobility*dyinv * mu
+            flux1(ic0,ic1+1) = flux1(ic0,ic1+1)
+     &           - mobility*dyinv * mu
+         enddo
+      enddo
+
+      return
+      end
+
+c***********************************************************************
+c
 c compute the concentration flux
 c
       subroutine concentrationflux_spinodal(

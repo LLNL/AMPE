@@ -18,6 +18,7 @@
 #include "QuatModel.h"
 #include "CompositionStrategyMobilities.h"
 #include "CompositionDiffusionStrategy.h"
+#include "CahnHilliardDoubleWell.h"
 
 class CompositionRHSStrategyFactory
 {
@@ -76,6 +77,12 @@ class CompositionRHSStrategyFactory
              conc_phase_coupling_diffusion_id, model_parameters.D_liquid(),
              model_parameters.D_solid_A(),
              model_parameters.conc_interp_func_type(),
+             model_parameters.avg_func_type()));
+      } else if (model_parameters.concRHSstrategyIsCahnHilliard()) {
+         strategy.reset(new CahnHilliardDoubleWell(
+             conc_scratch_id, model_parameters.CH_mobility(),
+             model_parameters.CH_ca(), model_parameters.CH_cb(),
+             model_parameters.CH_kappa(), model_parameters.CH_well_scale(),
              model_parameters.avg_func_type()));
       } else {
          TBOX_ERROR("Error: unknown composition RHS Strategy");

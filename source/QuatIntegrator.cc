@@ -906,9 +906,10 @@ void QuatIntegrator::RegisterVariables(
    if (d_with_concentration) {
       d_flux_conc_var.reset(new pdat::SideVariable<double>(
           tbox::Dimension(NDIM), d_name + "_QUI_conc_flux_", d_ncompositions));
+      int nghosts = d_model_parameters.concRHSstrategyIsCahnHilliard() ? 1 : 0;
       d_flux_conc_id = variable_db->registerVariableAndContext(
           d_flux_conc_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
+          hier::IntVector(tbox::Dimension(NDIM), nghosts));
       assert(d_flux_conc_id >= 0);
       d_local_data.setFlag(d_flux_conc_id);
    }
@@ -2551,7 +2552,6 @@ void QuatIntegrator::evaluateConcentrationRHS(
     const int conc_id, const int conc_rhs_id, const int temperature_id,
     const bool visit_flag)
 {
-   assert(phase_id >= 0);
    assert(conc_rhs_id >= 0);
    assert(d_conc_mobility >= 0.);
    assert(temperature_id >= 0);
@@ -2577,10 +2577,12 @@ void QuatIntegrator::evaluateConcentrationRHS(
             d_composition_rhs_strategy->addFluxFromGradTonPatch(*patch,
                                                                 temperature_id,
                                                                 d_flux_conc_id);
-         if (d_with_antitrapping)
+         if (d_with_antitrapping) {
+            assert(phase_id >= 0);
             d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(
                 *patch, phase_id, d_dphidt_scratch_id, d_alpha_AT,
                 d_flux_conc_id);
+         }
       }
 
       // Coarsen flux data from next finer level so that
@@ -3039,7 +3041,8 @@ void QuatIntegrator::setCoefficients(
       }
    }
 
-   if (d_with_concentration) {
+   if (d_with_concentration &&
+       d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
       computePhaseConcentrations(hierarchy);
    }
 
@@ -3230,7 +3233,7 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
 
    // Set the concentration component of the RHS
    if (d_with_concentration) {
-      assert(y_dot_samvect->getNumberOfComponents() > 1);
+      assert(y_dot_samvect->getNumberOfComponents() > 0);
 
       if (recompute_quat_sidegrad)
          setDiffusionCoeffForConcentration(hierarchy, time);

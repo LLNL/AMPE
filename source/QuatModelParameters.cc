@@ -189,7 +189,10 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
           ConcModel::INDEPENDENT;  // energy independent of composition
    } else if (conc_model.compare("dilute") == 0) {
       d_conc_model = ConcModel::KKSdilute;
+   } else if (conc_model.compare("cahn_hilliard") == 0) {
+      d_conc_model = ConcModel::CahnHilliard;
    } else {
+      tbox::plog << "conc_model = " << conc_model << std::endl;
       TBOX_ERROR("Error: unknown concentration model in QuatModelParameters");
    }
 
@@ -209,6 +212,9 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
             tbox::plog << "EBS stencil: " << d_ebs_stencil_type << std::endl;
             TBOX_ERROR("Error: unknown stencil type for EBS");
          }
+      } else if (conc_rhs_strategy.compare("cahn_hilliard") == 0) {
+         d_conc_rhs_strategy = ConcRHSstrategy::CahnHilliard;
+         readCahnHilliard(conc_db);
       } else if (conc_rhs_strategy.compare("spinodal") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
       } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||
@@ -228,6 +234,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
        conc_db->getStringWithDefault("diffusion_type", default_concdiff_type);
    if (conc_diffusion_strategy.compare("composition_dependent") == 0) {
       d_conc_diffusion_type = ConcDiffusionType::CTD;
+   } else if (conc_diffusion_strategy.compare("mobility") == 0) {
+      d_conc_diffusion_type = ConcDiffusionType::MOB;
    } else if (conc_diffusion_strategy.compare("temperature_dependent") == 0) {
       d_conc_diffusion_type = ConcDiffusionType::TD;
    }
@@ -399,6 +407,19 @@ void QuatModelParameters::readVisitOptions(
    d_with_velocity =
        visit_db->getBoolWithDefault("velocity_output", d_with_velocity);
    d_rhs_visit_output = visit_db->getBoolWithDefault("rhs_output", false);
+}
+
+//=======================================================================
+
+void QuatModelParameters::readCahnHilliard(std::shared_ptr<tbox::Database> db)
+{
+   std::shared_ptr<tbox::Database> ch_db = db->getDatabase("CahnHilliard");
+
+   d_CH_ca = ch_db->getDouble("ca");
+   d_CH_cb = ch_db->getDouble("cb");
+   d_CH_well_scale = ch_db->getDouble("well_scale");
+   d_CH_kappa = ch_db->getDouble("kappa");
+   d_CH_mobility = ch_db->getDouble("mobility");
 }
 
 //=======================================================================
