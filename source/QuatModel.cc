@@ -348,18 +348,21 @@ void QuatModel::initializeRHSandEnergyStrategies(
                                          Tref, d_conc_db);
 
    if (d_model_parameters.with_concentration()) {
+      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
 
-      std::shared_ptr<tbox::Database> newton_db;
-      if (d_conc_db->isDatabase("NewtonSolver")) {
-         newton_db = d_conc_db->getDatabase("NewtonSolver");
+         // Newton solver parameters to solve KKS equations
+         std::shared_ptr<tbox::Database> newton_db;
+         if (d_conc_db->isDatabase("NewtonSolver")) {
+            newton_db = d_conc_db->getDatabase("NewtonSolver");
+         }
+
+         d_phase_conc_strategy = PhaseConcentrationsStrategyFactory::create(
+             d_model_parameters, d_conc_l_id, d_conc_a_id, d_conc_b_id,
+             d_conc_l_ref_id, d_conc_a_ref_id, d_conc_b_ref_id,
+             d_partition_coeff_id, d_ncompositions, d_conc_db, newton_db);
       }
 
       d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
-
-      d_phase_conc_strategy = PhaseConcentrationsStrategyFactory::create(
-          d_model_parameters, d_conc_l_id, d_conc_a_id, d_conc_b_id,
-          d_conc_l_ref_id, d_conc_a_ref_id, d_conc_b_ref_id,
-          d_partition_coeff_id, d_ncompositions, d_conc_db, newton_db);
 
       // tbox::pout << "Initialize cl, ca, cb with c..." << std::endl;
       // math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
@@ -825,7 +828,7 @@ void QuatModel::InitializeIntegrator(void)
       d_integrator->setCompositionRHSStrategy(d_composition_rhs_strategy);
    }
    d_integrator->setFreeEnergyStrategy(d_free_energy_strategy);
-   if (d_model_parameters.with_concentration())
+   if (d_model_parameters.concentrationModelNeedsPhaseConcentrations())
       d_integrator->setPhaseConcentrationsStrategy(d_phase_conc_strategy);
    if (d_model_parameters.with_partition_coeff())
       d_integrator->setPartitionCoefficientStrategy(d_partition_coeff_strategy);
@@ -835,7 +838,7 @@ void QuatModel::InitializeIntegrator(void)
       d_integrator_quat_only->setQuatGradStrategy(d_quat_grad_strategy);
       d_integrator_quat_only->setMobilityStrategy(d_mobility_strategy);
       d_integrator_quat_only->setFreeEnergyStrategy(d_free_energy_strategy);
-      if (d_model_parameters.with_concentration())
+      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations())
          d_integrator_quat_only->setPhaseConcentrationsStrategy(
              d_phase_conc_strategy);
       d_integrator_quat_only->setTemperatureStrategy(
@@ -1273,17 +1276,9 @@ void QuatModel::registerConcentrationVariables(void)
    }
 
    d_model_parameters.checkValidityConcRHSstrategy();
+
    if (d_model_parameters.concRHSstrategyIsKKS() ||
-       d_model_parameters.concRHSstrategyIsBeckermann()) {
-      d_conc_phase_coupling_diffusion_var.reset(
-          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                         "conc_phase_coupling_diffusion"));
-      assert(d_conc_phase_coupling_diffusion_var);
-      d_conc_phase_coupling_diffusion_id =
-          variable_db->registerVariableAndContext(
-              d_conc_phase_coupling_diffusion_var, current,
-              hier::IntVector(tbox::Dimension(NDIM), 0));
-      assert(d_conc_phase_coupling_diffusion_id >= 0);
+       d_model_parameters.concRHSstrategyIsCahnHilliard()) {
       if (d_model_parameters.with_extra_visit_output()) {
          d_visit_conc_pfm_diffusion_var.reset(
              new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -1296,6 +1291,20 @@ void QuatModel::registerConcentrationVariables(void)
                  hier::IntVector(tbox::Dimension(NDIM), 0));
          assert(d_visit_conc_pfm_diffusion_id >= 0);
       }
+   }
+
+
+   if (d_model_parameters.concRHSstrategyIsKKS() ||
+       d_model_parameters.concRHSstrategyIsBeckermann()) {
+      d_conc_phase_coupling_diffusion_var.reset(
+          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                         "conc_phase_coupling_diffusion"));
+      assert(d_conc_phase_coupling_diffusion_var);
+      d_conc_phase_coupling_diffusion_id =
+          variable_db->registerVariableAndContext(
+              d_conc_phase_coupling_diffusion_var, current,
+              hier::IntVector(tbox::Dimension(NDIM), 0));
+      assert(d_conc_phase_coupling_diffusion_id >= 0);
    } else {
       {
          // "isotropic" stencil needs some ghost values for diffusion field
@@ -1972,9 +1981,9 @@ void QuatModel::RegisterWithVisit(void)
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_conc_id, n);
 
-         if (d_model_parameters.concentrationModelNeedsPhaseConcentrations() &&
-             d_model_parameters.with_extra_visit_output()) {
-            {
+         if (d_model_parameters.with_extra_visit_output()) {
+            if (d_model_parameters
+                    .concentrationModelNeedsPhaseConcentrations()) {
                assert(d_conc_l_id >= 0);
                assert(d_conc_a_id >= 0);
                std::string visit_namel("conc_l" + std::to_string(n));
@@ -1990,32 +1999,29 @@ void QuatModel::RegisterWithVisit(void)
                                                             "SCALAR",
                                                             d_conc_b_id, n);
                }
-
-               // diffusion
-               if (d_model_parameters.concRHSstrategyIsEBS()) {
-                  assert(d_visit_conc_pfm_diffusion_l_id >= 0);
-                  assert(d_visit_conc_pfm_diffusion_a_id >= 0);
-                  std::string vnamel("conc_pfm_diffusion_l" +
+            }
+            // diffusion
+            if (d_model_parameters.concRHSstrategyIsEBS()) {
+               assert(d_visit_conc_pfm_diffusion_l_id >= 0);
+               assert(d_visit_conc_pfm_diffusion_a_id >= 0);
+               std::string vnamel("conc_pfm_diffusion_l" + std::to_string(n));
+               d_visit_data_writer->registerPlotQuantity(
+                   vnamel, "SCALAR", d_visit_conc_pfm_diffusion_l_id, n);
+               std::string vnamea("conc_pfm_diffusion_a" + std::to_string(n));
+               d_visit_data_writer->registerPlotQuantity(
+                   vnamea, "SCALAR", d_visit_conc_pfm_diffusion_a_id, n);
+               if (d_model_parameters.withPhaseB()) {
+                  assert(d_conc_pfm_diffusion_b_id >= 0);
+                  std::string vnameb("conc_pfm_diffusion_b" +
                                      std::to_string(n));
                   d_visit_data_writer->registerPlotQuantity(
-                      vnamel, "SCALAR", d_visit_conc_pfm_diffusion_l_id, n);
-                  std::string vnamea("conc_pfm_diffusion_a" +
-                                     std::to_string(n));
-                  d_visit_data_writer->registerPlotQuantity(
-                      vnamea, "SCALAR", d_visit_conc_pfm_diffusion_a_id, n);
-                  if (d_model_parameters.withPhaseB()) {
-                     assert(d_conc_pfm_diffusion_b_id >= 0);
-                     std::string vnameb("conc_pfm_diffusion_b" +
-                                        std::to_string(n));
-                     d_visit_data_writer->registerPlotQuantity(
-                         vnameb, "SCALAR", d_visit_conc_pfm_diffusion_b_id, n);
-                  }
-               } else {
-                  assert(d_visit_conc_pfm_diffusion_id >= 0);
-                  std::string vnamel("conc_pfm_diffusion" + std::to_string(n));
-                  d_visit_data_writer->registerPlotQuantity(
-                      vnamel, "SCALAR", d_visit_conc_pfm_diffusion_id, n);
+                      vnameb, "SCALAR", d_visit_conc_pfm_diffusion_b_id, n);
                }
+            } else {
+               assert(d_visit_conc_pfm_diffusion_id >= 0);
+               std::string vnamel("conc_pfm_diffusion" + std::to_string(n));
+               d_visit_data_writer->registerPlotQuantity(
+                   vnamel, "SCALAR", d_visit_conc_pfm_diffusion_id, n);
             }
          }
       }
@@ -3177,20 +3183,20 @@ void QuatModel::AllocateLocalPatchData(
              !level->checkAllocated(d_conc_b_id))
             AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
                                                          time, zero_data);
-         if (d_model_parameters.with_extra_visit_output()) {
-            if (d_model_parameters.concRHSstrategyIsEBS()) {
+      }
+      if (d_model_parameters.with_extra_visit_output()) {
+         if (d_model_parameters.concRHSstrategyIsEBS()) {
+            AllocateAndZeroData<pdat::CellData<double> >(
+                d_visit_conc_pfm_diffusion_l_id, level, time, zero_data);
+            AllocateAndZeroData<pdat::CellData<double> >(
+                d_visit_conc_pfm_diffusion_a_id, level, time, zero_data);
+            if (d_model_parameters.withPhaseB())
                AllocateAndZeroData<pdat::CellData<double> >(
-                   d_visit_conc_pfm_diffusion_l_id, level, time, zero_data);
-               AllocateAndZeroData<pdat::CellData<double> >(
-                   d_visit_conc_pfm_diffusion_a_id, level, time, zero_data);
-               if (d_model_parameters.withPhaseB())
-                  AllocateAndZeroData<pdat::CellData<double> >(
-                      d_visit_conc_pfm_diffusion_b_id, level, time, zero_data);
-            } else {
-               assert(d_visit_conc_pfm_diffusion_id >= 0);
-               AllocateAndZeroData<pdat::CellData<double> >(
-                   d_visit_conc_pfm_diffusion_id, level, time, zero_data);
-            }
+                   d_visit_conc_pfm_diffusion_b_id, level, time, zero_data);
+         } else {
+            assert(d_visit_conc_pfm_diffusion_id >= 0);
+            AllocateAndZeroData<pdat::CellData<double> >(
+                d_visit_conc_pfm_diffusion_id, level, time, zero_data);
          }
       }
 
@@ -4874,8 +4880,6 @@ void QuatModel::evaluateEnergy(
    assert(d_weight_id != -1);
    if (d_model_parameters.with_visit_energy_output())
       assert(d_energy_diag_id != -1);
-   if (d_model_parameters.with_concentration())
-      assert(d_phase_conc_strategy != nullptr);
 
    total_energy = 0.;
    total_phase_e = 0.;
@@ -4910,9 +4914,12 @@ void QuatModel::evaluateEnergy(
          if (d_model_parameters.needGhosts4PartitionCoeff())
             fillPartitionCoeffGhosts();
       }
-      d_phase_conc_strategy->computePhaseConcentrations(
-          hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
-          d_eta_scratch_id, d_conc_scratch_id);
+      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
+         assert(d_phase_conc_strategy != nullptr);
+         d_phase_conc_strategy->computePhaseConcentrations(
+             hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
+             d_eta_scratch_id, d_conc_scratch_id);
+      }
    }
 
    if (d_free_energy_strategy) {

@@ -35,13 +35,21 @@ class QuatModelParameters
    enum class ConcModel {
       CALPHAD,
       QUADRATIC,
+      CahnHilliard,
       LINEAR,
       INDEPENDENT,  // energy does not depend on c
       KKSdilute,
       UNDEFINED
    };
 
-   enum class ConcRHSstrategy { KKS, EBS, SPINODAL, Beckermann, UNKNOWN };
+   enum class ConcRHSstrategy {
+      KKS,
+      EBS,
+      CahnHilliard,
+      SPINODAL,
+      Beckermann,
+      UNKNOWN
+   };
 
    enum class TemperatureType {
       CONSTANT,  // read from a file and left constant in time
@@ -54,6 +62,7 @@ class QuatModelParameters
    enum class ConcDiffusionType {
       TD,   // depends on T
       CTD,  // depends on C and T
+      MOB,  // mobility
       UNDEFINED
    };
 
@@ -293,7 +302,8 @@ class QuatModelParameters
    bool useUpwindScheme() const { return d_moving_frame_upwind; }
    int nghosts_required() const
    {
-      if (useEBS4thOrderStencil() || useUpwindScheme())
+      if (useEBS4thOrderStencil() || useUpwindScheme() ||
+          concRHSstrategyIsCahnHilliard())
          return 2;
       else
          return 1;
@@ -365,7 +375,8 @@ class QuatModelParameters
       assert(d_conc_rhs_strategy == ConcRHSstrategy::KKS ||
              d_conc_rhs_strategy == ConcRHSstrategy::EBS ||
              d_conc_rhs_strategy == ConcRHSstrategy::SPINODAL ||
-             d_conc_rhs_strategy == ConcRHSstrategy::Beckermann);
+             d_conc_rhs_strategy == ConcRHSstrategy::Beckermann ||
+             d_conc_rhs_strategy == ConcRHSstrategy::CahnHilliard);
    }
 
    bool needGhosts4PartitionCoeff() const
@@ -388,6 +399,10 @@ class QuatModelParameters
    bool concRHSstrategyIsBeckermann() const
    {
       return (d_conc_rhs_strategy == ConcRHSstrategy::Beckermann);
+   }
+   bool concRHSstrategyIsCahnHilliard() const
+   {
+      return (d_conc_rhs_strategy == ConcRHSstrategy::CahnHilliard);
    }
 
    bool conDiffusionStrategyIsCTD() const
@@ -475,6 +490,12 @@ class QuatModelParameters
    double rbMobility() const { return d_rb_mobility; }
    double rbThreshold() const { return d_rb_threshold; }
    double rbEquilGB() const { return d_rb_equil_gb; }
+
+   double CH_ca() { return d_CH_ca; }
+   double CH_cb() { return d_CH_cb; }
+   double CH_well_scale() { return d_CH_well_scale; }
+   double CH_kappa() { return d_CH_kappa; }
+   double CH_mobility() { return d_CH_mobility; }
 
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
@@ -691,7 +712,18 @@ class QuatModelParameters
    double d_rb_threshold;
    double d_rb_equil_gb;
 
+   /*!
+    * Cahn-Hillard
+    */
+   double d_CH_ca;
+   double d_CH_cb;
+   double d_CH_well_scale;
+   double d_CH_kappa;
+   double d_CH_mobility;
+
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
+
+   void readCahnHilliard(std::shared_ptr<tbox::Database> db);
 };
 
 #endif

@@ -1,0 +1,60 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+end_time            = 100000.
+max_delta_cycles    = 900000
+
+Visit {
+   interval = 25
+   interval_type = "step"
+   extra_output  = TRUE
+}
+
+ModelParameters {
+
+   temperature0 = 1000.
+
+   ConcentrationModel {
+      diffusion_type = "mobility"
+      model    = "cahn_hilliard"
+      rhs_form = "cahn_hilliard"
+      NewtonSolver {
+        max_its = 50
+      }
+      CahnHilliard {
+         ca = 0.3
+         cb = 0.7
+         well_scale = 5.
+         kappa = 2.
+         mobility = 5.
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 1.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-4
+}
+
+InitialConditions {
+   filename = "128x128.nc"  // required
+   init_t = 1000.
+}
+
+Geometry{
+   periodic_dimension = 1, 1
+   coarsest_level_resolution = 128, 128
+   x_lo         =  0.,   0.   // [um]
+   x_up         =  200., 200. // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}

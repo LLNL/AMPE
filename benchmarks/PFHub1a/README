@@ -1,0 +1,1 @@
+python3 ./make_initial.py --nx 128 --ny 128 --nz 1 128x128.nc
