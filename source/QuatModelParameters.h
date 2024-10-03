@@ -36,6 +36,7 @@ class QuatModelParameters
       CALPHAD,
       QUADRATIC,
       CahnHilliard,
+      WangSintering,
       LINEAR,
       INDEPENDENT,  // energy does not depend on c
       KKSdilute,
@@ -46,6 +47,7 @@ class QuatModelParameters
       KKS,
       EBS,
       CahnHilliard,
+      WangSintering,
       SPINODAL,
       Beckermann,
       UNKNOWN
@@ -353,6 +355,13 @@ class QuatModelParameters
       return (d_conc_model == ConcModel::KKSdilute);
    }
 
+   bool isConcentrationModelWangSintering() const
+   {
+      assert(d_conc_model != ConcModel::UNDEFINED);
+
+      return (d_conc_model == ConcModel::WangSintering);
+   }
+
    bool isTemperatureUniform() const
    {
       return (d_temperature_type == TemperatureType::SCALAR);
@@ -495,7 +504,9 @@ class QuatModelParameters
    double CH_cb() { return d_CH_cb; }
    double CH_well_scale() { return d_CH_well_scale; }
    double CH_kappa() { return d_CH_kappa; }
-   double CH_mobility() { return d_CH_mobility; }
+
+   double WangSintering_A() const { return d_WangSintering_A; }
+   double WangSintering_B() const { return d_WangSintering_B; }
 
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
@@ -719,11 +730,17 @@ class QuatModelParameters
    double d_CH_cb;
    double d_CH_well_scale;
    double d_CH_kappa;
-   double d_CH_mobility;
+
+   /*!
+    * Wang's sintering model (Acta Mat 2006)
+    */
+   double d_WangSintering_A;
+   double d_WangSintering_B;
 
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
 
    void readCahnHilliard(std::shared_ptr<tbox::Database> db);
+   void readWangSintering(std::shared_ptr<tbox::Database> db);
 };
 
 #endif

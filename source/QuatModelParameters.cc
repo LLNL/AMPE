@@ -191,6 +191,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       d_conc_model = ConcModel::KKSdilute;
    } else if (conc_model.compare("cahn_hilliard") == 0) {
       d_conc_model = ConcModel::CahnHilliard;
+   } else if (conc_model.compare("wang_sintering") == 0) {
+      d_conc_model = ConcModel::WangSintering;
    } else {
       tbox::plog << "conc_model = " << conc_model << std::endl;
       TBOX_ERROR("Error: unknown concentration model in QuatModelParameters");
@@ -377,6 +379,10 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       readDiluteAlloy(conc_db);
    }
 
+   if (d_conc_model == ConcModel::WangSintering) {
+      readWangSintering(conc_db);
+   }
+
    if (conc_db->keyExists("initc_in_phase")) {
       int nterms = conc_db->getArraySize("initc_in_phase");
       assert(nterms == 2 * d_ncompositions);
@@ -419,7 +425,14 @@ void QuatModelParameters::readCahnHilliard(std::shared_ptr<tbox::Database> db)
    d_CH_cb = ch_db->getDouble("cb");
    d_CH_well_scale = ch_db->getDouble("well_scale");
    d_CH_kappa = ch_db->getDouble("kappa");
-   d_CH_mobility = ch_db->getDouble("mobility");
+}
+
+void QuatModelParameters::readWangSintering(std::shared_ptr<tbox::Database> db)
+{
+   std::shared_ptr<tbox::Database> ws_db = db->getDatabase("WangSintering");
+
+   d_WangSintering_A = ws_db->getDouble("A");
+   d_WangSintering_B = ws_db->getDouble("B");
 }
 
 //=======================================================================

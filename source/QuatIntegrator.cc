@@ -39,6 +39,7 @@
 #include "KKSCompositionRHSStrategy.h"
 #include "GradientTemperatureStrategy.h"
 #include "MultiOrderRHSStrategy.h"
+#include "SinteringUWangRHSStrategy.h"
 
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -1974,12 +1975,19 @@ void QuatIntegrator::initialize(
           d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
    else if (d_model_parameters.norderp() > 1) {
       tbox::plog << "Use MultiOrderRHSStrategy..." << std::endl;
-      d_phase_rhs_strategy.reset(new MultiOrderRHSStrategy(
-          d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-          d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
-          d_phase_mobility_id, d_flux_id, d_sundials_solver,
-          d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
-   } else
+      if (d_model_parameters.isConcentrationModelWangSintering()) {
+         d_phase_rhs_strategy.reset(new SinteringUWangRHSStrategy(
+             d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+             d_temperature_scratch_id, d_phase_mobility_id, d_flux_id,
+             d_sundials_solver, d_grid_geometry, d_phase_flux_strategy));
+      } else {
+         d_phase_rhs_strategy.reset(new MultiOrderRHSStrategy(
+             d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+             d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
+             d_phase_mobility_id, d_flux_id, d_sundials_solver,
+             d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+      }
+   } else {
       d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
           d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
           d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id,
@@ -1987,6 +1995,7 @@ void QuatIntegrator::initialize(
           d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
           d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
           d_phase_flux_strategy));
+   }
 
    d_phase_rhs_strategy->setup(hierarchy);
 
@@ -2042,7 +2051,8 @@ void QuatIntegrator::updateDependentVariables(
     const std::shared_ptr<hier::VariableContext> src_context,
     const std::shared_ptr<hier::VariableContext> dst_context)
 {
-   // tbox::pout<<"QuatIntegrator::updateDependentVariables()..."<< std::endl;
+   // tbox::pout<<"QuatIntegrator::updateDependentVariables()..."<<
+   // std::endl;
    int finest_hiera_level = hierarchy->getFinestLevelNumber();
 
    for (int ln = 0; ln <= finest_hiera_level; ln++) {
@@ -2110,7 +2120,8 @@ double QuatIntegrator::Advance(
                        << "could not reach t_f" << std::endl;
             break;
          case -4:
-            tbox::pout << "The solver could not satisfy the accuracy demanded "
+            tbox::pout << "The solver could not satisfy the accuracy "
+                          "demanded "
                        << "by the user for some internal step" << std::endl;
             break;
          case -5:
@@ -2119,7 +2130,8 @@ double QuatIntegrator::Advance(
                        << "with |h| = hmin" << std::endl;
             break;
          case -6:
-            tbox::pout << "Convergence test failures occurred too many times "
+            tbox::pout << "Convergence test failures occurred too many "
+                          "times "
                        << "during one internal time step or occurred "
                        << "with |h| = hmin" << std::endl;
             break;
@@ -2175,7 +2187,8 @@ double QuatIntegrator::Advance(
    // Update the timestamp of the current solution
    updateSolutionTime(hierarchy, time);
 
-   // Coarsen updated data to have consistent data on all levels when regridding
+   // Coarsen updated data to have consistent data on all levels when
+   // regridding
    coarsenData(d_phase_id, d_eta_id, d_quat_id, d_conc_id, d_temperature_id,
                hierarchy);
 
@@ -2383,7 +2396,8 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
            d_composition_rhs_strategy);
    if (ebs_rhs) {
       ebs_rhs->setDiffusionCoeffForPreconditioner(hierarchy);
-      // set diffusion coefficients which is a function of the free energy form
+      // set diffusion coefficients which is a function of the free energy
+      // form
       assert(d_composition_diffusion_strategy);
       d_composition_diffusion_strategy->setDiffusion(hierarchy,
                                                      d_temperature_scratch_id,
@@ -2413,8 +2427,8 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
 // initial data that may not be smooth enough
 // grad q at side is later used by linear solver in denominator
 // of diffusion coefficient
-// Note: value for diffusion may be problem dependent and may need to be tuned
-// jlf
+// Note: value for diffusion may be problem dependent and may need to be
+// tuned jlf
 void QuatIntegrator::setUniformDiffusionCoeffForQuat(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
@@ -2526,7 +2540,8 @@ void QuatIntegrator::evaluateTemperatureRHS(
     std::shared_ptr<hier::PatchHierarchy> hierarchy, const int temperature_id,
     const int phase_rhs_id, const int temperature_rhs_id, const bool visit_flag)
 {
-   // tbox::pout << "QuatIntegrator::evaluateTemperatureRHS()..." << std::endl;
+   // tbox::pout << "QuatIntegrator::evaluateTemperatureRHS()..." <<
+   // std::endl;
    assert(temperature_id >= 0);
    assert(temperature_rhs_id >= 0);
    assert(d_temperature_rhs_strategy);
@@ -2969,7 +2984,8 @@ void QuatIntegrator::setCoefficients(
     double time, std::shared_ptr<solv::SAMRAIVectorReal<double> > y,
     const bool recompute_quat_sidegrad)
 {
-   // tbox::pout << "Entering QuatIntegrator::setCoefficients()" << std::endl;
+   // tbox::pout << "Entering QuatIntegrator::setCoefficients()" <<
+   // std::endl;
    t_set_coeff_timer->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -3110,8 +3126,9 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
 {
    if (d_with_unsteady_temperature) assert(d_temperature_sys_solver);
 
-   // tbox::pout << "Entering QuatIntegrator::evaluateRHSFunction" << std::endl;
-   // tbox::pout << "QuatIntegrator::evaluateRHSFunction with fd_flag="<<fd_flag
+   // tbox::pout << "Entering QuatIntegrator::evaluateRHSFunction" <<
+   // std::endl; tbox::pout << "QuatIntegrator::evaluateRHSFunction with
+   // fd_flag="<<fd_flag
    // << std::endl;
 
    t_rhs_timer->start();
@@ -3155,8 +3172,8 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
    /*
       If fd_flag != 0, the integrator is calling this function to compute a
       finite difference approximation of the system Jacobian. In this case,
-      if d_lag_quat_sidegrad is true, we lag the computation of the quaternion
-      side gradients.
+      if d_lag_quat_sidegrad is true, we lag the computation of the
+      quaternion side gradients.
    */
    const bool recompute_quat_sidegrad = (fd_flag == 0) || !d_lag_quat_sidegrad;
 
@@ -3409,7 +3426,8 @@ int QuatIntegrator::PhasePrecondSolve(
           d_phase_sys_solver->solveSystem(d_phase_sol_id, d_phase_rhs_id);
       if (converged) nconverged++;
 
-      // Copy solution from the local temporary to the output array (z_phase_id)
+      // Copy solution from the local temporary to the output array
+      // (z_phase_id)
       copyDepthCellData(hierarchy, z_phase_id, depth, d_phase_sol_id, 0);
    }
    int retcode = (nconverged == d_model_parameters.norderp()) ? 0 : 1;
@@ -3467,8 +3485,8 @@ int QuatIntegrator::TemperaturePrecondSolve(
       // Compute the product of DTDPhi block of the Jacobian with the
       // just computed phi correction
       // double norm_phase=cellops.L2Norm(d_phase_sol_id);
-      // tbox::pout << "Off-diagonal Preconditioner for temperature block, norm
-      // phase="<<norm_phase << std::endl;
+      // tbox::pout << "Off-diagonal Preconditioner for temperature block,
+      // norm phase="<<norm_phase << std::endl;
       d_phase_temperature_fac_ops->multiplyDTDPhiBlock(d_phase_sol_id,
                                                        d_temperature_rhs_id);
 
@@ -3763,7 +3781,8 @@ int QuatIntegrator::applyPhasePreconditioner(
 
       if (d_precond_has_dquatdphi || d_precond_has_dTdphi) {
 
-         // Copy the phase correction to an array with ghost cells and fill them
+         // Copy the phase correction to an array with ghost cells and fill
+         // them
          xfer::RefineAlgorithm copy_with_ghosts;
 
          copy_with_ghosts.registerRefine(
