@@ -80,9 +80,10 @@ class CompositionRHSStrategyFactory
              model_parameters.avg_func_type()));
       } else if (model_parameters.concRHSstrategyIsCahnHilliard()) {
          strategy.reset(new CahnHilliardDoubleWell(
-             conc_scratch_id, model_parameters.CH_mobility(),
-             model_parameters.CH_ca(), model_parameters.CH_cb(),
-             model_parameters.CH_kappa(), model_parameters.CH_well_scale(),
+             conc_scratch_id, temperature_scratch_id, conc_pfm_diffusion_id[0],
+             model_parameters.CH_mobility(), model_parameters.CH_ca(),
+             model_parameters.CH_cb(), model_parameters.CH_kappa(),
+             model_parameters.CH_well_scale(),
              model_parameters.avg_func_type()));
       } else {
          TBOX_ERROR("Error: unknown composition RHS Strategy");

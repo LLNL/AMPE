@@ -9,6 +9,56 @@ c
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
+c Coefficient d = d0*exp( -q0/(R*T) )
+c
+      subroutine diffusion_of_temperature(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   temp, ngtemp,
+     &   diff0, diff1, ngdiff,
+     &   d0, q0,
+     &   gas_constant_R)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngdiff, ngtemp
+      double precision d0, q0
+      double precision gas_constant_R
+c
+c variables in 2d cell indexed
+      double precision temp(CELL2d(ifirst,ilast,ngtemp))
+      double precision diff0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE2d1(ifirst,ilast,ngdiff))
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1
+c
+      q0_invR = q0 / gas_constant_R
+
+c factor 0.5 to take into account contributions from two cells to one side
+      d0a = 0.5d0*d0
+c
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0+1
+
+            dval = d0a * exp( -q0_invR / temp(ic0,ic1) )
+
+            diff0(ic0,ic1)   = diff0(ic0,ic1) + dval
+            diff0(ic0+1,ic1) = diff0(ic0+1,ic1) + dval
+            diff1(ic0,ic1)   = diff1(ic0,ic1) + dval
+            diff1(ic0,ic1+1) = diff1(ic0,ic1+1) + dval
+
+         enddo
+      enddo
+      return
+
+      end
+
+c
 c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
 c
       subroutine concentration_pfmdiffusion(

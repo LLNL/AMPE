@@ -22,25 +22,25 @@
 
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 
-CahnHilliardDoubleWell::CahnHilliardDoubleWell(const int conc_scratch_id,
-                                               const double mobility,
-                                               const double ca, const double cb,
-                                               const double kappa,
-                                               const double well_scale,
-                                               const std::string& avg_func_type)
+CahnHilliardDoubleWell::CahnHilliardDoubleWell(
+    const int conc_id, const int temperature_id, const int diffusion_id,
+    const double mobility, const double ca, const double cb, const double kappa,
+    const double well_scale, const std::string& avg_func_type)
     : CompositionRHSStrategy(avg_func_type),
-      d_conc_scratch_id(conc_scratch_id),
+      d_conc_id(conc_id),
+      d_temperature_id(temperature_id),
+      d_diffusion_id(diffusion_id),
       d_mobility(mobility),
       d_ca(ca),
       d_cb(cb),
       d_kappa(kappa),
       d_well_scale(well_scale)
 {
-   assert(conc_scratch_id >= 0);
+   assert(conc_id >= 0);
    assert(mobility > 0.);
-   assert(d_kappa> 0.);
-   assert(d_well_scale> 0.);
-   
+   assert(d_kappa > 0.);
+   assert(d_well_scale > 0.);
+
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_set_diffcoeff_timer =
        tman->getTimer("AMPE::CahnHilliardDoubleWell::setDiffusionCoeff()");
@@ -51,15 +51,63 @@ CahnHilliardDoubleWell::CahnHilliardDoubleWell(const int conc_scratch_id,
 void CahnHilliardDoubleWell::setDiffusionCoeff(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
 {
-   // mobility is a scalar value -> nothing to do
    (void)time;
+
+   assert(d_diffusion_id >= 0);
+   assert(hierarchy);
 
    t_set_diffcoeff_timer->start();
 
    // tbox::pout<<"QuatIntegrator::setDiffCoeffForConcentration"<<endl;
-   assert(hierarchy);
+   for (int amr_level = 0; amr_level < maxl; amr_level++) {
+      std::shared_ptr<hier::PatchLevel> level =
+          hierarchy->getPatchLevel(amr_level);
+
+      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
+           ++p) {
+         std::shared_ptr<hier::Patch> patch = *p;
+
+         const hier::Box& pbox = patch->getBox();
+         const hier::Index& ifirst = pbox.lower();
+         const hier::Index& ilast = pbox.upper();
+
+         std::shared_ptr<pdat::CellData<double> > temperature(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_temperature_id)));
+
+         std::shared_ptr<pdat::SideData<double> > diffusion(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(d_diffusion_id)));
+         assert(diffusion->getDepth() == 1);
+
+         diffusion->fillAll(0.);
+         addDiffusionCoeff(temperature, diffusion);
+      }
+   }
 
    t_set_diffcoeff_timer->stop();
+}
+
+//-----------------------------------------------------------------------
+
+void CahnHilliardDoubleWell::addDiffusionCoeff(
+    std::shared_ptr<pdat::CellData<double> > temperature,
+    std::shared_ptr<pdat::SideData<double> > diffusion, const hier::Box& pbox)
+{
+   const hier::Index& ifirst = pbox.lower();
+   const hier::Index& ilast = pbox.upper();
+
+   DIFFUSION_OF_TEMPERATURE(ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                            ifirst(2), ilast(2),
+#endif
+                            temperature->getPointer(),
+                            temperature->getGhostCellWidth()[0],
+                            diffusion->getPointer(0), diffusion->getPointer(1),
+#if (NDIM == 3)
+                            diffusion->getPointer(2),
+#endif
+                            d_d0, d_q0, gas_constant_R_JpKpmol);
 }
 
 //-----------------------------------------------------------------------
@@ -78,7 +126,7 @@ void CahnHilliardDoubleWell::computeFluxOnPatch(hier::Patch& patch,
 
    std::shared_ptr<pdat::CellData<double> > conc(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_scratch_id)));
+           patch.getPatchData(d_conc_id)));
    assert(conc);
    assert(conc->getGhostCellWidth()[0] > 1);
 

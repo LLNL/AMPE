@@ -13,6 +13,20 @@
 // Function argument list interfaces
 extern "C" {
 
+void DIFFUSION_OF_TEMPERATURE(const int& ifirst0, const int& ilast0,
+                              const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                              const int& ifirst2, const int& ilast2,
+#endif
+                              const double* temperature, const int& ng,
+                              const double* diff0, const double* diff1,
+#if (NDIM == 3)
+                              const double* diff2,
+#endif
+                              const int& ngdiff, const double& d0,
+                              const double& q0, const double& gas_constant_R);
+
+
 void CONCENTRATIONFLUX(const int& ifirst0, const int& ilast0,
                        const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)

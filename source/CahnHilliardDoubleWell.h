@@ -28,7 +28,8 @@
 class CahnHilliardDoubleWell : public CompositionRHSStrategy
 {
  public:
-   CahnHilliardDoubleWell(const int conc_scratch_id, const double mobility,
+   CahnHilliardDoubleWell(const int conc_id, const int temperature_id,
+                          const int diffusion_id, const double mobility,
                           const double ca, const double cb, const double kappa,
                           const double well_scale,
                           const std::string& avg_func_type);
@@ -40,13 +41,30 @@ class CahnHilliardDoubleWell : public CompositionRHSStrategy
                           const double time);
 
  private:
-   int d_conc_scratch_id;
+   const int d_conc_id;
+   const int d_temperature_id;
 
-   double d_mobility;
-   double d_ca;
-   double d_cb;
-   double d_kappa;
-   double d_well_scale;
+   /*!
+    * pre-computed diffusion coeffient
+    */
+   const int d_diffusion_id;
+
+   /*!
+    * coefficients of D = D0*exp(-Q0/RT)
+    */
+   const double d_d0;
+   const double d_q0;
+
+   const double d_mobility;
+   const double d_ca;
+   const double d_cb;
+   const double d_kappa;
+   const double d_well_scale;
+
+   void addDiffusionCoeff(std::shared_ptr<pdat::CellData<double> > temperature,
+                          std::shared_ptr<pdat::SideData<double> > diffusion,
+                          const hier::Box& pbox);
+
 
    // Timers
    std::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
