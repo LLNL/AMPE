@@ -304,8 +304,7 @@ class QuatModelParameters
    bool useUpwindScheme() const { return d_moving_frame_upwind; }
    int nghosts_required() const
    {
-      if (useEBS4thOrderStencil() || useUpwindScheme() ||
-          concRHSstrategyIsCahnHilliard())
+      if (useEBS4thOrderStencil() || useUpwindScheme() || concRHSneeds2Ghosts())
          return 2;
       else
          return 1;
@@ -385,6 +384,7 @@ class QuatModelParameters
              d_conc_rhs_strategy == ConcRHSstrategy::EBS ||
              d_conc_rhs_strategy == ConcRHSstrategy::SPINODAL ||
              d_conc_rhs_strategy == ConcRHSstrategy::Beckermann ||
+             d_conc_rhs_strategy == ConcRHSstrategy::WangSintering ||
              d_conc_rhs_strategy == ConcRHSstrategy::CahnHilliard);
    }
 
@@ -412,6 +412,15 @@ class QuatModelParameters
    bool concRHSstrategyIsCahnHilliard() const
    {
       return (d_conc_rhs_strategy == ConcRHSstrategy::CahnHilliard);
+   }
+   bool concRHSstrategyIsWangSintering() const
+   {
+      return (d_conc_rhs_strategy == ConcRHSstrategy::WangSintering);
+   }
+   bool concRHSneeds2Ghosts() const
+   {
+      return (d_conc_rhs_strategy == ConcRHSstrategy::CahnHilliard ||
+              d_conc_rhs_strategy == ConcRHSstrategy::WangSintering);
    }
 
    bool conDiffusionStrategyIsCTD() const
@@ -507,6 +516,7 @@ class QuatModelParameters
 
    double WangSintering_A() const { return d_WangSintering_A; }
    double WangSintering_B() const { return d_WangSintering_B; }
+   double WangSintering_beta_rho() const { return d_WangSintering_beta_rho; }
 
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
@@ -736,6 +746,7 @@ class QuatModelParameters
     */
    double d_WangSintering_A;
    double d_WangSintering_B;
+   double d_WangSintering_beta_rho;
 
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
 

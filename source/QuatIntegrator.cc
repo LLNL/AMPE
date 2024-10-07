@@ -40,6 +40,7 @@
 #include "GradientTemperatureStrategy.h"
 #include "MultiOrderRHSStrategy.h"
 #include "SinteringUWangRHSStrategy.h"
+#include "WangSinteringCompositionRHSStrategy.h"
 
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -907,7 +908,7 @@ void QuatIntegrator::RegisterVariables(
    if (d_with_concentration) {
       d_flux_conc_var.reset(new pdat::SideVariable<double>(
           tbox::Dimension(NDIM), d_name + "_QUI_conc_flux_", d_ncompositions));
-      int nghosts = d_model_parameters.concRHSstrategyIsCahnHilliard() ? 1 : 0;
+      int nghosts = d_model_parameters.concRHSneeds2Ghosts() ? 1 : 0;
       d_flux_conc_id = variable_db->registerVariableAndContext(
           d_flux_conc_var, d_current,
           hier::IntVector(tbox::Dimension(NDIM), nghosts));
@@ -2411,6 +2412,13 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
       kks_rhs->setDiffusionCoeff(hierarchy, time);
    }
 
+   std::shared_ptr<WangSinteringCompositionRHSStrategy> ws_rhs =
+       std::dynamic_pointer_cast<WangSinteringCompositionRHSStrategy>(
+           d_composition_rhs_strategy);
+   if (ws_rhs) {
+      ws_rhs->setDiffusionCoeff(hierarchy, time);
+   }
+
    for (int amr_level = hierarchy->getFinestLevelNumber() - 1; amr_level >= 0;
         amr_level--) {
       d_conc_diffusion_coarsen_schedule[amr_level]->coarsenData();
@@ -2516,7 +2524,8 @@ void QuatIntegrator::evaluatePhaseRHS(
       d_movingframe_phi->addRHS(hierarchy, phase_rhs_id, d_frame_velocity);
    }
 
-   if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
+   if (d_model_parameters.with_rhs_visit_output() && eval_flag &&
+       d_free_energy_strategy) {
       assert(d_driving_force_visit_id >= 0);
       // recompute driving force just for visualization
       d_free_energy_strategy->computeDrivingForce(

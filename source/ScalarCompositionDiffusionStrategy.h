@@ -18,6 +18,10 @@
 
 #include <cstring>
 
+/*!
+ * Class to set composition diffusion coefficient to a scalar field that depends
+ * on local phase and temperature
+ */
 class ScalarCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 {
  public:
@@ -36,7 +40,7 @@ class ScalarCompositionDiffusionStrategy : public CompositionDiffusionStrategy
     */
    virtual void setDiffusion(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int phase_id);
+       const int temperature_id, const int phase_id) override;
 
  private:
    const short d_norderp;

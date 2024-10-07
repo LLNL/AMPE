@@ -53,22 +53,24 @@ void ADD_CAHNHILLIARDDOUBLEWELL_FLUX(const int& ifirst0, const int& ilast0,
 #endif
                                      const int& ngflux);
 
-void ADD_WANG_SINTERING_FLUX(const int& ifirst0, const int& ilast0,
-                             const int& ifirst1, const int& ilast1,
+void ADD_WANG_SINTERING_FLUX(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
 #if (NDIM == 3)
-                             const int& ifirst2, const int& ilast2,
+    const int& ifirst2, const int& ilast2,
 #endif
-                             const double* dx, const double* conc,
-                             const int& ngconc, const double* phi,
-                             const int& ngphi, const int& norder,
-                             const double& mobility, const double& a,
-                             const double& b, const double& kappa,
-                             const double* flux0, const double* flux1,
+    const double* dx, const double* conc, const int& ngconc,
+    const double* diffconc0, const double* diffconc1,
 #if (NDIM == 3)
-                             const double* flux2,
+    const double* diffconc2,
 #endif
-                             const int& ngflux, const double* tmp1,
-                             const double* tmp2);
+    const int& ngdiffconc, const double* phi, const int& ngphi,
+    const int& norder, const double& mobility, const double& a, const double& b,
+    const double& kappa, const double* flux0, const double* flux1,
+#if (NDIM == 3)
+    const double* flux2,
+#endif
+    const int& ngflux, const double* tmp1, const double* tmp2);
 
 void ADDCONCENTRATIONFLUXFROMGRADT(const int& ifirst0, const int& ilast0,
                                    const int& ifirst1, const int& ilast1,

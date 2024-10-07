@@ -26,6 +26,7 @@ SinteringUWangRHSStrategy::SinteringUWangRHSStrategy(
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
     : d_model_parameters(model_parameters),
+      d_beta(model_parameters.epsilon_phase()),
       d_B(model_parameters.WangSintering_B()),
       d_phase_id(phase_id),
       d_conc_id(conc_id),
@@ -137,7 +138,7 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
                                             const int ydot_phase_id,
                                             const bool eval_flag)
 {
-   // tbox::plog<<"SinteringUWangRHSStrategy::evaluateRHS()..."<<std::endl;
+   tbox::plog << "SinteringUWangRHSStrategy::evaluateRHS()..." << std::endl;
    math::PatchCellDataOpsReal<double> mathops;
 
    const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
@@ -184,8 +185,8 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
    std::vector<double> tmp(pbox.size());
 
    assert(phase_flux->getDepth() == phase_flux->getDepth());
-   assert(d_gamma > 0.);
-   assert(d_m > 0.);
+   assert(d_beta > 0.);
+   assert(d_B > 0.);
    COMPUTERHS_WANG_SINTERING(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                              ifirst(2), ilast(2),
@@ -195,7 +196,7 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
 #if (NDIM == 3)
                              phase_flux->getPointer(2),
 #endif
-                             phase_flux->getGhostCellWidth()[0], d_B,
+                             phase_flux->getGhostCellWidth()[0], d_beta, d_B,
                              phase->getPointer(), phase->getGhostCellWidth()[0],
                              conc->getPointer(), conc->getGhostCellWidth()[0],
                              tmp.data(), phase_rhs->getPointer(),
@@ -216,6 +217,10 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(d_phase_mobility_id)));
    assert(phase_mobility);
+#ifndef NDEBUG
+   l2rhs = opc.L1Norm(phase_mobility, pbox);
+   assert(!std::isnan(l2rhs));
+#endif
 
    // multiply by mobility
    assert(phase_mobility->getDepth() == 1);

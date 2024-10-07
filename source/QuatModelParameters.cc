@@ -201,30 +201,35 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    {
       std::string conc_rhs_strategy =
           conc_db->getStringWithDefault("rhs_form", "kks");
-      if (conc_rhs_strategy.compare("kks") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::KKS;
-      } else if (conc_rhs_strategy.compare("ebs") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::EBS;
-         // stencil type can be regular, isotropic, or order4
-         d_ebs_stencil_type =
-             conc_db->getStringWithDefault("ebs_stencil", "regular");
-         if (d_ebs_stencil_type != "regular" &&
-             d_ebs_stencil_type != "isotropic" &&
-             d_ebs_stencil_type != "order4") {
-            tbox::plog << "EBS stencil: " << d_ebs_stencil_type << std::endl;
-            TBOX_ERROR("Error: unknown stencil type for EBS");
-         }
-      } else if (conc_rhs_strategy.compare("cahn_hilliard") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::CahnHilliard;
-         readCahnHilliard(conc_db);
-      } else if (conc_rhs_strategy.compare("spinodal") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
-      } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||
-                 conc_rhs_strategy[0] == 'b') {
-         tbox::plog << "Using Beckermann's model" << std::endl;
-         d_conc_rhs_strategy = ConcRHSstrategy::Beckermann;
+      if (d_conc_model == ConcModel::WangSintering) {
+         d_conc_rhs_strategy = ConcRHSstrategy::WangSintering;
       } else {
-         TBOX_ERROR("Error: unknown concentration r.h.s. strategy");
+         if (conc_rhs_strategy.compare("kks") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::KKS;
+         } else if (conc_rhs_strategy.compare("ebs") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::EBS;
+            // stencil type can be regular, isotropic, or order4
+            d_ebs_stencil_type =
+                conc_db->getStringWithDefault("ebs_stencil", "regular");
+            if (d_ebs_stencil_type != "regular" &&
+                d_ebs_stencil_type != "isotropic" &&
+                d_ebs_stencil_type != "order4") {
+               tbox::plog << "EBS stencil: " << d_ebs_stencil_type << std::endl;
+               TBOX_ERROR("Error: unknown stencil type for EBS");
+            }
+         } else if (conc_rhs_strategy.compare("cahn_hilliard") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::CahnHilliard;
+            readCahnHilliard(conc_db);
+         } else if (conc_rhs_strategy.compare("spinodal") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
+         } else if (conc_rhs_strategy[0] == 'u' ||
+                    conc_rhs_strategy[0] == 'B' ||
+                    conc_rhs_strategy[0] == 'b') {
+            tbox::plog << "Using Beckermann's model" << std::endl;
+            d_conc_rhs_strategy = ConcRHSstrategy::Beckermann;
+         } else {
+            TBOX_ERROR("Error: unknown concentration r.h.s. strategy");
+         }
       }
    }
 
@@ -433,6 +438,7 @@ void QuatModelParameters::readWangSintering(std::shared_ptr<tbox::Database> db)
 
    d_WangSintering_A = ws_db->getDouble("A");
    d_WangSintering_B = ws_db->getDouble("B");
+   d_WangSintering_beta_rho = ws_db->getDouble("beta");
 }
 
 //=======================================================================

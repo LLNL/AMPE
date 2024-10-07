@@ -14,6 +14,7 @@
 
 #include "CompositionRHSStrategy.h"
 #include "InterpolationType.h"
+#include "CompositionDiffusionStrategy.h"
 
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -28,12 +29,13 @@
 class WangSinteringCompositionRHSStrategy : public CompositionRHSStrategy
 {
  public:
-   WangSinteringCompositionRHSStrategy(const int conc_id, const int phase_id,
-                                       const double mobility,
-                                       const double parameter_a,
-                                       const double parameter_b,
-                                       const double kappa,
-                                       const std::string& avg_func_type);
+   WangSinteringCompositionRHSStrategy(
+       const int conc_id, const int phase_id, const int temperature_id,
+       const int diffusion_id, const double mobility, const double parameter_a,
+       const double parameter_b, const double beta_rho,
+       const std::string& avg_func_type,
+       std::shared_ptr<CompositionDiffusionStrategy>
+           diffusion_for_conc_in_phase);
 
    ~WangSinteringCompositionRHSStrategy(){};
 
@@ -42,13 +44,26 @@ class WangSinteringCompositionRHSStrategy : public CompositionRHSStrategy
                           const double time);
 
  private:
-   int d_conc_id;
-   int d_phase_id;
+   const int d_conc_id;
+   const int d_phase_id;
+   const int d_temperature_id;
 
-   double d_mobility;
-   double d_A;
-   double d_B;
-   double d_kappa;
+   /*
+    * diffusion field
+    */
+   const int d_diffusion_id;
+
+   /*!
+    * Model parameters
+    */
+   const double d_mobility;
+   const double d_A;
+   const double d_B;
+   const double d_beta_rho;
+
+   bool d_dcoeff_set;
+
+   std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
 
    // Timers
    std::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;

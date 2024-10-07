@@ -148,7 +148,7 @@ void COMPUTERHS_WANG_SINTERING(const int& ifirst0, const int& ilast0,
 #if (NDIM == 3)
                                const double* phase_flux2,
 #endif
-                               const int& ngphaseflux,
+                               const int& ngphaseflux, const double& beta,
                                const double& parameter_b, const double* phi,
                                const int& ngphi, const double* conc,
                                const int& ngconc, double* tmp, double* rhs,

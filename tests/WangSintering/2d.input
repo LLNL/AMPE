@@ -1,0 +1,77 @@
+//
+// From Wang 2006 Acta Mat.
+//
+end_time            = 100.
+max_delta_cycles    = 500
+
+Visit {
+   interval = 1
+   interval_type = "step"
+   extra_output = TRUE
+   rhs_output = TRUE
+}
+
+ModelParameters {
+
+   norderp = 2
+
+   norderp_A = 2
+
+   phi_mobility = 10.
+   epsilon_phi = 1.
+
+   temperature0 = 1000.
+
+   ConcentrationModel {
+      diffusion_type = "temperature_dependent"
+      model    = "wang_sintering"
+      rhs_form = "wang_sintering"
+      mobility = 5.
+      WangSintering {
+         A = 16.
+         B = 1.
+         beta = 10.
+      }
+      D_solid_A = 0.01 
+      D_liquid  = 0.001
+      D0_LA     = 4.
+      D0_AA     = 0.4
+   }
+
+   RigidBody{
+      stiffness = 100.
+      threshold = 0.14
+      equil_gb = 0.9816
+      // mobilities of grains
+      mobility = 500.
+   }
+}
+
+ScalarDiagnostics {
+   interval = 10.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-4
+   Preconditioner{
+     enabled = FALSE
+   }
+}
+
+InitialConditions {
+   filename = "2spheres.nc"  // required
+   init_t = 1000.
+}
+
+Geometry{
+   periodic_dimension = 1, 1
+   coarsest_level_resolution = 120, 200
+   x_lo         =  0.,   0.   // [um]
+   x_up         =  120., 200. // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}

@@ -32,7 +32,7 @@ class CompositionDiffusionStrategyFactory
       std::shared_ptr<CompositionDiffusionStrategy> strategy;
 
       if (model_parameters.conDiffusionStrategyIsCTD()) {
-         tbox::pout << "Uses composition dependent diffusion" << std::endl;
+         tbox::plog << "Uses composition dependent diffusion" << std::endl;
          strategy.reset(new MobilityCompositionDiffusionStrategy(
              ncompositions, conc_l_scratch_id, conc_a_scratch_id,
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
@@ -45,7 +45,7 @@ class CompositionDiffusionStrategyFactory
          // included in computation and d_conc_diffusion_coeff_*_id
          // are not set
          //
-         tbox::pout << "Uses temperature based composition diffusion"
+         tbox::plog << "Uses temperature based composition diffusion"
                     << std::endl;
 
          const bool three_phases_model = model_parameters.with_three_phases();
@@ -69,6 +69,8 @@ class CompositionDiffusionStrategyFactory
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
       } else {
+         tbox::plog << "Uses temperature based composition for scalar diffusion"
+                    << std::endl;
          const bool three_phases_model = model_parameters.with_three_phases();
          const short norderpA =
              three_phases_model ? 1 : model_parameters.norderpA();

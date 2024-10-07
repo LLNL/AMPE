@@ -82,16 +82,18 @@ class CompositionRHSStrategyFactory
       } else if (model_parameters.concRHSstrategyIsCahnHilliard()) {
          // use mobility = 1. since multiplied by mobility outside
          strategy.reset(new CahnHilliardDoubleWell(
-             conc_scratch_id, 1.,
-             model_parameters.CH_ca(), model_parameters.CH_cb(),
-             model_parameters.CH_kappa(), model_parameters.CH_well_scale(),
+             conc_scratch_id, 1., model_parameters.CH_ca(),
+             model_parameters.CH_cb(), model_parameters.CH_kappa(),
+             model_parameters.CH_well_scale(),
              model_parameters.avg_func_type()));
       } else if (model_parameters.isConcentrationModelWangSintering()) {
          strategy.reset(new WangSinteringCompositionRHSStrategy(
-             conc_scratch_id, phase_scratch_id, model_parameters.conc_mobility(),
+             conc_scratch_id, phase_scratch_id, temperature_scratch_id,
+             conc_pfm_diffusion_id[0], model_parameters.conc_mobility(),
              model_parameters.WangSintering_A(),
-             model_parameters.WangSintering_B(), model_parameters.CH_kappa(),
-             model_parameters.avg_func_type()));
+             model_parameters.WangSintering_B(),
+             model_parameters.WangSintering_beta_rho(),
+             model_parameters.avg_func_type(), diffusion_for_conc_in_phase));
       } else {
          TBOX_ERROR("Error: unknown composition RHS Strategy");
       }
