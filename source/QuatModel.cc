@@ -610,10 +610,13 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
       int temperature_id =
           d_model_parameters.isTemperatureConstant() ? d_temperature_id : -1;
       int qlen = (d_model_parameters.H_parameter() >= 0.) ? d_qlen : 0;
-      int nphases = d_model_parameters.norderp();
+      int norderp_to_read =
+          d_model_parameters.with_three_phases()
+              ? 3
+              : d_model_parameters.norderpA() + d_model_parameters.norderpB();
       initializer.registerFieldsIds(d_phase_id, d_eta_id, temperature_id,
                                     d_quat_id, qlen, d_conc_id, d_ncompositions,
-                                    nphases);
+                                    norderp_to_read);
 
       if (!d_init_c.empty()) initializer.setCvalue(d_init_c);
       if (!d_init_q.empty()) initializer.setQvalue(d_init_q);
@@ -2707,7 +2710,8 @@ double QuatModel::computeDensityDiagnostics(void)
    assert(d_work_id != -1);
 
    // compute volume fraction of porosity
-   const int depth_void = d_model_parameters.norderp() - 1;
+   const int depth_void =
+       d_model_parameters.norderpA() + d_model_parameters.norderpB();
 
    math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
 

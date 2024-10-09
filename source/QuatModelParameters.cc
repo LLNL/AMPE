@@ -777,15 +777,19 @@ void QuatModelParameters::initializeEta(
 void QuatModelParameters::readModelParameters(
     std::shared_ptr<tbox::Database> model_db)
 {
+   d_with_three_phases = model_db->getBoolWithDefault("three_phases", false);
+
    // unless otherwise specifies, we use one order parameter
    // phi, and define second phase as 1.-phi
    d_norderp = model_db->getIntegerWithDefault("norderp", 1);
    tbox::plog << "norderp = " << d_norderp << std::endl;
 
-   d_norderp_A = model_db->getIntegerWithDefault("norderp_A", -1);
+   const int def_norderp_A = (d_norderp == 1) ? 1 : d_norderp - 1;
+   d_norderp_A = model_db->getIntegerWithDefault("norderp_A", def_norderp_A);
    if (d_norderp_A > 0) {
       tbox::plog << "norderp_A = " << d_norderp_A << std::endl;
       d_norderp_B = d_norderp - d_norderp_A - 1;
+      if (d_norderp_B < 0) d_norderp_B = 0;
       tbox::plog << "norderp_B = " << d_norderp_B << std::endl;
    }
 
@@ -1014,8 +1018,6 @@ void QuatModelParameters::readModelParameters(
    d_use_diffs_to_compute_flux =
        model_db->getBoolWithDefault("use_diffs_to_compute_flux", false);
    d_stencil_type = model_db->getStringWithDefault("stencil_type", "normal");
-
-   d_with_three_phases = model_db->getBoolWithDefault("three_phases", false);
 
    if (model_db->keyExists("MovingFrame")) {
       std::shared_ptr<tbox::Database> db(model_db->getDatabase("MovingFrame"));
