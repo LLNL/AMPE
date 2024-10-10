@@ -82,7 +82,7 @@ class QuatModelParameters
    int norderpB() const { return d_norderp_B; }
 
    bool withPhaseB() const { return (with_three_phases() || d_norderp_B > 0); }
-   bool withMultipleOrderP() const { return (d_norderp_A > -1); }
+   bool withMultipleOrderP() const { return (d_norderp > 1); }
 
    double H_parameter() const { return d_H_parameter; }
    bool with_orientation() const { return (d_H_parameter >= 0.); }

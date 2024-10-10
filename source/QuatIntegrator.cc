@@ -2471,7 +2471,9 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    if (d_model_parameters.withRBmotion()) {
       d_rb_forces.clear();
-      for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
+      const int nop =
+          d_model_parameters.norderpA() + d_model_parameters.norderpB();
+      for (int i = 0; i < nop; i++) {
          std::array<double, NDIM> f;
          // external force is the same on all grains
          d_model_parameters.rbExternalForce(f);
@@ -2482,7 +2484,7 @@ void QuatIntegrator::evaluatePhaseRHS(
       d_rigid_body_forces->evaluatePairForces(hierarchy);
       for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
          // sum up forces contributions from all other particles
-         for (int j = 0; j < d_model_parameters.norderp() - 1; j++) {
+         for (int j = 0; j < nop; j++) {
             if (j != i) {
                std::array<double, NDIM> f;
                d_rigid_body_forces->getPairForce(i, j, f);

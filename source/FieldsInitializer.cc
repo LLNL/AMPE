@@ -161,7 +161,7 @@ void FieldsInitializer::initializeLevelFromData(
             // add phase id to name
             o << i;
             ncPhase[i] = ncf->getVar(o.str());
-            if (ncPhase[i].isNull() && (i == 0 || i < (d_nphases - 1)))
+            if (ncPhase[i].isNull() && (i == 0 || i < d_nphases))
                TBOX_ERROR("Could not read variable "
                           << o.str() << " from input data" << std::endl);
          }
@@ -411,8 +411,8 @@ void FieldsInitializer::initializeLevelFromData(
                  patch->getPatchData(d_phase_id)));
          assert(phase_data);
 
-         const int max_depth = d_nphases > 1 ? d_nphases - 1 : d_nphases;
-         for (int depth = 0; depth < max_depth; depth++) {
+         for (int depth = 0; depth < d_nphases; depth++) {
+            tbox::plog << "Read order parameter " << depth << std::endl;
 #ifdef HAVE_NETCDF3
             ncPhase->set_cur(z_lower, y_lower, x_lower);
             if (!ncPhase->get(vals, nz, ny, nx)) {
@@ -439,17 +439,20 @@ void FieldsInitializer::initializeLevelFromData(
                (*phase_data)(ccell, depth) = vals[idx];
             }
          }
-         // if number of order parameters > 1, set value of last one as
+         // if number of order parameters > d_nphases, set value of last one as
          // 1. - sum of others
-         if (d_nphases > 1) {
+         if (phase_data->getDepth() > d_nphases) {
+            tbox::plog << "Set value of last order parameter to 1 minus sum of "
+                          "the others"
+                       << std::endl;
             pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
             for (pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
                  i != iend; ++i) {
                const pdat::CellIndex ccell = *i;
                double val = 0.;
-               for (int depth = 0; depth < d_nphases - 1; depth++)
+               for (int depth = 0; depth < d_nphases; depth++)
                   val += (*phase_data)(ccell, depth);
-               (*phase_data)(ccell, d_nphases - 1) = 1. - val;
+               (*phase_data)(ccell, d_nphases) = 1. - val;
             }
          }
       }
