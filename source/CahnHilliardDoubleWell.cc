@@ -38,9 +38,9 @@ CahnHilliardDoubleWell::CahnHilliardDoubleWell(const int conc_scratch_id,
 {
    assert(conc_scratch_id >= 0);
    assert(mobility > 0.);
-   assert(d_kappa> 0.);
-   assert(d_well_scale> 0.);
-   
+   assert(d_kappa > 0.);
+   assert(d_well_scale > 0.);
+
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_set_diffcoeff_timer =
        tman->getTimer("AMPE::CahnHilliardDoubleWell::setDiffusionCoeff()");
