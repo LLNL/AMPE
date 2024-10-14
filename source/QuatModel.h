@@ -289,11 +289,6 @@ class QuatModel : public PFModel
    void DeallocateIntermediateLocalPatchData(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   void registerPhaseConcentrationVariables(
-       std::shared_ptr<pdat::CellVariable<double> > conc_l_var,
-       std::shared_ptr<pdat::CellVariable<double> > conc_a_var,
-       std::shared_ptr<pdat::CellVariable<double> > conc_b_var);
-
    double computeThermalEnergy(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
@@ -301,6 +296,9 @@ class QuatModel : public PFModel
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
  private:
+   void setAuxilliaryCompositions();
+   void registerPhaseConcentrationDiffusionVariables();
+
    void setIntegratorModelParameters();
 
    void copyCurrentToScratch(

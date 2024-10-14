@@ -28,6 +28,9 @@ subprocess.call(["python3", "../../utils/make_multi_spheres.py",
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
 
+os.remove(initfilename)
+os.unlink(data)
+
 #analyse AMPE standard output
 lines=output.split(b'\n')
 volfractions=[]
@@ -64,10 +67,6 @@ expected_value=0.040
 if abs(minv-expected_value)>0.001:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)
-
-
-os.remove(initfilename)
-os.unlink(data)
 
 if end_reached:
   sys.exit(0)
