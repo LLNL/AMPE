@@ -29,6 +29,9 @@ subprocess.call(["python3", "../../utils/make_multi_spheres.py",
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
 
+os.remove(initfilename)
+os.remove(data)
+
 input_file=open(inp,'r')
 lines=input_file.readlines()
 
@@ -69,7 +72,4 @@ if time<target_time:
   print("Target time {} not reached!".format(target_time))
   sys.exit(1)
 
-os.remove(initfilename)
-
 sys.exit(0)
-

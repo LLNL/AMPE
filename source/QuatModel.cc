@@ -639,66 +639,9 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
          d_tag_buffer_array[ll] = 1;
       }
 
-      int depth = 0;
-      for (auto& init_cl : d_init_cl) {
-         std::cout << "Set cl to " << init_cl << std::endl;
-         for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0;
-              --ln) {
-            std::shared_ptr<hier::PatchLevel> level =
-                d_patch_hierarchy->getPatchLevel(ln);
-            for (hier::PatchLevel::Iterator ip(level->begin());
-                 ip != level->end(); ++ip) {
-               std::shared_ptr<hier::Patch> patch = *ip;
-               std::shared_ptr<pdat::CellData<double> > cl(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_conc_l_id)));
-               assert(cl);
-               cl->fill(init_cl, depth);
-            }
-         }
-         depth++;
-      }
-      depth = 0;
-      for (auto& init_ca : d_init_ca) {
-         std::cout << "Set ca to " << init_ca << std::endl;
-         for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0;
-              --ln) {
-            std::shared_ptr<hier::PatchLevel> level =
-                d_patch_hierarchy->getPatchLevel(ln);
-            for (hier::PatchLevel::Iterator ip(level->begin());
-                 ip != level->end(); ++ip) {
-               std::shared_ptr<hier::Patch> patch = *ip;
-               std::shared_ptr<pdat::CellData<double> > ca(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_conc_a_id)));
-               assert(ca);
-               ca->fill(init_ca, depth);
-            }
-         }
-         depth++;
-      }
-      depth = 0;
-      for (auto& init_cb : d_init_cb) {
-         std::cout << "Set cb to " << init_cb << std::endl;
-         for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0;
-              --ln) {
-            std::shared_ptr<hier::PatchLevel> level =
-                d_patch_hierarchy->getPatchLevel(ln);
-            for (hier::PatchLevel::Iterator ip(level->begin());
-                 ip != level->end(); ++ip) {
-               std::shared_ptr<hier::Patch> patch = *ip;
-               std::shared_ptr<pdat::CellData<double> > cb(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_conc_b_id)));
-               assert(cb);
-               cb->fill(init_cb, depth);
-            }
-         }
-         depth++;
-      }
+      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations())
+         setAuxilliaryCompositions();
+
    } else {  // restart case
 
       const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
@@ -799,6 +742,69 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
       tbox::plog << "Set reference cb to " << cBref << std::endl;
       cellops.setToScalar(d_conc_b_ref_id, cBref, false);
       cellops.setToScalar(d_conc_b_id, cBref);
+   }
+}
+
+//=======================================================================
+
+void QuatModel::setAuxilliaryCompositions()
+{
+   assert(d_conc_l_id >= 0);
+   assert(d_conc_a_id >= 0);
+
+   int depth = 0;
+   for (auto& init_cl : d_init_cl) {
+      std::cout << "Set cl to " << init_cl << std::endl;
+      for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
+         std::shared_ptr<hier::PatchLevel> level =
+             d_patch_hierarchy->getPatchLevel(ln);
+         for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+              ++ip) {
+            std::shared_ptr<hier::Patch> patch = *ip;
+            std::shared_ptr<pdat::CellData<double> > cl(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_conc_l_id)));
+            assert(cl);
+            cl->fill(init_cl, depth);
+         }
+      }
+      depth++;
+   }
+   depth = 0;
+   for (auto& init_ca : d_init_ca) {
+      std::cout << "Set ca to " << init_ca << std::endl;
+      for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
+         std::shared_ptr<hier::PatchLevel> level =
+             d_patch_hierarchy->getPatchLevel(ln);
+         for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+              ++ip) {
+            std::shared_ptr<hier::Patch> patch = *ip;
+            std::shared_ptr<pdat::CellData<double> > ca(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_conc_a_id)));
+            assert(ca);
+            ca->fill(init_ca, depth);
+         }
+      }
+      depth++;
+   }
+   depth = 0;
+   for (auto& init_cb : d_init_cb) {
+      std::cout << "Set cb to " << init_cb << std::endl;
+      for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
+         std::shared_ptr<hier::PatchLevel> level =
+             d_patch_hierarchy->getPatchLevel(ln);
+         for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+              ++ip) {
+            std::shared_ptr<hier::Patch> patch = *ip;
+            std::shared_ptr<pdat::CellData<double> > cb(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_conc_b_id)));
+            assert(cb);
+            cb->fill(init_cb, depth);
+         }
+      }
+      depth++;
    }
 }
 
@@ -1176,6 +1182,13 @@ void QuatModel::CreateIntegrator(std::shared_ptr<tbox::Database> input_db)
 
 void QuatModel::registerPhaseConcentrationVariables()
 {
+   assert(d_nghosts_aux_conc >= 0);
+
+   hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+
+   std::shared_ptr<hier::VariableContext> current =
+       variable_db->getContext("CURRENT");
+
    if (!d_conc_l_var)
       d_conc_l_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                                         "conc_l",
@@ -1196,30 +1209,33 @@ void QuatModel::registerPhaseConcentrationVariables()
       assert(d_conc_b_var);
    }
 
-   registerPhaseConcentrationVariables(d_conc_l_var, d_conc_a_var,
-                                       d_conc_b_var);
-}
+   d_conc_l_ref_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                                         "conc_l_ref",
+                                                         d_ncompositions));
+   assert(d_conc_l_ref_var);
+   d_conc_a_ref_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                                         "conc_a_ref",
+                                                         d_ncompositions));
+   assert(d_conc_a_ref_var);
+   d_conc_l_ref_id = variable_db->registerVariableAndContext(
+       d_conc_l_ref_var, current,
+       hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
+   d_conc_a_ref_id = variable_db->registerVariableAndContext(
+       d_conc_a_ref_var, current,
+       hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
+   assert(d_conc_l_ref_id >= 0);
+   assert(d_conc_a_ref_id >= 0);
+   if (d_model_parameters.withPhaseB()) {
+      d_conc_b_ref_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_b_ref",
+                                         d_ncompositions));
+      assert(d_conc_b_ref_var);
+      d_conc_b_ref_id = variable_db->registerVariableAndContext(
+          d_conc_b_ref_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
+      assert(d_conc_b_ref_id >= 0);
+   }
 
-void QuatModel::registerPhaseConcentrationVariables(
-    const std::shared_ptr<pdat::CellVariable<double> > conc_l_var,
-    const std::shared_ptr<pdat::CellVariable<double> > conc_a_var,
-    const std::shared_ptr<pdat::CellVariable<double> > conc_b_var)
-{
-   assert(conc_l_var);
-   assert(conc_a_var);
-   assert(d_nghosts_aux_conc >= 0);
-
-   d_conc_l_var = conc_l_var;
-   d_conc_a_var = conc_a_var;
-   d_conc_b_var = conc_b_var;
-
-   hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
-
-   std::shared_ptr<hier::VariableContext> current =
-       variable_db->getContext("CURRENT");
-
-   // we need internal composition with ghost values for EBS r.h.s.
-   // in particular
    d_conc_l_id = variable_db->registerVariableAndContext(
        d_conc_l_var, current,
        hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
@@ -1236,6 +1252,105 @@ void QuatModel::registerPhaseConcentrationVariables(
           d_conc_b_var, current,
           hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
       assert(d_conc_b_id >= 0);
+   }
+}
+
+void QuatModel::registerPhaseConcentrationDiffusionVariables()
+{
+   hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+
+   std::shared_ptr<hier::VariableContext> current =
+       variable_db->getContext("CURRENT");
+
+   // "isotropic" stencil needs some ghost values for diffusion field
+   const int nghosts = d_model_parameters.useEBSisotropicStencil() ? 1 : 0;
+   d_conc_pfm_diffusion_l_var.reset(
+       new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                      "conc_pfm_diffusion_l",
+                                      d_ncompositions * d_ncompositions));
+   assert(d_conc_pfm_diffusion_l_var);
+   d_conc_pfm_diffusion_l_id = variable_db->registerVariableAndContext(
+       d_conc_pfm_diffusion_l_var, current,
+       hier::IntVector(tbox::Dimension(NDIM), nghosts));
+   assert(d_conc_pfm_diffusion_l_id >= 0);
+
+   d_conc_pfm_diffusion_a_var.reset(
+       new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                      "conc_pfm_diffusion_a",
+                                      d_ncompositions * d_ncompositions));
+   assert(d_conc_pfm_diffusion_a_var);
+   d_conc_pfm_diffusion_a_id = variable_db->registerVariableAndContext(
+       d_conc_pfm_diffusion_a_var, current,
+       hier::IntVector(tbox::Dimension(NDIM), nghosts));
+   assert(d_conc_pfm_diffusion_a_id >= 0);
+
+   if (d_model_parameters.withPhaseB()) {
+      d_conc_pfm_diffusion_b_var.reset(
+          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                         "conc_pfm_diffusion_b",
+                                         d_ncompositions * d_ncompositions));
+      assert(d_conc_pfm_diffusion_b_var);
+      d_conc_pfm_diffusion_b_id = variable_db->registerVariableAndContext(
+          d_conc_pfm_diffusion_b_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), nghosts));
+      assert(d_conc_pfm_diffusion_b_id >= 0);
+   }
+
+   d_conc_diffusion_coeff_l_var.reset(
+       new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                      "conc_diffusion_coeff_l",
+                                      d_ncompositions * d_ncompositions));
+   assert(d_conc_diffusion_coeff_l_var);
+   d_conc_diffusion_coeff_l_id = variable_db->registerVariableAndContext(
+       d_conc_diffusion_coeff_l_var, current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+   assert(d_conc_diffusion_coeff_l_id >= 0);
+
+   d_conc_diffusion_coeff_a_var.reset(
+       new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                      "conc_diffusion_coeff_a",
+                                      d_ncompositions * d_ncompositions));
+   assert(d_conc_diffusion_coeff_a_var);
+   d_conc_diffusion_coeff_a_id = variable_db->registerVariableAndContext(
+       d_conc_diffusion_coeff_a_var, current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+   assert(d_conc_diffusion_coeff_a_id >= 0);
+
+
+   if (d_model_parameters.with_extra_visit_output()) {
+      std::cout << "d_model_parameters.concRHSstrategyIsEBS()" << std::endl;
+      d_visit_conc_pfm_diffusion_l_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                         "visit_conc_pfm_diffusion_l",
+                                         d_ncompositions * d_ncompositions));
+      assert(d_visit_conc_pfm_diffusion_l_var);
+      d_visit_conc_pfm_diffusion_l_id = variable_db->registerVariableAndContext(
+          d_visit_conc_pfm_diffusion_l_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+      assert(d_visit_conc_pfm_diffusion_l_id >= 0);
+
+      d_visit_conc_pfm_diffusion_a_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                         "visit_conc_pfm_diffusion_a",
+                                         d_ncompositions * d_ncompositions));
+      assert(d_visit_conc_pfm_diffusion_a_var);
+      d_visit_conc_pfm_diffusion_a_id = variable_db->registerVariableAndContext(
+          d_visit_conc_pfm_diffusion_a_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+      assert(d_visit_conc_pfm_diffusion_a_id >= 0);
+
+      if (d_model_parameters.withPhaseB()) {
+         d_visit_conc_pfm_diffusion_b_var.reset(
+             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                            "visit_conc_pfm_diffusion_b",
+                                            d_ncompositions * d_ncompositions));
+         assert(d_visit_conc_pfm_diffusion_b_var);
+         d_visit_conc_pfm_diffusion_b_id =
+             variable_db->registerVariableAndContext(
+                 d_visit_conc_pfm_diffusion_b_var, current,
+                 hier::IntVector(tbox::Dimension(NDIM), 0));
+         assert(d_visit_conc_pfm_diffusion_b_id >= 0);
+      }
    }
 }
 
@@ -1310,97 +1425,8 @@ void QuatModel::registerConcentrationVariables(void)
       assert(d_conc_phase_coupling_diffusion_id >= 0);
    } else {
       {
-         // "isotropic" stencil needs some ghost values for diffusion field
-         const int nghosts =
-             d_model_parameters.useEBSisotropicStencil() ? 1 : 0;
-         d_conc_pfm_diffusion_l_var.reset(
-             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                            "conc_pfm_diffusion_l",
-                                            d_ncompositions * d_ncompositions));
-         assert(d_conc_pfm_diffusion_l_var);
-         d_conc_pfm_diffusion_l_id = variable_db->registerVariableAndContext(
-             d_conc_pfm_diffusion_l_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), nghosts));
-         assert(d_conc_pfm_diffusion_l_id >= 0);
-
-         d_conc_pfm_diffusion_a_var.reset(
-             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                            "conc_pfm_diffusion_a",
-                                            d_ncompositions * d_ncompositions));
-         assert(d_conc_pfm_diffusion_a_var);
-         d_conc_pfm_diffusion_a_id = variable_db->registerVariableAndContext(
-             d_conc_pfm_diffusion_a_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), nghosts));
-         assert(d_conc_pfm_diffusion_a_id >= 0);
-
-         if (d_model_parameters.withPhaseB()) {
-            d_conc_pfm_diffusion_b_var.reset(new pdat::SideVariable<double>(
-                tbox::Dimension(NDIM), "conc_pfm_diffusion_b",
-                d_ncompositions * d_ncompositions));
-            assert(d_conc_pfm_diffusion_b_var);
-            d_conc_pfm_diffusion_b_id = variable_db->registerVariableAndContext(
-                d_conc_pfm_diffusion_b_var, current,
-                hier::IntVector(tbox::Dimension(NDIM), nghosts));
-            assert(d_conc_pfm_diffusion_b_id >= 0);
-         }
-      }
-      d_conc_diffusion_coeff_l_var.reset(
-          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                         "conc_diffusion_coeff_l",
-                                         d_ncompositions * d_ncompositions));
-      assert(d_conc_diffusion_coeff_l_var);
-      d_conc_diffusion_coeff_l_id = variable_db->registerVariableAndContext(
-          d_conc_diffusion_coeff_l_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-      assert(d_conc_diffusion_coeff_l_id >= 0);
-
-      d_conc_diffusion_coeff_a_var.reset(
-          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                         "conc_diffusion_coeff_a",
-                                         d_ncompositions * d_ncompositions));
-      assert(d_conc_diffusion_coeff_a_var);
-      d_conc_diffusion_coeff_a_id = variable_db->registerVariableAndContext(
-          d_conc_diffusion_coeff_a_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-      assert(d_conc_diffusion_coeff_a_id >= 0);
-
-      if (d_model_parameters.with_extra_visit_output()) {
-         std::cout << "d_model_parameters.concRHSstrategyIsEBS()" << std::endl;
-         d_visit_conc_pfm_diffusion_l_var.reset(
-             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                            "visit_conc_pfm_diffusion_l",
-                                            d_ncompositions * d_ncompositions));
-         assert(d_visit_conc_pfm_diffusion_l_var);
-         d_visit_conc_pfm_diffusion_l_id =
-             variable_db->registerVariableAndContext(
-                 d_visit_conc_pfm_diffusion_l_var, current,
-                 hier::IntVector(tbox::Dimension(NDIM), 0));
-         assert(d_visit_conc_pfm_diffusion_l_id >= 0);
-
-         d_visit_conc_pfm_diffusion_a_var.reset(
-             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                            "visit_conc_pfm_diffusion_a",
-                                            d_ncompositions * d_ncompositions));
-         assert(d_visit_conc_pfm_diffusion_a_var);
-         d_visit_conc_pfm_diffusion_a_id =
-             variable_db->registerVariableAndContext(
-                 d_visit_conc_pfm_diffusion_a_var, current,
-                 hier::IntVector(tbox::Dimension(NDIM), 0));
-         assert(d_visit_conc_pfm_diffusion_a_id >= 0);
-
-         if (d_model_parameters.withPhaseB()) {
-            d_visit_conc_pfm_diffusion_b_var.reset(
-                new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                               "visit_conc_pfm_diffusion_b",
-                                               d_ncompositions *
-                                                   d_ncompositions));
-            assert(d_visit_conc_pfm_diffusion_b_var);
-            d_visit_conc_pfm_diffusion_b_id =
-                variable_db->registerVariableAndContext(
-                    d_visit_conc_pfm_diffusion_b_var, current,
-                    hier::IntVector(tbox::Dimension(NDIM), 0));
-            assert(d_visit_conc_pfm_diffusion_b_id >= 0);
-         }
+         if (d_model_parameters.concentrationModelNeedsPhaseConcentrations())
+            registerPhaseConcentrationDiffusionVariables();
       }
 
       if (d_model_parameters.with_gradT()) {
@@ -1428,41 +1454,11 @@ void QuatModel::registerConcentrationVariables(void)
    }
 
    if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
+      assert(d_nghosts_aux_conc >= 0);
 
       registerPhaseConcentrationVariables();
 
    }  // if d_model_parameters.concentrationModelNeedsPhaseConcentrations()
-   if (d_model_parameters.isConcentrationModelCALPHAD()) {
-      assert(d_nghosts_aux_conc >= 0);
-      d_conc_l_ref_var.reset(
-          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_l_ref",
-                                         d_ncompositions));
-      assert(d_conc_l_ref_var);
-      d_conc_a_ref_var.reset(
-          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_a_ref",
-                                         d_ncompositions));
-      assert(d_conc_a_ref_var);
-      d_conc_l_ref_id = variable_db->registerVariableAndContext(
-          d_conc_l_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
-      d_conc_a_ref_id = variable_db->registerVariableAndContext(
-          d_conc_a_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
-      assert(d_conc_l_ref_id >= 0);
-      assert(d_conc_a_ref_id >= 0);
-      if (d_model_parameters.withPhaseB()) {
-         d_conc_b_ref_var.reset(
-             new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_b_ref",
-                                            d_ncompositions));
-         assert(d_conc_b_ref_var);
-         d_conc_b_ref_id = variable_db->registerVariableAndContext(
-             d_conc_b_ref_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
-         assert(d_conc_b_ref_id >= 0);
-      }
-
-   }  // if ( d_conc_model == CALPHAD )
-
 
    if (d_model_parameters.with_third_phase()) {
       d_conc_eta_coupling_diffusion_var.reset(
@@ -3142,23 +3138,6 @@ void QuatModel::AllocateLocalPatchData(
           d_model_parameters.concRHSstrategyIsBeckermann()) {
          AllocateAndZeroData<pdat::SideData<double> >(
              d_conc_phase_coupling_diffusion_id, level, time, zero_data);
-      } else {
-         AllocateAndZeroData<pdat::SideData<double> >(d_conc_pfm_diffusion_l_id,
-                                                      level, time, zero_data);
-         AllocateAndZeroData<pdat::SideData<double> >(d_conc_pfm_diffusion_a_id,
-                                                      level, time, zero_data);
-         if (d_model_parameters.withPhaseB()) {
-            AllocateAndZeroData<pdat::SideData<double> >(
-                d_conc_pfm_diffusion_b_id, level, time, zero_data);
-         }
-         AllocateAndZeroData<pdat::SideData<double> >(
-             d_conc_diffusion_coeff_l_id, level, time, zero_data);
-         AllocateAndZeroData<pdat::SideData<double> >(
-             d_conc_diffusion_coeff_a_id, level, time, zero_data);
-         if (d_model_parameters.withPhaseB()) {
-            AllocateAndZeroData<pdat::SideData<double> >(
-                d_conc_diffusion_coeff_b_id, level, time, zero_data);
-         }
       }
 
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
@@ -3187,20 +3166,39 @@ void QuatModel::AllocateLocalPatchData(
              !level->checkAllocated(d_conc_b_id))
             AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
                                                          time, zero_data);
-      }
-      if (d_model_parameters.with_extra_visit_output()) {
+
          if (d_model_parameters.concRHSstrategyIsEBS()) {
-            AllocateAndZeroData<pdat::CellData<double> >(
-                d_visit_conc_pfm_diffusion_l_id, level, time, zero_data);
-            AllocateAndZeroData<pdat::CellData<double> >(
-                d_visit_conc_pfm_diffusion_a_id, level, time, zero_data);
-            if (d_model_parameters.withPhaseB())
+            AllocateAndZeroData<pdat::SideData<double> >(
+                d_conc_pfm_diffusion_l_id, level, time, zero_data);
+            AllocateAndZeroData<pdat::SideData<double> >(
+                d_conc_pfm_diffusion_a_id, level, time, zero_data);
+            if (d_model_parameters.withPhaseB()) {
+               AllocateAndZeroData<pdat::SideData<double> >(
+                   d_conc_pfm_diffusion_b_id, level, time, zero_data);
+            }
+            AllocateAndZeroData<pdat::SideData<double> >(
+                d_conc_diffusion_coeff_l_id, level, time, zero_data);
+            AllocateAndZeroData<pdat::SideData<double> >(
+                d_conc_diffusion_coeff_a_id, level, time, zero_data);
+            if (d_model_parameters.withPhaseB()) {
+               AllocateAndZeroData<pdat::SideData<double> >(
+                   d_conc_diffusion_coeff_b_id, level, time, zero_data);
+            }
+         }
+         if (d_model_parameters.with_extra_visit_output()) {
+            if (d_model_parameters.concRHSstrategyIsEBS()) {
                AllocateAndZeroData<pdat::CellData<double> >(
-                   d_visit_conc_pfm_diffusion_b_id, level, time, zero_data);
-         } else {
-            assert(d_visit_conc_pfm_diffusion_id >= 0);
-            AllocateAndZeroData<pdat::CellData<double> >(
-                d_visit_conc_pfm_diffusion_id, level, time, zero_data);
+                   d_visit_conc_pfm_diffusion_l_id, level, time, zero_data);
+               AllocateAndZeroData<pdat::CellData<double> >(
+                   d_visit_conc_pfm_diffusion_a_id, level, time, zero_data);
+               if (d_model_parameters.withPhaseB())
+                  AllocateAndZeroData<pdat::CellData<double> >(
+                      d_visit_conc_pfm_diffusion_b_id, level, time, zero_data);
+            } else {
+               assert(d_visit_conc_pfm_diffusion_id >= 0);
+               AllocateAndZeroData<pdat::CellData<double> >(
+                   d_visit_conc_pfm_diffusion_id, level, time, zero_data);
+            }
          }
       }
 
@@ -3297,14 +3295,14 @@ void QuatModel::DeallocateIntermediateLocalPatchData(
 void QuatModel::DeallocateIntermediateLocalPatchData(
     const std::shared_ptr<hier::PatchLevel> level)
 {
-   if (d_model_parameters.with_concentration()) {
-      if (d_model_parameters.isConcentrationModelCALPHAD())
-         if (level->checkAllocated(d_conc_l_ref_id)) {
-            level->deallocatePatchData(d_conc_l_ref_id);
-            level->deallocatePatchData(d_conc_a_ref_id);
-            if (d_model_parameters.withPhaseB())
-               level->deallocatePatchData(d_conc_b_ref_id);
-         }
+   if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
+      assert(d_conc_l_ref_id >= 0);
+      if (level->checkAllocated(d_conc_l_ref_id)) {
+         level->deallocatePatchData(d_conc_l_ref_id);
+         level->deallocatePatchData(d_conc_a_ref_id);
+         if (d_model_parameters.withPhaseB())
+            level->deallocatePatchData(d_conc_b_ref_id);
+      }
    }
 
    if (d_model_parameters.evolveQuat()) {

@@ -29,6 +29,9 @@ subprocess.call(["python3", "../../utils/make_multi_spheres.py",
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
 
+os.remove(initfilename)
+os.unlink(data)
+
 #analyse AMPE standard output
 lines=output.split(b'\n')
 volumes=[]
@@ -53,9 +56,6 @@ for line in lines:
         print("Wrong solid fraction:")
         print("found {}, expected {}".format(sfraction-target_sf, sfraction-target_sf))
         sys.exit(1)
-
-os.remove(initfilename)
-os.unlink(data)
 
 if end_reached:
   sys.exit(0)

@@ -21,6 +21,8 @@ inp = sys.argv[5]
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
 
+os.remove(initfilename)
+
 #analyse AMPE standard output
 lines=output.split(b'\n')
 volumes=[]
@@ -67,11 +69,7 @@ if abs(minv-expected_value)>0.01:
   print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)
 
-
-os.remove(initfilename)
-
 if end_reached:
   sys.exit(0)
 else:
   sys.exit(1)
-
