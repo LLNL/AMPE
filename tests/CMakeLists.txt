@@ -367,6 +367,7 @@ add_test(NAME GaussianT
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/GaussianT/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME TwoBilayers
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/test${NDIM}d.py
@@ -484,7 +485,7 @@ add_test(NAME ThreePhasesDiffusion
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/${NDIM}d.input
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion
+         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
          )
 add_test(NAME 3Ph2Sl
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py

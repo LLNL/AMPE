@@ -19,13 +19,15 @@ T_data_dir = sys.argv[6]
 
 #make symbolic link to T data
 T_data = "temperature.csv"
-if not os.path.exists(T_data):
-  src = T_data_dir+'/'+T_data
-  os.symlink(src, T_data)
+src = T_data_dir+'/'+T_data
+os.symlink(src, T_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
+
+os.remove(initfilename)
+os.unlink(T_data)
 
 input_file=open(inp,'r')
 lines=input_file.readlines()
@@ -54,8 +56,5 @@ target_time = 0.022
 if time<target_time:
   print("Target time not reached")
   sys.exit(1)
-
-os.remove(initfilename)
-os.unlink(T_data)
 
 sys.exit(0)

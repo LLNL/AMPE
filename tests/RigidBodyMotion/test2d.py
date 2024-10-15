@@ -12,9 +12,8 @@ datadir = sys.argv[6]
 
 #make symbolic link to calphad data
 data = "1sphere.csv"
-if not os.path.exists(data):
-  src = datadir+'/'+data
-  os.symlink(src, data)
+src = datadir+'/'+data
+os.symlink(src, data)
 
 #prepare initial conditions file
 initfilename="1sphere.nc"
@@ -27,6 +26,9 @@ subprocess.call(["python3", "../../utils/make_multi_spheres.py",
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
+
+os.unlink(data)
+os.remove(initfilename)
 
 #analyse AMPE standard output
 lines=output.split(b'\n')
@@ -54,9 +56,6 @@ if end_reached:
   if abs(volume-expected_value)>0.001:
     print("Expected volume = {}, found {}".format(expected_value,volume))
     sys.exit(1)
-
-os.remove(initfilename)
-os.unlink(data)
 
 if end_reached:
   sys.exit(0)
