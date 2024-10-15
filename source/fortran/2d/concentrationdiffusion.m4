@@ -970,7 +970,49 @@ c add contribution to four sides of each cell
 c
       return
       end
-
+c
+c
+      subroutine add_ab_diffusion_single(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   phi, ngphi,
+     &   diff0, diff1, ngdiff,
+     &   dAB)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngphi, ngdiff
+      double precision d0
+c
+c variables in 2d cell indexed
+      double precision phi(CELL2d(ifirst,ilast,ngphi))
+      double precision diff0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE2d1(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1
+      double precision dAB, pa, pb
+      double precision factor
+c
+c factor 0.5 for two contributions, one from each side
+      factor = 0.5d0*(2.d0**4)
+c
+      do ic1 = ifirst1, ilast1
+        do ic0 = ifirst0, ilast0
+          pa =  phi(ic0,ic1)
+          pb = (1.d0-pa)
+          dAB = factor*pa*pa*pb*pb
+c add contribution to four sides of each cell
+          diff0(ic0,ic1)   = diff0(ic0,ic1) + dAB
+          diff0(ic0+1,ic1) = diff0(ic0+1,ic1) + dAB
+          diff1(ic0,ic1)   = diff1(ic0,ic1) + dAB
+          diff1(ic0,ic1+1) = diff1(ic0,ic1+1) + dAB
+        end do
+      end do
+c
+      return
+      end
 c
 c add interface diffusion to A and B diffusion
 c

@@ -162,8 +162,8 @@ c input arrays:
       double precision phi(CELL2d(ifirst,ilast,ngphi),norder)
       double precision flux0(SIDE2d0(ifirst,ilast,ngflux))
       double precision flux1(SIDE2d1(ifirst,ilast,ngflux))
-      double precision phi2sum(CELL2d(ifirst,ilast,0))
-      double precision phi3sum(CELL2d(ifirst,ilast,0))
+      double precision phi2sum(CELL2d(ifirst,ilast,ngphi))
+      double precision phi3sum(CELL2d(ifirst,ilast,ngphi))
       double precision dx(0:1)
 c
       double precision mobility, parameter_a, parameter_b, kappa
@@ -178,16 +178,16 @@ c
       dyinv2 = dyinv*dyinv
 c
 c precompute sum of phi**2 at each cell
-      do ic1 = ifirst1, ilast1
-         do ic0 = ifirst0, ilast0
+      do ic1 = ifirst1-1, ilast1+1
+         do ic0 = ifirst0-1, ilast0+1
             phi2sum(ic0,ic1) =
      &         phi(ic0,ic1,1)*phi(ic0,ic1,1)
          enddo
       enddo
 
       do ip = 2, norder
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0
+         do ic1 = ifirst1-1, ilast1+1
+            do ic0 = ifirst0-1, ilast0+1
                phi2sum(ic0,ic1) = phi2sum(ic0,ic1)
      &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
             enddo
@@ -195,16 +195,16 @@ c precompute sum of phi**2 at each cell
       enddo
 c
 c precompute sum of phi**3 at each cell
-      do ic1 = ifirst1, ilast1
-         do ic0 = ifirst0, ilast0
+      do ic1 = ifirst1-1, ilast1+1
+         do ic0 = ifirst0-1, ilast0+1
             phi3sum(ic0,ic1) =
      &         phi(ic0,ic1,1)*phi(ic0,ic1,1)*phi(ic0,ic1,1)
          enddo
       enddo
 
       do ip = 2, norder
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0
+         do ic1 = ifirst1-1, ilast1+1
+            do ic0 = ifirst0-1, ilast0+1
                phi3sum(ic0,ic1) = phi3sum(ic0,ic1)
      &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
             enddo

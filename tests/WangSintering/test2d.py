@@ -12,9 +12,8 @@ datadir = sys.argv[6]
 
 #make symbolic link to calphad data
 data = "2spheres.csv"
-if not os.path.exists(data):
-  src = datadir+'/'+data
-  os.symlink(src, data)
+src = datadir+'/'+data
+os.symlink(src, data)
 
 #prepare initial conditions file
 initfilename="2spheres.nc"

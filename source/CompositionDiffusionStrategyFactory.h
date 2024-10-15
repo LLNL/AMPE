@@ -14,14 +14,16 @@
 #include "MobilityCompositionDiffusionStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 #include "ScalarCompositionDiffusionStrategy.h"
+#include "WangSinteringCompositionDiffusionStrategy.h"
 
 class CompositionDiffusionStrategyFactory
 {
  public:
    static std::shared_ptr<CompositionDiffusionStrategy> create(
        QuatModel* model, QuatModelParameters& model_parameters,
-       const short ncompositions, const int conc_l_scratch_id,
-       const int conc_a_scratch_id, const int conc_b_scratch_id,
+       const short ncompositions, const int conc_id,
+       const int conc_l_scratch_id, const int conc_a_scratch_id,
+       const int conc_b_scratch_id,
        const std::vector<int>& conc_pfm_diffusion_id,
        const int conc_pfm_diffusion_l_id, const int conc_pfm_diffusion_a_id,
        const int conc_pfm_diffusion_b_id, const int conc_diffusion_coeff_l_id,
@@ -68,6 +70,14 @@ class CompositionDiffusionStrategyFactory
              model_parameters.Q0_BB(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
+      } else if (model_parameters.isConcentrationModelWangSintering()) {
+         strategy.reset(new WangSinteringCompositionDiffusionStrategy(
+             conc_id, conc_pfm_diffusion_id[0], model_parameters.D_liquid(),
+             model_parameters.D_solid_A(), model_parameters.D0_LA(),
+             model_parameters.D0_AA(),
+             model_parameters.diffusion_interp_func_type(),
+             model_parameters.avg_func_type()));
+
       } else {
          tbox::plog << "Uses temperature based composition for scalar diffusion"
                     << std::endl;

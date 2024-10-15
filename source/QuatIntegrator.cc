@@ -1976,12 +1976,15 @@ void QuatIntegrator::initialize(
           d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
    else if (d_model_parameters.norderp() > 1) {
       tbox::plog << "Use MultiOrderRHSStrategy..." << std::endl;
-      if (d_model_parameters.isConcentrationModelWangSintering()) {
-         d_phase_rhs_strategy.reset(new SinteringUWangRHSStrategy(
-             d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-             d_temperature_scratch_id, d_phase_mobility_id, d_flux_id,
-             d_sundials_solver, d_grid_geometry, d_phase_flux_strategy));
-      } else {
+      if (d_with_concentration) {
+         if (d_model_parameters.isConcentrationModelWangSintering()) {
+            d_phase_rhs_strategy.reset(new SinteringUWangRHSStrategy(
+                d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+                d_temperature_scratch_id, d_phase_mobility_id, d_flux_id,
+                d_sundials_solver, d_grid_geometry, d_phase_flux_strategy));
+         }
+      }
+      if (!d_phase_rhs_strategy) {
          d_phase_rhs_strategy.reset(new MultiOrderRHSStrategy(
              d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
              d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,

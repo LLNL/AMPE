@@ -387,12 +387,13 @@ void QuatModel::initializeRHSandEnergyStrategies(
          d_diffusion_for_conc_in_phase =
              CompositionDiffusionStrategyFactory::create(
                  this, d_model_parameters,
-                 static_cast<unsigned short>(d_ncompositions), d_conc_l_id,
-                 d_conc_a_id, d_conc_b_id, d_conc_pfm_diffusion_id,
-                 d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
-                 d_conc_pfm_diffusion_b_id, d_conc_diffusion_coeff_l_id,
-                 d_conc_diffusion_coeff_a_id, d_conc_diffusion_coeff_b_id,
-                 d_composition_strategy_mobilities, d_free_energy_strategy);
+                 static_cast<unsigned short>(d_ncompositions),
+                 d_conc_scratch_id, d_conc_l_id, d_conc_a_id, d_conc_b_id,
+                 d_conc_pfm_diffusion_id, d_conc_pfm_diffusion_l_id,
+                 d_conc_pfm_diffusion_a_id, d_conc_pfm_diffusion_b_id,
+                 d_conc_diffusion_coeff_l_id, d_conc_diffusion_coeff_a_id,
+                 d_conc_diffusion_coeff_b_id, d_composition_strategy_mobilities,
+                 d_free_energy_strategy);
       }
 
       d_composition_rhs_strategy = CompositionRHSStrategyFactory::create(
@@ -3131,6 +3132,7 @@ void QuatModel::AllocateLocalPatchData(
          AllocateAndZeroData<pdat::CellData<double> >(d_conc_id, level, time,
                                                       zero_data);
       }
+      tbox::plog << "AllocateAndZeroData for d_conc_scratch_id" << std::endl;
       AllocateAndZeroData<pdat::CellData<double> >(d_conc_scratch_id, level,
                                                    time, zero_data);
       for (int ic = 0; ic < d_ncompositions; ic++) {

@@ -120,8 +120,9 @@ void WangSinteringCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 
    // M*grad delta F/delta c
    flux->fillAll(0.);
-   std::vector<double> tmp1(pbox.size());
-   std::vector<double> tmp2(pbox.size());
+   const hier::Box& gbox = phi->getGhostBox();
+   std::vector<double> tmp1(gbox.size());
+   std::vector<double> tmp2(gbox.size());
 
    ADD_WANG_SINTERING_FLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
