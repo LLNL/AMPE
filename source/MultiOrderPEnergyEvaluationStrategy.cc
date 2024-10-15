@@ -28,8 +28,8 @@ MultiOrderPEnergyEvaluationStrategy::MultiOrderPEnergyEvaluationStrategy(
 void MultiOrderPEnergyEvaluationStrategy::evaluatePairEnergy(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
-   d_total_energy.resize(d_model_parameters.norderp() *
-                         d_model_parameters.norderp());
+   d_total_energy.resize(d_model_parameters.norderpA() *
+                         d_model_parameters.norderpA());
    for (auto& e : d_total_energy)
       e = 0.;
 
@@ -50,13 +50,13 @@ void MultiOrderPEnergyEvaluationStrategy::printPairEnergy(std::ostream& os)
 {
    const double threshold = 1.e-8;
 
-   int n = d_model_parameters.norderp();
+   int n = d_model_parameters.norderpA();
    assert(d_total_energy.size() == n * n);
 
    os << "Interfacial pair energies:" << std::endl;
-   for (int i = 0; i < n - 1; i++) {
+   for (int i = 0; i < n; i++) {
       os << i << ":";
-      for (int j = 0; j < n - 1; j++) {
+      for (int j = 0; j < n; j++) {
          const double e = d_total_energy[i * n + j];
          if (std::abs(e) > threshold)
             os << " (" << j << ") " << d_total_energy[i * n + j];
@@ -103,7 +103,8 @@ void MultiOrderPEnergyEvaluationStrategy::evaluatePairEnergy(
                             ifirst(2), ilast(2),
 #endif
                             phase->getPointer(), phase->getGhostCellWidth()[0],
-                            phase->getDepth(), d_model_parameters.gamma(),
+                            d_model_parameters.norderpA(),
+                            d_model_parameters.gamma(),
                             d_model_parameters.m_moelans2011(),
                             weight->getPointer(), ptr_energy, &total_energy[0],
                             per_cell);

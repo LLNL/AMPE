@@ -138,7 +138,7 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
                                             const int ydot_phase_id,
                                             const bool eval_flag)
 {
-   tbox::plog << "SinteringUWangRHSStrategy::evaluateRHS()..." << std::endl;
+   // tbox::plog << "SinteringUWangRHSStrategy::evaluateRHS()..." << std::endl;
    math::PatchCellDataOpsReal<double> mathops;
 
    const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(

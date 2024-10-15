@@ -22,6 +22,8 @@ WangRigidBodyForces::WangRigidBodyForces(
     : RigidBodyForces(model_parameters, phase_id, weight_id), d_conc_id(conc_id)
 {
    tbox::plog << "WangRigidBodyForces..." << std::endl;
+
+   d_norderp = model_parameters.norderpA();
 }
 
 void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
@@ -49,8 +51,7 @@ void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
    assert(phase);
    assert(weight);
    assert(conc);
-   assert(forces.size() ==
-          NDIM * (phase->getDepth() - 1) * (phase->getDepth() - 1));
+   assert(forces.size() == NDIM * d_norderp * d_norderp);
    assert(weight->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
@@ -61,8 +62,8 @@ void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
                ifirst(2), ilast(2),
 #endif
                dx, phase->getPointer(), phase->getGhostCellWidth()[0],
-               phase->getDepth() - 1, conc->getPointer(),
-               conc->getGhostCellWidth()[0], conc->getDepth(),
-               d_model_parameters.rbEquilGB(), d_model_parameters.rbThreshold(),
-               weight->getPointer(), forces.data());
+               d_norderp, conc->getPointer(), conc->getGhostCellWidth()[0],
+               conc->getDepth(), d_model_parameters.rbEquilGB(),
+               d_model_parameters.rbThreshold(), weight->getPointer(),
+               forces.data());
 }

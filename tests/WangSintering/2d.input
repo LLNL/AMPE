@@ -1,14 +1,13 @@
 //
 // From Wang 2006 Acta Mat.
 //
-end_time            = 100.
+end_time            = 2.
 max_delta_cycles    = 500
 
 Visit {
-   interval = 1
-   interval_type = "step"
+   interval = 5.e-3
+   interval_type = "time"
    extra_output = TRUE
-   rhs_output = TRUE
 }
 
 ModelParameters {
@@ -26,7 +25,7 @@ ModelParameters {
       diffusion_type = "temperature_dependent"
       model    = "wang_sintering"
       rhs_form = "wang_sintering"
-      mobility = 5.
+      mobility = 1.
       WangSintering {
          A = 16.
          B = 1.
@@ -48,7 +47,7 @@ ModelParameters {
 }
 
 ScalarDiagnostics {
-   interval = 10.
+   interval = 5.e-3
    interval_type = "time"
 }   
 
@@ -68,7 +67,8 @@ Geometry{
    periodic_dimension = 1, 1
    coarsest_level_resolution = 120, 200
    x_lo         =  0.,   0.   // [um]
-   x_up         =  120., 200. // [um]
+//   x_up         =  120., 200. // [um]
+   x_up         =  60., 100. // [um]
 }
 
 TimerManager {    // optional block, see SAMRAI docs
