@@ -15,10 +15,19 @@ subprocess.call(["python3", "../../utils/make_nuclei.py",
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe = sys.argv[4]
 inp = sys.argv[5]
+thermdatadir = sys.argv[6]
+
+#make symbolic link to calphad database
+calphad_data = "calphadAuNi.dat"
+src = thermdatadir+'/'+calphad_data
+os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
+
+os.remove(initfilename)
+os.unlink(calphad_data)
 
 #analyse AMPE standard output
 lines=output.split(b'\n')
@@ -96,7 +105,5 @@ expected_ncycles = 259
 if cycle>expected_ncycles+10:
   print("Number of steps larger than expected")
   sys.exit(1)
-
-os.remove(initfilename)
 
 sys.exit(0)

@@ -3,13 +3,14 @@ import sys
 import subprocess
 import os
 
-print("Test ThreePhases...")
+print("Test RestartConc...")
 
 #prepare initial conditions file
+initfilename = "test.nc"
 subprocess.call(["python3", "../../tests/ThreePhasesCALPHAD/make_initial.py", "-d", "2",
   "-x", "32", "-y", "32", "-z", "1", "--solid-fraction", "0.5",
   "--concL", "0.5309", "--concA", "0.7686", "--concB", "0.2314",
-  "test.nc"])
+  initfilename])
 
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe = sys.argv[4]
@@ -18,9 +19,9 @@ thermdatadir = sys.argv[6]
 
 #make symbolic link to calphad database
 calphad_data = "calphad3phases.json"
-if not os.path.exists(calphad_data):
-  src = thermdatadir+'/'+calphad_data
-  os.symlink(src, calphad_data)
+src = thermdatadir+'/'+calphad_data
+print(src)
+os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
@@ -30,10 +31,11 @@ output = subprocess.check_output(command,shell=True)
 command = "{} {} {} r.test 375".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
 
+os.unlink(calphad_data)
+os.remove(initfilename)
+
 #analyse AMPE standard output
 lines=output.split(b'\n')
-
-os.remove("test.nc")
 
 time = 0.
 f0=0.

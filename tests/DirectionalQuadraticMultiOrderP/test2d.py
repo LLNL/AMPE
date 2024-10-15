@@ -12,10 +12,9 @@ datadir = sys.argv[6]
 
 #make symbolic link to input data
 data = "sphere.csv"
-if not os.path.exists(data):
-  src = datadir+'/'+data
-  print("Create symlink {}".format(src))
-  os.symlink(src, data)
+src = datadir+'/'+data
+print("Create symlink {}".format(src))
+os.symlink(src, data)
 
 #prepare initial conditions file
 initfilename="512x4.nc"
@@ -30,7 +29,7 @@ command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
 
 os.remove(initfilename)
-os.remove(data)
+os.unlink(data)
 
 input_file=open(inp,'r')
 lines=input_file.readlines()

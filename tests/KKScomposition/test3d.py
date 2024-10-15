@@ -20,13 +20,15 @@ thermdatadir = sys.argv[6]
 
 #make symbolic link to calphad database
 calphad_data = "calphadAuNi.dat"
-if not os.path.exists(calphad_data):
-  src = thermdatadir+'/'+calphad_data
-  os.symlink(src, calphad_data)
+src = thermdatadir+'/'+calphad_data
+os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
 output = subprocess.check_output(command,shell=True)
+
+os.unlink(calphad_data)
+os.remove(initfilename)
 
 #analyse AMPE standard output
 lines=output.split(b'\n')
@@ -60,8 +62,6 @@ for line in lines:
       if abs(sfraction-0.33)>1.e-2:
         print("Wrong solid fraction")
         sys.exit(1)
-
-os.remove(initfilename)
 
 if end_reached:
   sys.exit(0)

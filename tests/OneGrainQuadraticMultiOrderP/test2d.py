@@ -12,10 +12,9 @@ datadir = sys.argv[6]
 
 #make symbolic link to input data
 data = "spheres.csv"
-if not os.path.exists(data):
-  src = datadir+'/'+data
-  print("Create symlink {}".format(src))
-  os.symlink(src, data)
+src = datadir+'/'+data
+print("Create symlink {}".format(src))
+os.symlink(src, data)
 
 #prepare initial conditions file
 initfilename="sphere.nc"

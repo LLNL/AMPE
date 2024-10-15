@@ -18,9 +18,8 @@ thermdatadir = sys.argv[6]
 
 #make symbolic link to calphad database
 calphad_data = "calphad3phases.json"
-if not os.path.exists(calphad_data):
-  src = thermdatadir+'/'+calphad_data
-  os.symlink(src, calphad_data)
+src = thermdatadir+'/'+calphad_data
+os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
@@ -30,6 +29,7 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 os.remove("test.nc")
+os.unlink(calphad_data)
 
 time = 0.
 f0=0.

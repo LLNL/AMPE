@@ -12,10 +12,9 @@ datadir = sys.argv[6]
 
 #make symbolic link to input data
 data = "sphere.csv"
-if not os.path.exists(data):
-  src = datadir+'/'+data
-  print("Create symlink {}".format(src))
-  os.symlink(src, data)
+src = datadir+'/'+data
+print("Create symlink {}".format(src))
+os.symlink(src, data)
 
 #prepare initial conditions file
 initfilename="512x4x4.nc"
@@ -30,8 +29,8 @@ command = "{} {} {}".format(mpicmd,exe,inp)
 print(command)
 output = subprocess.check_output(command,shell=True)
 
-input_file=open(inp,'r')
-lines=input_file.readlines()
+os.remove(initfilename)
+os.unlink(data)
 
 #analyse AMPE standard output
 lines=output.split(b'\n')
@@ -67,7 +66,5 @@ print("Time reached : {}".format(time))
 if time<target_time:
   print("Target time {} not reached!".format(target_time))
   sys.exit(1)
-
-os.remove(initfilename)
 
 sys.exit(0)
