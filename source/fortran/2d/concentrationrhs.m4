@@ -138,6 +138,94 @@ c
 
 c***********************************************************************
 c
+c Wang sintering double well flux
+c
+      subroutine add_wang_sintering_flux(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   dx,
+     &   conc, ngconc,
+     &   diff0, diff1, ngdiff,
+     &   phi, ngphi, norder,
+     &   mobility,
+     &   parameter_a, parameter_b, kappa,
+     &   flux0, flux1, ngflux,
+     &   phi2sum, phi3sum)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+      integer ngconc, ngphi, ngflux, ngdiff
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      double precision conc(CELL2d(ifirst,ilast,ngconc))
+      double precision diff0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE2d1(ifirst,ilast,ngdiff))
+      double precision phi(CELL2d(ifirst,ilast,ngphi),norder)
+      double precision flux0(SIDE2d0(ifirst,ilast,ngflux))
+      double precision flux1(SIDE2d1(ifirst,ilast,ngflux))
+      double precision phi2sum(CELL2d(ifirst,ilast,ngphi))
+      double precision phi3sum(CELL2d(ifirst,ilast,ngphi))
+      double precision dx(0:1)
+c
+      double precision mobility, parameter_a, parameter_b, kappa
+c
+      double precision dxinv, dyinv, dxinv2, dyinv2
+      double precision c, lap, mu
+      integer          ic0, ic1, ip, norder
+
+      dxinv = 1.d0 / dx(0)
+      dyinv = 1.d0 / dx(1)
+      dxinv2 = dxinv*dxinv
+      dyinv2 = dyinv*dyinv
+c
+c precompute sum of phi**2 at each cell
+c precompute sum of phi**3 at each cell
+      do ic1 = ifirst1-1, ilast1+1
+         do ic0 = ifirst0-1, ilast0+1
+            phi2sum(ic0,ic1) =
+     &         phi(ic0,ic1,1)*phi(ic0,ic1,1)
+            phi3sum(ic0,ic1) =
+     &         phi(ic0,ic1,1)*phi(ic0,ic1,1)*phi(ic0,ic1,1)
+         enddo
+      enddo
+c
+      do ip = 2, norder
+         do ic1 = ifirst1-1, ilast1+1
+            do ic0 = ifirst0-1, ilast0+1
+               phi2sum(ic0,ic1) = phi2sum(ic0,ic1)
+     &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
+               phi3sum(ic0,ic1) = phi3sum(ic0,ic1)
+     &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
+            enddo
+         enddo
+      enddo
+
+      do ic1 = ifirst1-1, ilast1+1
+         do ic0 = ifirst0-1, ilast0+1
+            lap = dxinv2*(-2.d0*conc(ic0,ic1)
+     &                  + conc(ic0-1,ic1) +conc(ic0+1,ic1))
+     &          + dyinv2*(-2.d0*conc(ic0,ic1)
+     &                  + conc(ic0,ic1-1) +conc(ic0,ic1+1))
+            c = conc(ic0,ic1)
+            mu = 2.d0*parameter_a*c*(1.d0-c)*(1.d0-2.d0*c)
+     &           +2.d0*parameter_b*(
+     &           c-3.d0*phi2sum(ic0,ic1)+2.d0*phi3sum(ic0,ic1))
+     &           -kappa*lap
+            flux0(ic0,ic1)   = flux0(ic0,ic1)
+     &           + mobility*diff0(ic0,ic1)*dxinv*mu
+            flux0(ic0+1,ic1) = flux0(ic0+1,ic1)
+     &           - mobility*diff0(ic0+1,ic1)*dxinv*mu
+            flux1(ic0,ic1)   = flux1(ic0,ic1)
+     &           + mobility*diff1(ic0,ic1)*dyinv*mu
+            flux1(ic0,ic1+1) = flux1(ic0,ic1+1)
+     &           - mobility*diff1(ic0,ic1+1)*dyinv*mu
+         enddo
+      enddo
+
+      return
+      end
+
+c***********************************************************************
+c
 c compute the concentration flux
 c
       subroutine concentrationflux_spinodal(

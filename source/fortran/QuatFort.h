@@ -137,6 +137,23 @@ void COMPUTERHSMULTIORDER(const int& ifirst0, const int& ilast0,
                           const double& m, const double* phi, const int& ngphi,
                           double* tmp, double* rhs, const int& ngrhs);
 
+void COMPUTERHS_WANG_SINTERING(const int& ifirst0, const int& ilast0,
+                               const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                               const int& ifirst2, const int& ilast2,
+#endif
+                               const int& norder, const double* dx,
+                               const double* phase_flux0,
+                               const double* phase_flux1,
+#if (NDIM == 3)
+                               const double* phase_flux2,
+#endif
+                               const int& ngphaseflux, const double& beta,
+                               const double& parameter_b, const double* phi,
+                               const int& ngphi, const double* conc,
+                               const int& ngconc, double* tmp, double* rhs,
+                               const int& ngrhs);
+
 void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
 #if (NDIM == 3)

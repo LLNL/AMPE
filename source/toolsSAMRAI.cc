@@ -113,6 +113,9 @@ void sideToCell(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
                 const int cdata_id, const int cdepth, const int sdata_id,
                 const int sdepth)
 {
+   assert(cdata_id >= 0);
+   assert(sdata_id >= 0);
+
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln) {
       std::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
       for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();

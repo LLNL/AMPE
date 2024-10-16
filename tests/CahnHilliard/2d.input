@@ -17,12 +17,12 @@ ModelParameters {
       diffusion_type = "mobility"
       model    = "cahn_hilliard"
       rhs_form = "cahn_hilliard"
+      mobility = 5.
       CahnHilliard {
          ca = 0.3
          cb = 0.7
          well_scale = 5.
          kappa = 2.
-         mobility = 5.
       }
    }
 }

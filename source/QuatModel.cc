@@ -381,16 +381,19 @@ void QuatModel::initializeRHSandEnergyStrategies(
                                                       d_ncompositions),
                                                   d_free_energy_strategy);
          }
-
+      }
+      if (d_model_parameters.concRHSstrategyIsEBS() ||
+          d_model_parameters.concRHSstrategyIsWangSintering()) {
          d_diffusion_for_conc_in_phase =
              CompositionDiffusionStrategyFactory::create(
                  this, d_model_parameters,
-                 static_cast<unsigned short>(d_ncompositions), d_conc_l_id,
-                 d_conc_a_id, d_conc_b_id, d_conc_pfm_diffusion_id,
-                 d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
-                 d_conc_pfm_diffusion_b_id, d_conc_diffusion_coeff_l_id,
-                 d_conc_diffusion_coeff_a_id, d_conc_diffusion_coeff_b_id,
-                 d_composition_strategy_mobilities, d_free_energy_strategy);
+                 static_cast<unsigned short>(d_ncompositions),
+                 d_conc_scratch_id, d_conc_l_id, d_conc_a_id, d_conc_b_id,
+                 d_conc_pfm_diffusion_id, d_conc_pfm_diffusion_l_id,
+                 d_conc_pfm_diffusion_a_id, d_conc_pfm_diffusion_b_id,
+                 d_conc_diffusion_coeff_l_id, d_conc_diffusion_coeff_a_id,
+                 d_conc_diffusion_coeff_b_id, d_composition_strategy_mobilities,
+                 d_free_energy_strategy);
       }
 
       d_composition_rhs_strategy = CompositionRHSStrategyFactory::create(
@@ -1389,14 +1392,15 @@ void QuatModel::registerConcentrationVariables(void)
       d_conc_pfm_diffusion_var.push_back(conc_pfm_diffusion_var);
       d_conc_pfm_diffusion_id.push_back(variable_db->registerVariableAndContext(
           d_conc_pfm_diffusion_var[ic], current,
-          hier::IntVector(tbox::Dimension(NDIM), 0)));
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts - 1)));
       assert(d_conc_pfm_diffusion_id[ic] >= 0);
    }
 
    d_model_parameters.checkValidityConcRHSstrategy();
 
    if (d_model_parameters.concRHSstrategyIsKKS() ||
-       d_model_parameters.concRHSstrategyIsCahnHilliard()) {
+       d_model_parameters.concRHSstrategyIsCahnHilliard() ||
+       d_model_parameters.concRHSstrategyIsWangSintering()) {
       if (d_model_parameters.with_extra_visit_output()) {
          d_visit_conc_pfm_diffusion_var.reset(
              new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -3128,6 +3132,7 @@ void QuatModel::AllocateLocalPatchData(
          AllocateAndZeroData<pdat::CellData<double> >(d_conc_id, level, time,
                                                       zero_data);
       }
+      tbox::plog << "AllocateAndZeroData for d_conc_scratch_id" << std::endl;
       AllocateAndZeroData<pdat::CellData<double> >(d_conc_scratch_id, level,
                                                    time, zero_data);
       for (int ic = 0; ic < d_ncompositions; ic++) {
@@ -3200,6 +3205,13 @@ void QuatModel::AllocateLocalPatchData(
                    d_visit_conc_pfm_diffusion_id, level, time, zero_data);
             }
          }
+      }  // concentrationModelNeedsPhaseConcentrations()
+
+      if (d_model_parameters.with_extra_visit_output() &&
+          !d_model_parameters.concRHSstrategyIsEBS()) {
+         assert(d_visit_conc_pfm_diffusion_id >= 0);
+         AllocateAndZeroData<pdat::CellData<double> >(
+             d_visit_conc_pfm_diffusion_id, level, time, zero_data);
       }
 
       if (d_model_parameters.with_third_phase()) {

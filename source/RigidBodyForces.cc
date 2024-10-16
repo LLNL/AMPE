@@ -24,7 +24,7 @@ RigidBodyForces::RigidBodyForces(const QuatModelParameters& model_parameters,
 {
    // forces between solid particles only, not liquid phase (last order
    // parameter)
-   const int nforces = d_model_parameters.norderp() - 1;
+   const int nforces = d_model_parameters.norderpA();
    d_forces.resize(nforces);
    for (auto& f : d_forces)
       f.resize(nforces);

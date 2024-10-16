@@ -26,6 +26,11 @@ class WangRigidBodyForces : public RigidBodyForces
  private:
    const int d_conc_id;
 
+   /*
+    * Number of order parameters to include in body forces
+    */
+   short d_norderp;
+
    void evaluatePairForces(std::shared_ptr<hier::Patch> patch,
                            std::vector<double>& forces);
 };

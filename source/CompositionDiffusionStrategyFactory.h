@@ -14,14 +14,16 @@
 #include "MobilityCompositionDiffusionStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 #include "ScalarCompositionDiffusionStrategy.h"
+#include "WangSinteringCompositionDiffusionStrategy.h"
 
 class CompositionDiffusionStrategyFactory
 {
  public:
    static std::shared_ptr<CompositionDiffusionStrategy> create(
        QuatModel* model, QuatModelParameters& model_parameters,
-       const short ncompositions, const int conc_l_scratch_id,
-       const int conc_a_scratch_id, const int conc_b_scratch_id,
+       const short ncompositions, const int conc_id,
+       const int conc_l_scratch_id, const int conc_a_scratch_id,
+       const int conc_b_scratch_id,
        const std::vector<int>& conc_pfm_diffusion_id,
        const int conc_pfm_diffusion_l_id, const int conc_pfm_diffusion_a_id,
        const int conc_pfm_diffusion_b_id, const int conc_diffusion_coeff_l_id,
@@ -32,7 +34,7 @@ class CompositionDiffusionStrategyFactory
       std::shared_ptr<CompositionDiffusionStrategy> strategy;
 
       if (model_parameters.conDiffusionStrategyIsCTD()) {
-         tbox::pout << "Uses composition dependent diffusion" << std::endl;
+         tbox::plog << "Uses composition dependent diffusion" << std::endl;
          strategy.reset(new MobilityCompositionDiffusionStrategy(
              ncompositions, conc_l_scratch_id, conc_a_scratch_id,
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
@@ -45,7 +47,7 @@ class CompositionDiffusionStrategyFactory
          // included in computation and d_conc_diffusion_coeff_*_id
          // are not set
          //
-         tbox::pout << "Uses temperature based composition diffusion"
+         tbox::plog << "Uses temperature based composition diffusion"
                     << std::endl;
 
          const bool three_phases_model = model_parameters.with_three_phases();
@@ -68,7 +70,17 @@ class CompositionDiffusionStrategyFactory
              model_parameters.Q0_BB(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
+      } else if (model_parameters.isConcentrationModelWangSintering()) {
+         strategy.reset(new WangSinteringCompositionDiffusionStrategy(
+             conc_id, conc_pfm_diffusion_id[0], model_parameters.D_liquid(),
+             model_parameters.D_solid_A(), model_parameters.D0_LA(),
+             model_parameters.D0_AA(),
+             model_parameters.diffusion_interp_func_type(),
+             model_parameters.avg_func_type()));
+
       } else {
+         tbox::plog << "Uses temperature based composition for scalar diffusion"
+                    << std::endl;
          const bool three_phases_model = model_parameters.with_three_phases();
          const short norderpA =
              three_phases_model ? 1 : model_parameters.norderpA();

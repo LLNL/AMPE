@@ -191,6 +191,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       d_conc_model = ConcModel::KKSdilute;
    } else if (conc_model.compare("cahn_hilliard") == 0) {
       d_conc_model = ConcModel::CahnHilliard;
+   } else if (conc_model.compare("wang_sintering") == 0) {
+      d_conc_model = ConcModel::WangSintering;
    } else {
       tbox::plog << "conc_model = " << conc_model << std::endl;
       TBOX_ERROR("Error: unknown concentration model in QuatModelParameters");
@@ -199,30 +201,35 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    {
       std::string conc_rhs_strategy =
           conc_db->getStringWithDefault("rhs_form", "kks");
-      if (conc_rhs_strategy.compare("kks") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::KKS;
-      } else if (conc_rhs_strategy.compare("ebs") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::EBS;
-         // stencil type can be regular, isotropic, or order4
-         d_ebs_stencil_type =
-             conc_db->getStringWithDefault("ebs_stencil", "regular");
-         if (d_ebs_stencil_type != "regular" &&
-             d_ebs_stencil_type != "isotropic" &&
-             d_ebs_stencil_type != "order4") {
-            tbox::plog << "EBS stencil: " << d_ebs_stencil_type << std::endl;
-            TBOX_ERROR("Error: unknown stencil type for EBS");
-         }
-      } else if (conc_rhs_strategy.compare("cahn_hilliard") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::CahnHilliard;
-         readCahnHilliard(conc_db);
-      } else if (conc_rhs_strategy.compare("spinodal") == 0) {
-         d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
-      } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||
-                 conc_rhs_strategy[0] == 'b') {
-         tbox::plog << "Using Beckermann's model" << std::endl;
-         d_conc_rhs_strategy = ConcRHSstrategy::Beckermann;
+      if (d_conc_model == ConcModel::WangSintering) {
+         d_conc_rhs_strategy = ConcRHSstrategy::WangSintering;
       } else {
-         TBOX_ERROR("Error: unknown concentration r.h.s. strategy");
+         if (conc_rhs_strategy.compare("kks") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::KKS;
+         } else if (conc_rhs_strategy.compare("ebs") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::EBS;
+            // stencil type can be regular, isotropic, or order4
+            d_ebs_stencil_type =
+                conc_db->getStringWithDefault("ebs_stencil", "regular");
+            if (d_ebs_stencil_type != "regular" &&
+                d_ebs_stencil_type != "isotropic" &&
+                d_ebs_stencil_type != "order4") {
+               tbox::plog << "EBS stencil: " << d_ebs_stencil_type << std::endl;
+               TBOX_ERROR("Error: unknown stencil type for EBS");
+            }
+         } else if (conc_rhs_strategy.compare("cahn_hilliard") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::CahnHilliard;
+            readCahnHilliard(conc_db);
+         } else if (conc_rhs_strategy.compare("spinodal") == 0) {
+            d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
+         } else if (conc_rhs_strategy[0] == 'u' ||
+                    conc_rhs_strategy[0] == 'B' ||
+                    conc_rhs_strategy[0] == 'b') {
+            tbox::plog << "Using Beckermann's model" << std::endl;
+            d_conc_rhs_strategy = ConcRHSstrategy::Beckermann;
+         } else {
+            TBOX_ERROR("Error: unknown concentration r.h.s. strategy");
+         }
       }
    }
 
@@ -377,6 +384,10 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       readDiluteAlloy(conc_db);
    }
 
+   if (d_conc_model == ConcModel::WangSintering) {
+      readWangSintering(conc_db);
+   }
+
    if (conc_db->keyExists("initc_in_phase")) {
       int nterms = conc_db->getArraySize("initc_in_phase");
       assert(nterms == 2 * d_ncompositions);
@@ -419,7 +430,15 @@ void QuatModelParameters::readCahnHilliard(std::shared_ptr<tbox::Database> db)
    d_CH_cb = ch_db->getDouble("cb");
    d_CH_well_scale = ch_db->getDouble("well_scale");
    d_CH_kappa = ch_db->getDouble("kappa");
-   d_CH_mobility = ch_db->getDouble("mobility");
+}
+
+void QuatModelParameters::readWangSintering(std::shared_ptr<tbox::Database> db)
+{
+   std::shared_ptr<tbox::Database> ws_db = db->getDatabase("WangSintering");
+
+   d_WangSintering_A = ws_db->getDouble("A");
+   d_WangSintering_B = ws_db->getDouble("B");
+   d_WangSintering_beta_rho = ws_db->getDouble("beta");
 }
 
 //=======================================================================
