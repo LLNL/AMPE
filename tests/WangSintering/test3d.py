@@ -18,7 +18,7 @@ os.symlink(src, data)
 #prepare initial conditions file
 initfilename="2spheres.nc"
 subprocess.call(["python3", "../../utils/make_multi_spheres.py",
-  "--nx", "120", "--ny", "200", "--nz", "1",
+  "--nx", "120", "--ny", "200", "--nz", "120",
   "--concentration-A", "1.,0.", "--concentration-B", "0.,1.", "--concentration-out", "0.,0.",
   "--spheres", data,
   initfilename])
@@ -35,11 +35,10 @@ lines=output.split(b'\n')
 volfractions=[]
 
 end_reached = False
-end_time = 2.
+end_time = 0.3
 integral = -1.
 integral0 = -1.
 tol = 1.e-6
-
 for line in lines:
 
   if line.count(b'cycle'):
@@ -65,4 +64,3 @@ if end_reached:
 else:
   print("End time not reached!")
   sys.exit(1)
-

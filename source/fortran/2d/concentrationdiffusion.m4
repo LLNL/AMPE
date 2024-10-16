@@ -998,8 +998,8 @@ c
 c factor 0.5 for two contributions, one from each side
       factor = 0.5d0*(2.d0**4)
 c
-      do ic1 = ifirst1, ilast1
-        do ic0 = ifirst0, ilast0
+      do ic1 = ifirst1-1, ilast1+1
+        do ic0 = ifirst0-1, ilast0+1
           pa =  phi(ic0,ic1)
           pb = (1.d0-pa)
           dAB = factor*pa*pa*pb*pb
@@ -1048,8 +1048,8 @@ c
       factor = factor**4
 c
 c
-      do ic1 = ifirst1, ilast1
-        do ic0 = ifirst0, ilast0
+      do ic1 = ifirst1-1, ilast1+1
+        do ic0 = ifirst0-1, ilast0+1
 
           do ipa = 1, nphia
             pa =  phia(ic0,ic1,ipa)

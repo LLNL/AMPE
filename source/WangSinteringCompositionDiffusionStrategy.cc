@@ -87,6 +87,8 @@ void WangSinteringCompositionDiffusionStrategy::setDiffusionInterfaces(
     std::shared_ptr<pdat::CellData<double>> conc,
     std::shared_ptr<pdat::SideData<double>> diffusion)
 {
+   assert(diffusion->getGhostCellWidth()[0] > 0);
+
    const hier::Box& pbox = patch->getBox();
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();

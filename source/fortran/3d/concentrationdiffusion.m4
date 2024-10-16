@@ -1148,6 +1148,54 @@ c
       return
       end
 c
+c
+      subroutine add_ab_diffusion_single(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, ngphi,
+     &   diff0, diff1, diff2, ngdiff,
+     &   dAB)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer ngphi, ngdiff
+      double precision d0
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi))
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2
+      double precision dAB, pa, pb
+      double precision factor
+c
+c factor 0.5 for two contributions, one from each side
+      factor = 0.5d0*(2.d0**4)
+c
+      do ic2 = ifirst2-1, ilast2+1
+        do ic1 = ifirst1-1, ilast1+1
+          do ic0 = ifirst0-1, ilast0+1
+            pa =  phi(ic0,ic1,ic2)
+            pb = (1.d0-pa)
+            dAB = factor*pa*pa*pb*pb
+c add contribution to four sides of each cell
+            diff0(ic0,ic1,ic2)   = diff0(ic0,ic1,ic2) + dAB
+            diff0(ic0+1,ic1,ic2) = diff0(ic0+1,ic1,ic2) + dAB
+            diff1(ic0,ic1,ic2)   = diff1(ic0,ic1,ic2) + dAB
+            diff1(ic0,ic1+1,ic2) = diff1(ic0,ic1+1,ic2) + dAB
+            diff2(ic0,ic1,ic2)   = diff2(ic0,ic1,ic2) + dAB
+            diff2(ic0,ic1,ic2+1) = diff2(ic0,ic1,ic2+1) + dAB
+          enddo
+        enddo
+      enddo
+c
+      return
+      end
+c
 c add interface diffusion to A and B diffusion
 c
       subroutine add_ab_diffusion(
@@ -1182,9 +1230,9 @@ c
       factor = 1.d0/(0.5d0-threshold)
       factor = factor**4
 c
-      do ic2 = ifirst2, ilast2
-        do ic1 = ifirst1, ilast1
-          do ic0 = ifirst0, ilast0
+      do ic2 = ifirst2-1, ilast2+1
+        do ic1 = ifirst1-1, ilast1+1
+          do ic0 = ifirst0-1, ilast0+1
             do ipa = 1, nphia
               pa =  phia(ic0,ic1,ic2,ipa)
               if( pa.gt.threshold )then

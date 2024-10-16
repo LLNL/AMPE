@@ -170,6 +170,112 @@ c
 
       return
       end
+c***********************************************************************
+c
+c Wang sintering double well flux
+c
+      subroutine add_wang_sintering_flux(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   dx,
+     &   conc, ngconc,
+     &   diff0, diff1, diff2, ngdiff,
+     &   phi, ngphi, norder,
+     &   mobility,
+     &   parameter_a, parameter_b, kappa,
+     &   flux0, flux1, flux2, ngflux,
+     &   phi2sum, phi3sum)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+      integer ngconc, ngphi, ngflux, ngdiff
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      double precision conc(CELL3d(ifirst,ilast,ngconc))
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision phi(CELL3d(ifirst,ilast,ngphi),norder)
+      double precision flux0(SIDE3d0(ifirst,ilast,ngflux))
+      double precision flux1(SIDE3d1(ifirst,ilast,ngflux))
+      double precision flux2(SIDE3d2(ifirst,ilast,ngflux))
+      double precision phi2sum(CELL3d(ifirst,ilast,ngphi))
+      double precision phi3sum(CELL3d(ifirst,ilast,ngphi))
+      double precision dx(0:2)
+c
+      double precision mobility, parameter_a, parameter_b, kappa
+c
+      double precision dxinv, dyinv, dzinv
+      double precision dxinv2, dyinv2, dzinv2
+      double precision c, lap, mu
+      integer          ic0, ic1, ic2, ip, norder
+
+      dxinv = 1.d0 / dx(0)
+      dyinv = 1.d0 / dx(1)
+      dzinv = 1.d0 / dx(2)
+      dxinv2 = dxinv*dxinv
+      dyinv2 = dyinv*dyinv
+      dzinv2 = dzinv*dzinv
+c
+c precompute sum of phi**2 at each cell
+c precompute sum of phi**3 at each cell
+c
+      do ic2 = ifirst2-1, ilast2+1
+        do ic1 = ifirst1-1, ilast1+1
+          do ic0 = ifirst0-1, ilast0+1
+            phi2sum(ic0,ic1,ic2) =
+     &         phi(ic0,ic1,ic2,1)*phi(ic0,ic1,ic2,1)
+            phi3sum(ic0,ic1,ic2) =
+     &         phi(ic0,ic1,ic2,1)*phi(ic0,ic1,ic2,1)*phi(ic0,ic1,ic2,1)
+          enddo
+        enddo
+      enddo
+
+      do ip = 2, norder
+        do ic2 = ifirst2-1, ilast2+1
+          do ic1 = ifirst1-1, ilast1+1
+            do ic0 = ifirst0-1, ilast0+1
+              phi2sum(ic0,ic1,ic2) = phi2sum(ic0,ic1,ic2)
+     &          + phi(ic0,ic1,ic2,ip)*phi(ic0,ic1,ic2,ip)
+              phi3sum(ic0,ic1,ic2) = phi3sum(ic0,ic1,ic2)
+     &          + phi(ic0,ic1,ic2,ip)*phi(ic0,ic1,ic2,ip)
+     &           *phi(ic0,ic1,ic2,ip)
+            enddo
+          enddo
+        enddo
+      enddo
+
+      do ic2 = ifirst2-1, ilast2+1
+        do ic1 = ifirst1-1, ilast1+1
+          do ic0 = ifirst0-1, ilast0+1
+            lap = dxinv2*(-2.d0*conc(ic0,ic1,ic2)
+     &                  + conc(ic0-1,ic1,ic2)+conc(ic0+1,ic1,ic2))
+     &          + dyinv2*(-2.d0*conc(ic0,ic1,ic2)
+     &                  + conc(ic0,ic1-1,ic2)+conc(ic0,ic1+1,ic2))
+     &          + dzinv2*(-2.d0*conc(ic0,ic1,ic2)
+     &                  + conc(ic0,ic1,ic2-1)+conc(ic0,ic1,ic2+1))
+            c = conc(ic0,ic1,ic2)
+            mu = 2.d0*parameter_a*c*(1.d0-c)*(1.d0-2.d0*c)
+     &           +2.d0*parameter_b*(
+     &           c-3.d0*phi2sum(ic0,ic1,ic2)+2.d0*phi3sum(ic0,ic1,ic2))
+     &           -kappa*lap
+            flux0(ic0,ic1,ic2)   = flux0(ic0,ic1,ic2)
+     &           + mobility*diff0(ic0,ic1,ic2)*dxinv*mu
+            flux0(ic0+1,ic1,ic2) = flux0(ic0+1,ic1,ic2)
+     &           - mobility*diff0(ic0+1,ic1,ic2)*dxinv*mu
+            flux1(ic0,ic1,ic2)   = flux1(ic0,ic1,ic2)
+     &           + mobility*diff1(ic0,ic1,ic2)*dyinv*mu
+            flux1(ic0,ic1+1,ic2) = flux1(ic0,ic1+1,ic2)
+     &           - mobility*diff1(ic0,ic1+1,ic2)*dyinv*mu
+            flux2(ic0,ic1,ic2)   = flux2(ic0,ic1,ic2)
+     &           + mobility*diff2(ic0,ic1,ic2)*dzinv*mu
+            flux2(ic0,ic1,ic2+1) = flux2(ic0,ic1,ic2+1)
+     &           - mobility*diff2(ic0,ic1,ic2+1)*dzinv*mu
+          enddo
+        enddo
+      enddo
+
+      return
+      end
 
 c***********************************************************************
 c

@@ -178,33 +178,21 @@ c
       dyinv2 = dyinv*dyinv
 c
 c precompute sum of phi**2 at each cell
+c precompute sum of phi**3 at each cell
       do ic1 = ifirst1-1, ilast1+1
          do ic0 = ifirst0-1, ilast0+1
             phi2sum(ic0,ic1) =
      &         phi(ic0,ic1,1)*phi(ic0,ic1,1)
+            phi3sum(ic0,ic1) =
+     &         phi(ic0,ic1,1)*phi(ic0,ic1,1)*phi(ic0,ic1,1)
          enddo
       enddo
-
+c
       do ip = 2, norder
          do ic1 = ifirst1-1, ilast1+1
             do ic0 = ifirst0-1, ilast0+1
                phi2sum(ic0,ic1) = phi2sum(ic0,ic1)
      &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
-            enddo
-         enddo
-      enddo
-c
-c precompute sum of phi**3 at each cell
-      do ic1 = ifirst1-1, ilast1+1
-         do ic0 = ifirst0-1, ilast0+1
-            phi3sum(ic0,ic1) =
-     &         phi(ic0,ic1,1)*phi(ic0,ic1,1)*phi(ic0,ic1,1)
-         enddo
-      enddo
-
-      do ip = 2, norder
-         do ic1 = ifirst1-1, ilast1+1
-            do ic0 = ifirst0-1, ilast0+1
                phi3sum(ic0,ic1) = phi3sum(ic0,ic1)
      &            + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
             enddo

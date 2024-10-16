@@ -1392,7 +1392,7 @@ void QuatModel::registerConcentrationVariables(void)
       d_conc_pfm_diffusion_var.push_back(conc_pfm_diffusion_var);
       d_conc_pfm_diffusion_id.push_back(variable_db->registerVariableAndContext(
           d_conc_pfm_diffusion_var[ic], current,
-          hier::IntVector(tbox::Dimension(NDIM), 0)));
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts - 1)));
       assert(d_conc_pfm_diffusion_id[ic] >= 0);
    }
 

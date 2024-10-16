@@ -664,8 +664,7 @@ void QuatIntegrator::RegisterConcentrationVariables(
                it = d_conc_pfm_diffusion_var.begin();
            it != d_conc_pfm_diffusion_var.end(); ++it) {
          d_conc_pfm_diffusion_id.push_back(
-             variable_db->registerVariableAndContext(
-                 *it, d_current, hier::IntVector(tbox::Dimension(NDIM), 0)));
+             variable_db->mapVariableAndContextToIndex(*it, d_current));
          assert(d_conc_pfm_diffusion_id[0] >= 0);
       }
 
