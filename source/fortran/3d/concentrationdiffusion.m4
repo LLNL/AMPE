@@ -292,11 +292,11 @@ c assuming the first nphi-1 order parameters are solid phase
                enddo
                hphiA = interp_func( vphi, interp_type )
 
-               vphi = average_func(phiL(ic0-1,ic1,ic2),
+               vphi = average_func(phiL(ic0,ic1,ic2-1),
      &                             phiL(ic0,ic1,ic2),
      &                             avg_type )
                hphiL = interp_func( vphi, interp_type )
-               diff0(ic0,ic1,ic2) =  hphiL * d_liquid
+               diff2(ic0,ic1,ic2) =  hphiL * d_liquid
      &                             + hphiA * d_solidA
             end do
          end do
