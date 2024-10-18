@@ -1153,7 +1153,7 @@ c
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   phi, ngphi,
      &   diff0, diff1, diff2, ngdiff,
-     &   dAB)
+     &   d0c)
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -1161,7 +1161,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
       integer ngphi, ngdiff
-      double precision d0
+      double precision d0c
 c
 c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi))
@@ -1174,7 +1174,7 @@ c
       double precision factor
 c
 c factor 0.5 for two contributions, one from each side
-      factor = 0.5d0*(2.d0**4)
+      factor = 0.5d0*d0c*(2.d0**4)
 c
       do ic2 = ifirst2-1, ilast2+1
         do ic1 = ifirst1-1, ilast1+1
@@ -1202,7 +1202,7 @@ c
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   phia, nphia, phib, nphib, ngphi,
      &   diff0, diff1, diff2, ngdiff,
-     &   d0,
+     &   d0c,
      &   same_phase)
 c***********************************************************************
       implicit none
@@ -1212,7 +1212,7 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
       integer nphia, nphib
       integer ngphi, ngdiff, same_phase
-      double precision d0
+      double precision d0c
 c
 c variables in 3d cell indexed
       double precision phia(CELL3d(ifirst,ilast,ngphi),nphia)
@@ -1226,9 +1226,10 @@ c
       double precision dAB
       double precision threshold, factor
 c
+c factor 0.5 for two contributions, one from each side
       threshold = 1.0d-2
       factor = 1.d0/(0.5d0-threshold)
-      factor = factor**4
+      factor = 0.5d0*d0c*(factor**4)
 c
       do ic2 = ifirst2-1, ilast2+1
         do ic1 = ifirst1-1, ilast1+1
@@ -1246,8 +1247,7 @@ c
                   if( pb.gt.threshold )then
                     pb = pb - threshold
 
-c factor 0.5 for two contributions, one from each side
-                    dAB = 0.5d0*factor*pa*pa*pb*pb
+                    dAB = factor*pa*pa*pb*pb
 
 c add contribution to four sides of each cell
                     diff0(ic0,ic1,ic2)   = diff0(ic0,ic1,ic2) + dAB

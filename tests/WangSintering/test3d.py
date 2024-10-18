@@ -35,7 +35,7 @@ lines=output.split(b'\n')
 volfractions=[]
 
 end_reached = False
-end_time = 0.3
+end_time = 0.1
 integral = -1.
 integral0 = -1.
 tol = 1.e-6

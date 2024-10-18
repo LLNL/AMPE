@@ -891,7 +891,7 @@ c
      &   diffA0, diffA1,
      &   diffB0, diffB1, ngdiff,
      &   temp, ngtemp,
-     &   d0, q0,
+     &   d0c, q0,
      &   gas_constant_R,
      &   same_phase)
 c***********************************************************************
@@ -902,7 +902,7 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer nphia, nphib
       integer ngphi, ngdiff, ngtemp, same_phase
-      double precision d0, q0
+      double precision d0c, q0
       double precision gas_constant_R
 c
 c variables in 2d cell indexed
@@ -928,7 +928,7 @@ c
       do ic1 = ifirst1, ilast1
         do ic0 = ifirst0, ilast0
           invT = 1.0d0 / temp(ic0,ic1)
-          factorT = d0*exp(-q0_invR*invT)
+          factorT = d0c*exp(-q0_invR*invT)
 
           do ipa = 1, nphia
             pa =  phia(ic0,ic1,ipa)
@@ -976,7 +976,7 @@ c
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
      &   diff0, diff1, ngdiff,
-     &   dAB)
+     &   d0c)
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -984,7 +984,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer ngphi, ngdiff
-      double precision d0
+      double precision d0c
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi))
@@ -996,7 +996,7 @@ c
       double precision factor
 c
 c factor 0.5 for two contributions, one from each side
-      factor = 0.5d0*(2.d0**4)
+      factor = 0.5d0*d0c*(2.d0**4)
 c
       do ic1 = ifirst1-1, ilast1+1
         do ic0 = ifirst0-1, ilast0+1
@@ -1020,7 +1020,7 @@ c
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phia, nphia, phib, nphib, ngphi,
      &   diff0, diff1, ngdiff,
-     &   d0,
+     &   d0c,
      &   same_phase)
 c***********************************************************************
       implicit none
@@ -1030,7 +1030,7 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer nphia, nphib
       integer ngphi, ngdiff, same_phase
-      double precision d0
+      double precision d0c
 c
 c variables in 2d cell indexed
       double precision phia(CELL2d(ifirst,ilast,ngphi),nphia)
@@ -1045,7 +1045,8 @@ c
 c
       threshold = 1.0d-2
       factor = 1.d0/(0.5d0-threshold)
-      factor = factor**4
+c factor 0.5 for two contributions, one from each side
+      factor = 0.5d0*d0c*(factor**4)
 c
 c
       do ic1 = ifirst1-1, ilast1+1
@@ -1064,8 +1065,7 @@ c
                 if( pb.gt.threshold )then
                   pb = pb - threshold
 
-c factor 0.5 for two contributions, one from each side
-                  dAB = 0.5d0*factor*pa*pa*pb*pb
+                  dAB = factor*pa*pa*pb*pb
 
 c add contribution to four sides of each cell
                   diff0(ic0,ic1)   = diff0(ic0,ic1) + dAB
