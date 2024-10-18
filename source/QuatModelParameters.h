@@ -529,6 +529,16 @@ class QuatModelParameters
    // number of order parameters associated with phase B
    int d_norderp_B;
 
+   /*
+    * Interfacial energy
+    */
+   double d_sigma;
+
+   /*
+    * Diffuse interface width
+    */
+   double d_delta;
+
    // Model parameters
    double d_H_parameter;
    double d_epsilon_phase;

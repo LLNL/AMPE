@@ -35,6 +35,8 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_norderp = 1;
    d_norderp_A = -1;
    d_norderp_B = -1;
+   d_sigma = -1.;
+   d_delta = -1.;
    d_gamma = 1.5;
    d_H_parameter = def_val;
    d_epsilon_phase = def_val;
@@ -436,9 +438,22 @@ void QuatModelParameters::readWangSintering(std::shared_ptr<tbox::Database> db)
 {
    std::shared_ptr<tbox::Database> ws_db = db->getDatabase("WangSintering");
 
-   d_WangSintering_A = ws_db->getDouble("A");
-   d_WangSintering_B = ws_db->getDouble("B");
-   d_WangSintering_beta_rho = ws_db->getDouble("beta");
+   if (d_sigma > 0. && d_delta > 0.) {
+      tbox::plog << "Estimate WangSintering model parameters from sigma and "
+                    "delta"
+                 << std::endl;
+      // see Biswas, Schwen, Tomar, J.Mater.Sci.(2018)
+      d_WangSintering_A = 5. * d_sigma / (4. * d_delta);
+      d_WangSintering_B = d_sigma / (4. * d_delta);
+      d_WangSintering_beta_rho = 3. * d_delta * d_sigma;
+      tbox::plog << "A        = " << d_WangSintering_A << std::endl;
+      tbox::plog << "B        = " << d_WangSintering_B << std::endl;
+      tbox::plog << "beta_rho = " << d_WangSintering_beta_rho << std::endl;
+   } else {
+      d_WangSintering_A = ws_db->getDouble("A");
+      d_WangSintering_B = ws_db->getDouble("B");
+      d_WangSintering_beta_rho = ws_db->getDouble("beta");
+   }
 }
 
 //=======================================================================
@@ -820,14 +835,14 @@ void QuatModelParameters::readModelParameters(
       std::shared_ptr<tbox::Database> interface_db =
           model_db->getDatabase("Interface");
       if (interface_db->keyExists("sigma")) {
-         double sigma = interface_db->getDouble("sigma");
+         d_sigma = interface_db->getDouble("sigma");
          if (!interface_db->keyExists("delta"))
             TBOX_ERROR("Interface: sigma and delta  needed together!");
-         double delta = interface_db->getDouble("delta");
-         d_epsilon_phase = sqrt(6. * sigma * delta);
+         d_delta = interface_db->getDouble("delta");
+         d_epsilon_phase = sqrt(6. * d_sigma * d_delta);
          tbox::plog << "Epsilon_phi = " << d_epsilon_phase << std::endl;
          // factor 16 is AMPE convention
-         d_phase_well_scale = (3. * sigma / delta) / 16.;
+         d_phase_well_scale = (3. * d_sigma / d_delta) / 16.;
          tbox::plog << "Double Well scale = " << d_phase_well_scale
                     << std::endl;
       } else {
