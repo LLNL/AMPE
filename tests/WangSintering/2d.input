@@ -2,7 +2,7 @@
 // From Wang 2006 Acta Mat.
 //
 end_time            = 2.
-max_delta_cycles    = 200
+max_delta_cycles    = 400
 
 Visit {
    interval = 0.1
