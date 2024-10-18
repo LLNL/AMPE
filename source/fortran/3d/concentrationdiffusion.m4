@@ -156,7 +156,6 @@ c***********************************************************************
 c
       integer ic0, ic1, ic2
       double precision vphi, hphi
-      double precision diff_liquid, diff_solidA
       double precision interp_func
       double precision average_func
 c
@@ -231,7 +230,6 @@ c***********************************************************************
 c
       integer ic0, ic1, ic2, ip
       double precision vphi, hphiL, hphiA
-      double precision diff_liquid, diff_solidA
       double precision interp_func
       double precision average_func
 c
@@ -634,7 +632,6 @@ c variables in 3d cell indexed
 c
       integer ic0, ic1, ic2, ip
       double precision vphi, vphiL, vphiA, vphiB
-      double precision diff_liquid, diff_solidA, diff_solidB
       double precision interp_func
       double precision average_func
 c
@@ -768,7 +765,6 @@ c***********************************************************************
 c
       integer ic0, ic1, ic2
       double precision vphi, hphi, k
-      double precision diff_liquid, diff_solid
       double precision interp_func
       double precision average_func
 c
@@ -1222,7 +1218,7 @@ c variables in 3d cell indexed
       double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
 c
       integer ic0, ic1, ic2, ipa, ipb, ipbmin
-      double precision pa, pb, factorT
+      double precision pa, pb
       double precision dAB
       double precision threshold, factor
 c

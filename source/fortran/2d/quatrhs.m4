@@ -171,8 +171,7 @@ c***********************************************************************
 c     local variables
       integer i, j
       double precision dxinv, dyinv, epsilon
-      double precision gx, gy, gn, gni, theta, phi
-      double precision nx, ny
+      double precision theta, phi
       double precision pi, q
       double precision epsilon2, dphidx, dphidy
       double precision epstheta, depsdtheta
@@ -323,7 +322,6 @@ c
       double precision deriv_interp_func
       double precision well_func
       double precision deriv_well_func
-      double precision t
       double precision dxinv, dyinv
       double precision epsilonq2
 
@@ -550,7 +548,6 @@ c
       double precision g_prime, h
       double precision interp_func
       double precision deriv_well_func
-      double precision t
 c
       dxinv = 1.d0 / dx(0)
       dyinv = 1.d0 / dx(1)
@@ -613,7 +610,6 @@ c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1
-      double precision f_l, f_a
 
       double precision hphi_prime
       double precision deriv_interp_func
@@ -661,7 +657,6 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1, ip
-      double precision f_l, f_a
 
       double precision hphis, hphil, suminv2
 c
@@ -726,7 +721,6 @@ c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1
-      double precision f_l, f_a, f_b
 
       double precision hphi, heta_prime
       double precision interp_func
@@ -768,7 +762,6 @@ c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
-      integer nsp
 
       double precision dx(0:1)
       double precision thermal_diffusivity, latent_heat
@@ -785,7 +778,6 @@ c***********************************************************************
 c
       integer ic0, ic1
       double precision gamma, dxinv2, dyinv2
-      double precision diff_term_x, diff_term_y, diff_term
      
 c      print*,'thermal diff=',thermal_diffusivity
  

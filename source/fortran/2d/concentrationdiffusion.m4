@@ -124,7 +124,6 @@ c***********************************************************************
 c
       integer ic0, ic1
       double precision vphi, hphi
-      double precision diff_liquid, diff_solidA
       double precision interp_func
       double precision average_func
 c
@@ -184,7 +183,6 @@ c***********************************************************************
 c
       integer ic0, ic1, ip
       double precision vphi, hphiL, hphiA
-      double precision diff_liquid, diff_solidA
       double precision interp_func
       double precision average_func
 c
@@ -253,7 +251,6 @@ c input arrays:
       double precision d_liquid, d_solidA, d_solidB
       double precision q0_liquid, q0_solidA, q0_solidB
       double precision gas_constant_R
-      integer three_phase
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi),3)
@@ -672,7 +669,6 @@ c variables in 2d cell indexed
 c
       integer ic0, ic1, ip
       double precision vphi, vphiL, vphiA, vphiB
-      double precision diff_liquid, diff_solidA, diff_solidB
       double precision interp_func
       double precision average_func
 c
@@ -767,7 +763,6 @@ c***********************************************************************
 c
       integer ic0, ic1
       double precision vphi, hphi, k
-      double precision diff_liquid, diff_solid
       double precision interp_func
       double precision average_func
 c
@@ -1039,7 +1034,7 @@ c variables in 2d cell indexed
       double precision diff1(SIDE2d1(ifirst,ilast,ngdiff))
 c
       integer ic0, ic1, ipa, ipb, ipbmin
-      double precision pa, pb, factorT
+      double precision pa, pb
       double precision dAB
       double precision threshold, factor
 c

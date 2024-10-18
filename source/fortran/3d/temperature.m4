@@ -45,7 +45,7 @@ c     local variables
       return
       end
       
-      subroutine initgaussian(dx,xlo,xhi,
+      subroutine initgaussian(dx,xlo,
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &  var, ng,
      &  center, ll,
@@ -62,7 +62,7 @@ c input arrays:
       REAL standard_dev,temperature_base, temperature_peak
       REAL radius2,factor,deltaT
       REAL center(0:NDIM-1),ll(0:NDIM-1)
-      REAL dx(0:NDIM-1),xlo(0:NDIM-1),xhi(0:NDIM-1)
+      REAL dx(0:NDIM-1),xlo(0:NDIM-1)
 c
 c variables in 2d cell indexed         
       REAL var(CELL3d(ifirst,ilast,ng))
@@ -176,7 +176,7 @@ c               endif
 
 c***********************************************************************
       
-      subroutine initgaussiansource(dx,xlo,xhi,
+      subroutine initgaussiansource(dx,xlo,
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &  rhs, ngrhs,
      &  cp, ngcp,
@@ -194,7 +194,7 @@ c input arrays:
       REAL standard_dev, heat_peak
       REAL radius2,factor
       REAL center(0:NDIM-1),ll(0:NDIM-1)
-      REAL dx(0:NDIM-1),xlo(0:NDIM-1),xhi(0:NDIM-1)
+      REAL dx(0:NDIM-1),xlo(0:NDIM-1)
 c
 c variables in 2d cell indexed         
       REAL cp(CELL3d(ifirst,ilast,ngcp))

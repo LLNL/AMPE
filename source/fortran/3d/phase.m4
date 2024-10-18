@@ -26,7 +26,7 @@ c
 c***********************************************************************
 c
       integer ic0,ic1,ic2
-      REAL x, y, tanhx, inv2d, factor1, factor2
+      REAL x, tanhx, inv2d, factor1, factor2
 
       inv2d=0.5/delta
 c r.h.s. resulting from diffusion term

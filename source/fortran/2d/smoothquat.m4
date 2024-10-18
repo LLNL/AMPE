@@ -35,7 +35,7 @@ c
 
       double precision phase(CELL2d(lo,hi,ngphi))
       
-      integer i, j, m, iq
+      integer i, j, m
       do j = lo1, hi1
          do i = lo0, hi0         
                

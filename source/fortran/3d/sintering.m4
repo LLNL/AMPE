@@ -37,7 +37,7 @@ c input arrays:
 c
 c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi),norder)
-      double precision conc(CELL3d(ifirst,ilast,ngphi))
+      double precision conc(CELL3d(ifirst,ilast,ngc))
       double precision rhs(CELL3d(ifirst,ilast,ngrhs),norder)
       double precision phi2sum(CELL3d(ifirst,ilast,0))
 
@@ -55,7 +55,7 @@ c
       double precision diff_term_x, diff_term_y, diff_term_z
       double precision diff_term
 
-      double precision dsum, g_prime
+      double precision g_prime
       double precision dxinv, dyinv, dzinv
 c
       dxinv = 1.d0 / dx(1)

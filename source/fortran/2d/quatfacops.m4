@@ -147,7 +147,7 @@ c
      &           fcy(fcylo0:fcyhi0,fcylo1:fcyhi1)
 
 c     local variables:
-      integer i, j, m
+      integer i, j
 
 c     x faces
 

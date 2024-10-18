@@ -177,12 +177,11 @@ void GaussianTemperatureStrategy::setCurrentTemperaturePrivatePatch(
 
    const double* dx = patch_geom->getDx();
    const double* xlo = patch_geom->getXLower();
-   const double* xhi = patch_geom->getXUpper();
 
    const hier::Index ifirst(patch.getBox().lower());
    const hier::Index ilast(patch.getBox().upper());
 
-   INITGAUSSIAN(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1), ilast(1),
+   INITGAUSSIAN(dx, xlo, ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                 ifirst(2), ilast(2),
 #endif

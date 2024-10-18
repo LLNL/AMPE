@@ -89,8 +89,8 @@ c=======================================================================
       save qr
       integer iq_qr_conj(NROTATIONS)
       save iq_qr_conj
-      double precision diff, dsq
-      double precision min_diff, min_dsq
+      double precision dsq
+      double precision min_dsq
       double precision min_q2_prime(QLEN)
       integer min_iq
 
@@ -300,8 +300,6 @@ c=======================================================================
       double precision q(QLEN)
       double precision q_prime(QLEN)
 
-      integer nn
-
       double precision qr(QLEN,NROTATIONS)
       save qr
       integer iq_qr_conj(NROTATIONS)
@@ -363,8 +361,8 @@ c=======================================================================
       save q0
       integer iq_qr_conj(NROTATIONS)
       save iq_qr_conj
-      double precision diff, dsq
-      double precision min_diff, min_dsq
+      double precision dsq
+      double precision min_dsq
       double precision min_q2_prime(QLEN)
       integer min_iq
 
@@ -461,8 +459,6 @@ c=======================================================================
       double precision q(QLEN)
       double precision q_prime(QLEN)
 
-      integer nn
-
       double precision qr(QLEN,NROTATIONS)
       save qr
       integer iq_qr_conj(NROTATIONS)
@@ -540,8 +536,8 @@ c=======================================================================
       save qr
       integer iq_qr_conj(NROTATIONS)
       save iq_qr_conj
-      double precision diff, qdabs
-      double precision min_diff, min_qdabs
+      double precision qdabs
+      double precision min_qdabs
       double precision min_q2_prime
       integer min_iq
 
@@ -639,8 +635,6 @@ c=======================================================================
       integer iq
       double precision q
       double precision q_prime
-
-      integer nn
 
       double precision qr(NROTATIONS)
       save qr
@@ -1307,9 +1301,6 @@ c        Same as quatdiffabs1 above, but rotating q2 first
       implicit none
       double precision q1, q2, qr, q2_prime
       double precision qdabs
-      double precision q1tmp
-      double precision q2tmp
-      integer n
 
       q2_prime = q2 + qr
       qdabs = dabs( q2_prime - q1 )

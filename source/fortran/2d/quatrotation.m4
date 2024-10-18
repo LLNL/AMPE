@@ -30,7 +30,7 @@ c
      &   rot_y(SIDE2d1(lo,hi,ngrot))
 
 c        local variables:
-      integer i, j, m, iq
+      integer i, j, m
       double precision q2_prime(depth), q1(depth), q2(depth)
 
 c        X component
@@ -88,7 +88,7 @@ C-----------------------------------------------------------------------
       double precision q2(depth)
       double precision q2_prime(depth)
 
-      double precision ZERO, ONE, PI, PI_OVER4
+      double precision ZERO, ONE
       parameter( ZERO=0.0d0 )
       parameter( ONE=1.0d0 )
 
