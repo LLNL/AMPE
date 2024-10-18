@@ -1,11 +1,11 @@
 //
 // From Wang 2006 Acta Mat.
 //
-end_time            = 0.1
-max_delta_cycles    = 200
+end_time            = 0.01
+max_delta_cycles    = 250
 
 Visit {
-   interval = 5.e-3
+   interval = 1.e-3
    interval_type = "time"
 }
 
@@ -46,12 +46,12 @@ ModelParameters {
 }
 
 ScalarDiagnostics {
-   interval = 5.e-3
+   interval = 1.e-3
    interval_type = "time"
 }   
 
 Integrator {
-   atol = 1.e-4
+   atol = 5.e-5
    Preconditioner{
      enabled = FALSE
    }
@@ -66,8 +66,7 @@ Geometry{
    periodic_dimension = 1, 1, 1
    coarsest_level_resolution = 120, 200, 120
    x_lo         =  0.,   0., 0.   // [um]
-//   x_up         =  120., 200. // [um]
-   x_up         =  60., 100., 60. // [um]
+   x_up         =  30., 50., 30. // [um]
 }
 
 TimerManager {    // optional block, see SAMRAI docs
