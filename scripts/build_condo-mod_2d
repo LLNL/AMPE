@@ -10,6 +10,7 @@ rm -f ../source/fortran/2d/*.f
 cmake -DCMAKE_CXX_COMPILER=mpiCC \
       -DCMAKE_C_COMPILER=mpicc \
       -DCMAKE_Fortran_COMPILER=mpif77 \
+      -DCMAKE_Fortran_FLAGS="-Wall" \
       -DSAMRAI_DIR=$HOME/SAMRAI/SAMRAI-v4.1.1 \
       -DHYPRE_DIR=$HOME/hypre/hypre2.28.0 \
       -DSUNDIALS_DIR=$HOME/sundials/sundials-5.4.0 \

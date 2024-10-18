@@ -46,7 +46,7 @@ c***********************************************************************
 c
       integer ic0,ic1,m,n
       double precision phi, dphi, jlf_threshold, d_deriv,
-     &     fac, norm_gradq,
+     &     fac,
      &     floor_grad_norm2, max_grad_normi,
      &     grad_norm2, grad_normi
       parameter( jlf_threshold=1.0d-16 )

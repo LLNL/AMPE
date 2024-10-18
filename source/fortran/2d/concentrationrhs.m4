@@ -252,7 +252,6 @@ c max matrix depth (should be ncomp*ncomp)
       double precision dx(0:1)
       double precision kappa
       integer ncomp
-      integer three_phase
       integer ngconc, ngconca, ngconcb
       integer ngeta, ngdiff
 c
@@ -699,7 +698,6 @@ c
       integer          ic0, ic1, ip
       double precision tol, tol2, dpdt
       double precision ac(2)
-      double precision factor
 
       tol = 1.e-8
       tol2 = tol*tol

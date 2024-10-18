@@ -474,9 +474,8 @@ void CALPHAD_CONC_SOLV_THREE(const double* x, const double& c,
                              const double* L1, const double* L2,
                              const double* fA, const double* fB);
 
-void INITGAUSSIAN(const double*, const double*, const double*,
-                  const int& ifirst0, const int& ilast0, const int& ifirst1,
-                  const int& ilast1,
+void INITGAUSSIAN(const double*, const double*, const int& ifirst0,
+                  const int& ilast0, const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
                   const int& ifirst2, const int& ilast2,
 #endif
@@ -491,9 +490,9 @@ void INITGRADIENT(const double*, const double*, const int& ifirst0,
                   const double*, const int&, const double*, const double&,
                   const double*);
 
-void INITGAUSSIANSOURCE(const double*, const double*, const double*,
-                        const int& ifirst0, const int& ilast0,
-                        const int& ifirst1, const int& ilast1,
+void INITGAUSSIANSOURCE(const double*, const double*, const int& ifirst0,
+                        const int& ilast0, const int& ifirst1,
+                        const int& ilast1,
 #if (NDIM == 3)
                         const int&, const int&,
 #endif

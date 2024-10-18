@@ -36,7 +36,7 @@ c
 
       double precision phase(CELL3d(lo,hi,ngphi))
       
-      integer i, j, k, m, iq
+      integer i, j, k, m
       double precision fac
       
       fac=1.d0/6.d0

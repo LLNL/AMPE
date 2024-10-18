@@ -279,7 +279,7 @@ c***********************************************************************
       integer ifirst, ilast, jfirst, jlast, kfirst, klast
       integer dcgi, dcgj, dcgk, fluxgi, fluxgj, fluxgk, 
      &        rhsgi, rhsgj, rhsgk, solngi, solngj, solngk,
-     &        sfgi, sfgj, sfgk, mgi, mgj, mgk
+     &        mgi, mgj, mgk
       double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
      &                       jfirst-fluxgj:jlast+fluxgj,
      &                       kfirst-fluxgk:klast+fluxgk)
@@ -373,7 +373,7 @@ c***********************************************************************
       integer ifirst, ilast, jfirst, jlast, kfirst, klast
       integer fluxgi, fluxgj, fluxgk, 
      &        rhsgi, rhsgj, rhsgk, solngi, solngj, solngk,
-     &        sfgi, sfgj, sfgk, mgi, mgj, mgk
+     &        mgi, mgj, mgk
       double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
      &                       jfirst-fluxgj:jlast+fluxgj,
      &                       kfirst-fluxgk:klast+fluxgk)
@@ -524,7 +524,7 @@ c***********************************************************************
       integer ifirst, ilast, jfirst, jlast , kfirst , klast
       integer fluxgi, fluxgj, fluxgk , rhsgi, rhsgj, rhsgk ,
      &        residualgi, residualgj, residualgk ,
-     &        solngi, solngj, solngk , sfgi, sfgj , sfgk,
+     &        solngi, solngj, solngk,
      &        mgi, mgj, mgk
       double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
      &                       jfirst-fluxgj:jlast+fluxgj,
@@ -647,7 +647,7 @@ c***********************************************************************
       implicit none
       integer ifirst, ilast, jfirst, jlast , kfirst , klast
       integer fluxgi, fluxgj, fluxgk , accumgi, accumgj, accumgk ,
-     &        solngi, solngj, solngk , sfgi, sfgj , sfgk,
+     &        solngi, solngj, solngk ,
      &        mgi, mgj, mgk
       double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
      &                       jfirst-fluxgj:jlast+fluxgj,
@@ -736,9 +736,9 @@ c     Lower and upper corners of boundary box
       integer blower(0:2), bupper(0:2)
 
       double precision h
-      integer i, ibeg, iend, ibnd, igho,
-     &        j, jbeg, jend, jbnd, jgho,
-     &        k, kbeg, kend, kbnd, kgho
+      integer i, ibeg, iend, ibnd,
+     &        j, jbeg, jend, jbnd,
+     &        k, kbeg, kend, kbnd
 c     Fine grid indices inside one coarse grid.
       integer ip, jp, kp
 c     Fine grid indices for point diametrically opposite from (ip,jp).
@@ -937,9 +937,9 @@ c     Lower and upper corners of boundary box
       integer blower(0:2), bupper(0:2)
 
       double precision h
-      integer i, ibeg, iend, ibnd, igho,
-     &        j, jbeg, jend, jbnd, jgho,
-     &        k, kbeg, kend, kbnd, kgho
+      integer i, ibeg, iend, ibnd,
+     &        j, jbeg, jend, jbnd,
+     &        k, kbeg, kend, kbnd
 c     Fine grid indices inside one coarse grid.
       integer ip, jp, kp
 c     Fine grid indices for point diametrically opposite from (ip,jp).

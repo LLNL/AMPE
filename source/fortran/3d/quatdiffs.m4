@@ -151,7 +151,7 @@ C        diff_x, diff_y, and diff_z are SideData WITH ghosts
       integer iqrot_z(SIDE3d2(lo,hi,ngiq))
 
 c        local variables:
-      integer i, j, k, m, iq
+      integer i, j, k, m
       double precision q2_prime(depth), q2(depth)
 
 c        X component

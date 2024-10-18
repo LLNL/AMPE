@@ -417,7 +417,6 @@ c
       double precision deriv_interp_func
       double precision well_func
       double precision deriv_well_func
-      double precision t
       double precision dxinv, dyinv, dzinv
       double precision epsilonq2
 c
@@ -671,7 +670,6 @@ c
       double precision g_prime, h
       double precision interp_func
       double precision deriv_well_func
-      double precision t
 c
       dxinv = 1.d0 / dx(0)
       dyinv = 1.d0 / dx(1)
@@ -686,7 +684,7 @@ c
                diff_term_y = 
      &           ( flux1(ic0,ic1+1,ic2) - flux1(ic0,ic1,ic2) )*dyinv
                diff_term_z = 
-     &           ( flux1(ic0,ic1,ic2+1) - flux1(ic0,ic1,ic2) )*dzinv
+     &           ( flux2(ic0,ic1,ic2+1) - flux2(ic0,ic1,ic2) )*dzinv
 
                diff_term = diff_term_x + diff_term_y + diff_term_z
 
@@ -739,7 +737,6 @@ c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1, ic2
-      double precision f_l, f_a
 
       double precision hphi_prime
       double precision deriv_interp_func
@@ -792,7 +789,6 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1, ic2, ip
-      double precision f_l, f_a
 
       double precision hphis, hphil, suminv2
 c
@@ -859,7 +855,6 @@ c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1, ic2
-      double precision f_l, f_a, f_b
 
       double precision hphi, heta_prime
       double precision interp_func
@@ -905,7 +900,6 @@ c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer nsp
 
       double precision dx(0:2)
       double precision thermal_diffusivity, latent_heat
@@ -922,9 +916,7 @@ c***********************************************************************
 c
       integer ic0, ic1, ic2
       double precision gamma, dxinv2, dyinv2, dzinv2
-      double precision diff_term_x, diff_term_y, diff_term_z
-      double precision diff_term
-      
+
       dxinv2 = 1.d0/(dx(0)*dx(0))
       dyinv2 = 1.d0/(dx(1)*dx(1))
       dzinv2 = 1.d0/(dx(2)*dx(2))
@@ -1107,7 +1099,7 @@ c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer ngphi, ngtemp, ngrhs
+      integer ngphi, ngrhs
       double precision tm, latentheat, mobility
       character*(*) phi_interp_type
 c

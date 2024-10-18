@@ -227,7 +227,6 @@ c
       character*(*) floor_type
       double precision gradient_floor, floor2
       integer eval_per_cell
-      integer three_phase
 
       double precision anisotropy, misorientation_factor
       double precision phi_well_scale
@@ -238,10 +237,8 @@ c
       double precision total_qint_e, total_well_e
       double precision p_phi
       double precision dx(NDIM), dx2inv, dy2inv
-      double precision diff_term_x, diff_term_y
-      double precision diff_term
 
-      double precision g_phi, aphi, h_phi
+      double precision g_phi, aphi
       double precision interp_func
       double precision well_func
       double precision average_func
@@ -256,8 +253,6 @@ c
       else
          floor2 = 0.d0
       endif
-
-c
 c
 c phi interface energy
 c

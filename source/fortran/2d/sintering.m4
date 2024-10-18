@@ -37,7 +37,7 @@ c input arrays:
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi),norder)
-      double precision conc(CELL2d(ifirst,ilast,ngphi))
+      double precision conc(CELL2d(ifirst,ilast,ngc))
       double precision rhs(CELL2d(ifirst,ilast,ngrhs),norder)
       double precision phi2sum(CELL2d(ifirst,ilast,0))
 
@@ -50,10 +50,10 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1
-      integer ip, jp
+      integer ip
       double precision diff_term_x, diff_term_y, diff_term
 
-      double precision dsum, g_prime
+      double precision g_prime
       double precision dxinv, dyinv
 c
       dxinv = 1.d0 / dx(1)

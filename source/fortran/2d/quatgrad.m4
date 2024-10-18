@@ -665,7 +665,7 @@ c-----------------------------------------------------------------------
 
       double precision grad_modulus
 
-      integer i, j, q, ii, jj, d
+      integer i, j, q, d
       
       do j = lo1, hi1
          do i = lo0, hi0
@@ -753,7 +753,7 @@ c-----------------------------------------------------------------------
 
       character*(*) floor_type
 
-      integer i, j, q, ii, jj, d
+      integer i, j, q, d
       
       if( floor_type(1:1) .eq. 's' )then
          beta = grad_floor*grad_floor
@@ -841,7 +841,7 @@ c-----------------------------------------------------------------------
 
       double precision grad_modulus
 
-      integer i, j, q, d
+      integer i, j, q
       
       do j = lo1, hi1
          do i = lo0, hi0

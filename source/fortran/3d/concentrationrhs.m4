@@ -306,7 +306,6 @@ c max matrix depth (should be ncomp*ncomp)
       double precision dx(0:2)
       double precision kappa
       integer ncomp
-      integer three_phase
       integer ngconc, ngconca, ngconcb
       integer ngeta, ngdiff
 c
@@ -389,9 +388,9 @@ c      print*,kappa
      &            conca(ic0,ic1,ic2-1,jc)+conca(ic0,ic1,ic2,jc) )
                sidecb = 0.5*(
      &            concb(ic0,ic1,ic2-1,jc)+concb(ic0,ic1,ic2,jc) )
-               flux1(ic0,ic1,ic2,ic) = flux1(ic0,ic1,ic2,ic)
-     &         + dyinv*(
-     &           diffconc1(ic0,ic1,ic2,ijc) *
+               flux2(ic0,ic1,ic2,ic) = flux1(ic0,ic1,ic2,ic)
+     &         + dzinv*(
+     &           diffconc2(ic0,ic1,ic2,ijc) *
      &           ( conc(ic0,ic1,ic2,jc) - conc(ic0,ic1,ic2-1,jc) )
      &         - kappa * (sideca-sidecb)
      &           *( eta(ic0,ic1,ic2) - eta(ic0,ic1,ic2-1) )
@@ -712,7 +711,7 @@ c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer ngflux, ngd, ngp, ngc, ncomp
+      integer ngflux, ngd, ngp, ngc
       double precision
      &     flux0(SIDE3d0(ifirst,ilast,ngflux)),
      &     flux1(SIDE3d1(ifirst,ilast,ngflux)),
@@ -958,7 +957,6 @@ c
       integer          ic0, ic1, ic2, ip
       double precision tol, tol2, dpdt
       double precision ac(2)
-      double precision factor
 c storage for values at +-1,+-1
       double precision vmm, vmp, vpm, vpp
 

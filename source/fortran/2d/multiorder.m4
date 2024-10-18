@@ -47,14 +47,11 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1
-      integer ip, jp
+      integer ip
       double precision diff_term_x, diff_term_y, diff_term
 
       double precision dsum, g_prime
-      double precision deriv_interp_func
-      double precision deriv_triple_well_func
       double precision dxinv, dyinv, fac
-
 c
       dxinv = 1.d0 / dx(1)
       dyinv = 1.d0 / dx(2)

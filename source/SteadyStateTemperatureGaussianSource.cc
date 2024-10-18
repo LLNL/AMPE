@@ -129,7 +129,6 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
                  patch->getPatchGeometry()));
          const double* dx = patch_geom->getDx();
          const double* xlo = patch_geom->getXLower();
-         const double* xhi = patch_geom->getXUpper();
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
@@ -142,8 +141,7 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_cp_id)));
 
-         INITGAUSSIANSOURCE(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1),
-                            ilast(1),
+         INITGAUSSIANSOURCE(dx, xlo, ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                             ifirst(2), ilast(2),
 #endif
