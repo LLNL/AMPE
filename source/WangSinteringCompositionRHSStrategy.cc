@@ -83,6 +83,10 @@ void WangSinteringCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
                                                              const int flux_id)
 {
    assert(d_dcoeff_set);
+   assert(d_beta_rho > 0.);
+   assert(d_mobility > 0.);
+   assert(d_A > 0.);
+   assert(d_B > 0.);
 
    const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,

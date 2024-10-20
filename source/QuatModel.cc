@@ -386,7 +386,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
           d_model_parameters.concRHSstrategyIsWangSintering()) {
          d_diffusion_for_conc_in_phase =
              CompositionDiffusionStrategyFactory::create(
-                 this, d_model_parameters,
+                 this, d_model_parameters, d_temperature_scratch_id,
                  static_cast<unsigned short>(d_ncompositions),
                  d_conc_scratch_id, d_conc_l_id, d_conc_a_id, d_conc_b_id,
                  d_conc_pfm_diffusion_id, d_conc_pfm_diffusion_l_id,
@@ -2709,23 +2709,36 @@ double QuatModel::computeDensityDiagnostics(void)
    assert(d_weight_diagnostics_id != -1);
    assert(d_work_id != -1);
 
+   math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
+
    // compute volume fraction of porosity
    const int depth_void =
        d_model_parameters.norderpA() + d_model_parameters.norderpB();
-
-   math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
-
    const double volume =
        mathops.sumControlVolumes(d_weight_id, d_weight_diagnostics_id);
    // tbox::pout << "volume = " << volume << std::endl;
 
-   copyDepthCellData(d_patch_hierarchy, d_work_id, 0, d_phase_id, depth_void);
-   const double integral = mathops.integral(d_work_id, d_weight_diagnostics_id);
-   // tbox::pout << "integral = " << integral << std::endl;
-   assert(volume > 0.);
+   if (depth_void < d_model_parameters.norderp()) {
+      // use order parameter associated with vacuum/liquid
+      copyDepthCellData(d_patch_hierarchy, d_work_id, 0, d_phase_id,
+                        depth_void);
+      const double integral =
+          mathops.integral(d_work_id, d_weight_diagnostics_id);
+      // tbox::pout << "integral = " << integral << std::endl;
+      assert(volume > 0.);
 
-   // return relative density
-   return 1. - integral / volume;
+      // return relative density
+      return 1. - integral / volume;
+   } else {
+      // use concentration field
+      const double integral =
+          mathops.integral(d_conc_id, d_weight_diagnostics_id);
+      // tbox::pout << "integral = " << integral << std::endl;
+      assert(volume > 0.);
+
+      // return relative density
+      return integral / volume;
+   }
 }
 
 //=======================================================================

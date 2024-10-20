@@ -16,17 +16,23 @@
 
 
 RigidBodyMotionConcRHS::RigidBodyMotionConcRHS(const int data_id,
+                                               const int norderp,
                                                const int weight_id,
                                                const double mobility)
-    : d_data_id(data_id), d_weight_id(weight_id), d_mobility(mobility)
+    : d_data_id(data_id),
+      d_norderp(norderp),
+      d_weight_id(weight_id),
+      d_mobility(mobility)
 {
+   tbox::plog << "RigidBodyMotionConcRHS with norderp = " << norderp
+              << std::endl;
 }
 
 void RigidBodyMotionConcRHS::computeVolumes(
-    std::shared_ptr<hier::PatchHierarchy> hierarchy, const unsigned nbodies)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
-   d_volumes.resize(nbodies);
-   for (unsigned i = 0; i < nbodies; i++) {
+   d_volumes.resize(d_norderp);
+   for (unsigned i = 0; i < d_norderp; i++) {
       d_volumes[i] =
           integralDepthCellData(hierarchy, d_data_id, i, d_weight_id);
    }
@@ -37,7 +43,9 @@ void RigidBodyMotionConcRHS::addRHS(
     std::shared_ptr<hier::PatchHierarchy> hierarchy, const int ydot_id,
     const std::vector<std::array<double, NDIM>>& forces)
 {
-   computeVolumes(hierarchy, forces.size());
+   assert(forces.size() == d_norderp);
+
+   computeVolumes(hierarchy);
 
    assert(forces.size() == d_volumes.size());
    for (unsigned i = 0; i < d_volumes.size(); i++)
@@ -82,10 +90,8 @@ void RigidBodyMotionConcRHS::addRHS(
          assert(data->getGhostCellWidth()[0] > 0);
          assert(data_rhs->getDepth() == 1);
 
-         const short nfield = data->getDepth() - 1;
-
          // div ( c v ) = div ( sum_i eta_i * v_i )
-         for (short i = 0; i < nfield; i++) {
+         for (short i = 0; i < d_norderp; i++) {
             const double* const velocity = velocities[i].data();
             assert(!std::isnan(velocity[0]));
             ADDRBMOTION(ifirst(0), ilast(0), ifirst(1), ilast(1),

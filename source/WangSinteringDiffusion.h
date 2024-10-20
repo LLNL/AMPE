@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef WangSinteringCompositionDiffusionStrategy_H
-#define WangSinteringCompositionDiffusionStrategy_H
+#ifndef WangSinteringDiffusion_H
+#define WangSinteringDiffusion_H
 
 #include "CompositionDiffusionStrategy.h"
 
@@ -22,15 +22,14 @@
  * Class to set composition diffusion coefficient to a scalar field that depends
  * on local phase and temperature
  */
-class WangSinteringCompositionDiffusionStrategy
-    : public CompositionDiffusionStrategy
+class WangSinteringDiffusion : public CompositionDiffusionStrategy
 {
  public:
-   WangSinteringCompositionDiffusionStrategy(
-       const int conc_id, const int diffusion_id, const double D_liquid,
-       const double D_solidA, const double D0_LA, const double D0_AA,
-       DiffusionInterpolationType interp_func_type,
-       const std::string& avg_func_type);
+   WangSinteringDiffusion(const int conc_id, const int diffusion_id,
+                          const double D_liquid, const double D_solidA,
+                          const double D0_LA, const double D0_AA,
+                          DiffusionInterpolationType interp_func_type,
+                          const std::string& avg_func_type);
 
    /*
     * compute actual diffusion in each phase by weighting diffusion coefficients
@@ -40,7 +39,7 @@ class WangSinteringCompositionDiffusionStrategy
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int phase_id) override;
 
- private:
+ protected:
    const int d_conc_id;
 
    /*!
@@ -60,11 +59,11 @@ class WangSinteringCompositionDiffusionStrategy
 
    std::string d_avg_func_type;
 
-   void setDiffusion(std::shared_ptr<hier::Patch> patch,
-                     std::shared_ptr<pdat::CellData<double>> phi,
-                     std::shared_ptr<pdat::CellData<double>> conc,
-                     std::shared_ptr<pdat::SideData<double>> diffusion);
-   void setDiffusionInterfaces(
+   virtual void setDiffusion(std::shared_ptr<hier::Patch> patch,
+                             std::shared_ptr<pdat::CellData<double>> phi,
+                             std::shared_ptr<pdat::CellData<double>> conc,
+                             std::shared_ptr<pdat::SideData<double>> diffusion);
+   virtual void setDiffusionInterfaces(
        std::shared_ptr<hier::Patch> patch,
        std::shared_ptr<pdat::CellData<double>> phi,
        std::shared_ptr<pdat::CellData<double>> conc,

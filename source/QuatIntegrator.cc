@@ -2028,11 +2028,14 @@ void QuatIntegrator::initialize(
 
    if (d_model_parameters.withRBmotion()) {
       d_rb_motion.reset(
-          new RigidBodyMotionRHS(d_phase_scratch_id, d_weight_id,
-                                 d_model_parameters.rbMobility()));
-      d_rb_motion_conc.reset(
-          new RigidBodyMotionConcRHS(d_phase_scratch_id, d_weight_id,
-                                     d_model_parameters.rbMobility()));
+          new RigidBodyMotionRHS(d_phase_scratch_id,
+                                 d_model_parameters.norderpA() +
+                                     d_model_parameters.norderpB(),
+                                 d_weight_id, d_model_parameters.rbMobility()));
+      d_rb_motion_conc.reset(new RigidBodyMotionConcRHS(
+          d_phase_scratch_id,
+          d_model_parameters.norderpA() + d_model_parameters.norderpB(),
+          d_weight_id, d_model_parameters.rbMobility()));
    }
 }
 
@@ -2506,7 +2509,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 
       assert(d_rigid_body_forces);
       d_rigid_body_forces->evaluatePairForces(hierarchy);
-      for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
+      for (int i = 0; i < nop; i++) {
          // sum up forces contributions from all other particles
          for (int j = 0; j < nop; j++) {
             if (j != i) {
@@ -2581,7 +2584,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
     const bool visit_flag)
 {
    assert(conc_rhs_id >= 0);
-   assert(d_conc_mobility >= 0.);
+   assert(d_conc_mobility > 0.);
    assert(temperature_id >= 0);
 
    t_conc_rhs_timer->start();

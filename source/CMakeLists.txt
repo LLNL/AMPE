@@ -29,7 +29,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/CahnHilliardDoubleWell.cc
             ${CMAKE_SOURCE_DIR}/source/SinteringUWangRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/WangSinteringCompositionRHSStrategy.cc
-            ${CMAKE_SOURCE_DIR}/source/WangSinteringCompositionDiffusionStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/WangSinteringDiffusion.cc
+            ${CMAKE_SOURCE_DIR}/source/TemperatureDependentWangSinteringDiffusion.cc
             ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/QuatGradModulusStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/ScalarCompositionDiffusionStrategy.cc

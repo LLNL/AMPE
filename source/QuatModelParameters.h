@@ -361,6 +361,13 @@ class QuatModelParameters
       return (d_conc_model == ConcModel::WangSintering);
    }
 
+   bool isTemperatureDependentWangSintering() const
+   {
+      tbox::plog << "d_Q0_solid_A=" << d_Q0_solid_A << std::endl;
+      return ((d_conc_model == ConcModel::WangSintering) &&
+              (d_Q0_solid_A > 0.));
+   }
+
    bool isTemperatureUniform() const
    {
       return (d_temperature_type == TemperatureType::SCALAR);
@@ -646,6 +653,9 @@ class QuatModelParameters
 
    std::string d_phi_mobility_type;
 
+   /*
+    * Molar volumes in m**3/mol
+    */
    double d_molar_volume_liquid;
    double d_molar_volume_solid_A;
    double d_molar_volume_solid_B;

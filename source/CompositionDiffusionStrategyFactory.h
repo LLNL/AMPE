@@ -14,14 +14,15 @@
 #include "MobilityCompositionDiffusionStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 #include "ScalarCompositionDiffusionStrategy.h"
-#include "WangSinteringCompositionDiffusionStrategy.h"
+#include "WangSinteringDiffusion.h"
+#include "TemperatureDependentWangSinteringDiffusion.h"
 
 class CompositionDiffusionStrategyFactory
 {
  public:
    static std::shared_ptr<CompositionDiffusionStrategy> create(
        QuatModel* model, QuatModelParameters& model_parameters,
-       const short ncompositions, const int conc_id,
+       const int temperature_id, const short ncompositions, const int conc_id,
        const int conc_l_scratch_id, const int conc_a_scratch_id,
        const int conc_b_scratch_id,
        const std::vector<int>& conc_pfm_diffusion_id,
@@ -70,14 +71,23 @@ class CompositionDiffusionStrategyFactory
              model_parameters.Q0_BB(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
+      } else if (model_parameters.isTemperatureDependentWangSintering()) {
+         strategy.reset(new TemperatureDependentWangSinteringDiffusion(
+             conc_id, temperature_id, conc_pfm_diffusion_id[0],
+             model_parameters.D_liquid(), model_parameters.Q0_liquid(),
+             model_parameters.D_solid_A(), model_parameters.Q0_solid_A(),
+             model_parameters.D0_LA(), model_parameters.Q0_LA(),
+             model_parameters.D0_AA(), model_parameters.Q0_AA(),
+             model_parameters.molar_volume_liquid(),
+             model_parameters.diffusion_interp_func_type(),
+             model_parameters.avg_func_type()));
       } else if (model_parameters.isConcentrationModelWangSintering()) {
-         strategy.reset(new WangSinteringCompositionDiffusionStrategy(
+         strategy.reset(new WangSinteringDiffusion(
              conc_id, conc_pfm_diffusion_id[0], model_parameters.D_liquid(),
              model_parameters.D_solid_A(), model_parameters.D0_LA(),
              model_parameters.D0_AA(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
-
       } else {
          tbox::plog << "Uses temperature based composition for scalar diffusion"
                     << std::endl;

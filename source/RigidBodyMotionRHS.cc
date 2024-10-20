@@ -15,17 +15,22 @@
 #include "SAMRAI/pdat/CellData.h"
 
 
-RigidBodyMotionRHS::RigidBodyMotionRHS(const int data_id, const int weight_id,
+RigidBodyMotionRHS::RigidBodyMotionRHS(const int data_id, const int norderp,
+                                       const int weight_id,
                                        const double mobility)
-    : d_data_id(data_id), d_weight_id(weight_id), d_mobility(mobility)
+    : d_data_id(data_id),
+      d_norderp(norderp),
+      d_weight_id(weight_id),
+      d_mobility(mobility)
 {
+   tbox::plog << "RigidBodyMotionRHS with norderp = " << norderp << std::endl;
 }
 
 void RigidBodyMotionRHS::computeVolumes(
-    std::shared_ptr<hier::PatchHierarchy> hierarchy, const unsigned nbodies)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
-   d_volumes.resize(nbodies);
-   for (unsigned i = 0; i < nbodies; i++) {
+   d_volumes.resize(d_norderp);
+   for (unsigned i = 0; i < d_norderp; i++) {
       d_volumes[i] =
           integralDepthCellData(hierarchy, d_data_id, i, d_weight_id);
    }
@@ -36,9 +41,9 @@ void RigidBodyMotionRHS::addRHS(
     std::shared_ptr<hier::PatchHierarchy> hierarchy, const int ydot_id,
     const std::vector<std::array<double, NDIM>>& forces)
 {
-   const unsigned nbodies = forces.size();
+   assert(forces.size() == d_norderp);
 
-   computeVolumes(hierarchy, nbodies);
+   computeVolumes(hierarchy);
 
    assert(forces.size() == d_volumes.size());
    for (unsigned i = 0; i < d_volumes.size(); i++)
@@ -82,10 +87,9 @@ void RigidBodyMotionRHS::addRHS(
          assert(data_rhs);
          assert(data->getGhostCellWidth()[0] > 0);
          assert(data->getDepth() == data_rhs->getDepth());
+         assert(data->getDepth() >= d_norderp);
 
-         const short nfield = data->getDepth() - 1;
-
-         for (short i = 0; i < nfield; i++) {
+         for (short i = 0; i < d_norderp; i++) {
             const double* const velocity = velocities[i].data();
             ADDRBMOTION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
