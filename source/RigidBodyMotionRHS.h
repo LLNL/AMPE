@@ -19,8 +19,8 @@ using namespace SAMRAI;
 class RigidBodyMotionRHS
 {
  public:
-   RigidBodyMotionRHS(const int data_scratch_id, const int weight_id,
-                      const double mobility);
+   RigidBodyMotionRHS(const int data_scratch_id, const int norderp,
+                      const int weight_id, const double mobility);
 
    void addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                const int ydot_id,
@@ -28,6 +28,8 @@ class RigidBodyMotionRHS
 
  private:
    const int d_data_id;
+   const int d_norderp;
+
    const int d_weight_id;
 
    /*!
@@ -40,8 +42,7 @@ class RigidBodyMotionRHS
     */
    std::vector<double> d_volumes;
 
-   void computeVolumes(std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                       const unsigned nbodies);
+   void computeVolumes(std::shared_ptr<hier::PatchHierarchy> hierarchy);
 };
 
 #endif

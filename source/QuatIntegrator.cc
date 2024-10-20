@@ -1973,31 +1973,33 @@ void QuatIntegrator::initialize(
           d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
           d_phase_mobility_id, d_flux_id, d_sundials_solver,
           d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
-   else if (d_model_parameters.norderp() > 1) {
-      tbox::plog << "Use MultiOrderRHSStrategy..." << std::endl;
-      if (d_with_concentration) {
-         if (d_model_parameters.isConcentrationModelWangSintering()) {
-            d_phase_rhs_strategy.reset(new SinteringUWangRHSStrategy(
-                d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-                d_temperature_scratch_id, d_phase_mobility_id, d_flux_id,
-                d_sundials_solver, d_grid_geometry, d_phase_flux_strategy));
-         }
+   else if (d_with_concentration) {
+      if (d_model_parameters.isConcentrationModelWangSintering()) {
+         tbox::plog << "Use SinteringUWangRHSStrategy..." << std::endl;
+         d_phase_rhs_strategy.reset(new SinteringUWangRHSStrategy(
+             d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+             d_temperature_scratch_id, d_phase_mobility_id, d_flux_id,
+             d_sundials_solver, d_grid_geometry, d_phase_flux_strategy));
       }
-      if (!d_phase_rhs_strategy) {
+   }
+
+   if (!d_phase_rhs_strategy) {
+      if (d_model_parameters.norderp() > 1) {
+         tbox::plog << "Use MultiOrderRHSStrategy..." << std::endl;
          d_phase_rhs_strategy.reset(new MultiOrderRHSStrategy(
              d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
              d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
              d_phase_mobility_id, d_flux_id, d_sundials_solver,
              d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+      } else {
+         d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
+             d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+             d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id,
+             d_f_l_id, d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
+             d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
+             d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
+             d_phase_flux_strategy));
       }
-   } else {
-      d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
-          d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-          d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id,
-          d_f_l_id, d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
-          d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
-          d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
-          d_phase_flux_strategy));
    }
 
    d_phase_rhs_strategy->setup(hierarchy);
@@ -2028,11 +2030,14 @@ void QuatIntegrator::initialize(
 
    if (d_model_parameters.withRBmotion()) {
       d_rb_motion.reset(
-          new RigidBodyMotionRHS(d_phase_scratch_id, d_weight_id,
-                                 d_model_parameters.rbMobility()));
-      d_rb_motion_conc.reset(
-          new RigidBodyMotionConcRHS(d_phase_scratch_id, d_weight_id,
-                                     d_model_parameters.rbMobility()));
+          new RigidBodyMotionRHS(d_phase_scratch_id,
+                                 d_model_parameters.norderpA() +
+                                     d_model_parameters.norderpB(),
+                                 d_weight_id, d_model_parameters.rbMobility()));
+      d_rb_motion_conc.reset(new RigidBodyMotionConcRHS(
+          d_phase_scratch_id,
+          d_model_parameters.norderpA() + d_model_parameters.norderpB(),
+          d_weight_id, d_model_parameters.rbMobility()));
    }
 }
 
@@ -2506,7 +2511,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 
       assert(d_rigid_body_forces);
       d_rigid_body_forces->evaluatePairForces(hierarchy);
-      for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
+      for (int i = 0; i < nop; i++) {
          // sum up forces contributions from all other particles
          for (int j = 0; j < nop; j++) {
             if (j != i) {
@@ -2581,7 +2586,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
     const bool visit_flag)
 {
    assert(conc_rhs_id >= 0);
-   assert(d_conc_mobility >= 0.);
+   assert(d_conc_mobility > 0.);
    assert(temperature_id >= 0);
 
    t_conc_rhs_timer->start();

@@ -66,7 +66,7 @@ void WangSinteringCompositionRHSStrategy::setDiffusionCoeff(
 
    t_set_diffcoeff_timer->start();
 
-   // tbox::pout<<"QuatIntegrator::setDiffCoeffForConcentration"<<endl;
+   // tbox::pout<<"WangSinteringCompositionRHSStrategy::setDiffusionCoeff()..."<<endl;
    assert(hierarchy);
 
    d_diffusion_for_conc_in_phase->setDiffusion(hierarchy, d_temperature_id,
@@ -82,7 +82,12 @@ void WangSinteringCompositionRHSStrategy::setDiffusionCoeff(
 void WangSinteringCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
                                                              const int flux_id)
 {
+   // std::cout<<"WangSinteringCompositionRHSStrategy::computeFluxOnPatch()..."<<std::endl;
    assert(d_dcoeff_set);
+   assert(d_beta_rho > 0.);
+   assert(d_mobility > 0.);
+   assert(d_A > 0.);
+   assert(d_B > 0.);
 
    const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,

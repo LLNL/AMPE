@@ -21,7 +21,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
-#include "SAMRAI/math/PatchSideDataBasicOps.h"
 
 #include <cassert>
 

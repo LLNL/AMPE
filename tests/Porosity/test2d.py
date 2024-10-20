@@ -60,12 +60,12 @@ for d in densities:
   if d>maxd:
     maxd = d
 
-expected_value=0.917
+expected_value=0.94352
 if abs(maxd-expected_value)>0.001:
   print("Expected max density = {}, found {}".format(expected_value,maxd))
   sys.exit(1)
 
-expected_value=0.855
+expected_value=0.836075
 if abs(mind-expected_value)>0.001:
   print("Expected min density = {}, found {}".format(expected_value,mind))
   sys.exit(1)
