@@ -53,7 +53,7 @@ for line in lines:
       sfraction=eval(words[6])
       if abs(sfraction-target_sf)>1.e-2:
         print("Wrong solid fraction:")
-        print("found {}, expected {}".format(sfraction-target_sf, sfraction-target_sf))
+        print("found {}, expected {}".format(sfraction, target_sf))
         sys.exit(1)
 
 if end_reached:
