@@ -234,11 +234,12 @@ for g in range(nspheres):
             d = N.sqrt(distance_sq) - N.sqrt(r_sq)
             if( d<0. ):
               phase[g,k,j,i] = 1.
-              for s in range(nspecies):
-                conc[s,k,j,i] = cs[s]
             if( width>0. ):
               if( abs(d)<8.*width ):
                 phase[g,k,j,i] = 0.5*(1.+N.tanh(-1.*d/(2.*width)))
+            for s in range(nspecies):
+              phi = phase[g,k,j,i]
+              conc[s,k,j,i] = conc[s,k,j,i]+(cs[s]-concL[s])*phi
 
 #-----------------------------------------------------------------------
 # Write data to file and close
