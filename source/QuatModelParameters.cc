@@ -436,8 +436,6 @@ void QuatModelParameters::readCahnHilliard(std::shared_ptr<tbox::Database> db)
 
 void QuatModelParameters::readWangSintering(std::shared_ptr<tbox::Database> db)
 {
-   std::shared_ptr<tbox::Database> ws_db = db->getDatabase("WangSintering");
-
    if (d_sigma > 0. && d_delta > 0.) {
       tbox::plog << "Estimate WangSintering model parameters from sigma and "
                     "delta"
@@ -450,6 +448,8 @@ void QuatModelParameters::readWangSintering(std::shared_ptr<tbox::Database> db)
       tbox::plog << "B        = " << d_WangSintering_B << std::endl;
       tbox::plog << "beta_rho = " << d_WangSintering_beta_rho << std::endl;
    } else {
+      std::shared_ptr<tbox::Database> ws_db = db->getDatabase("WangSintering");
+
       d_WangSintering_A = ws_db->getDouble("A");
       d_WangSintering_B = ws_db->getDouble("B");
       d_WangSintering_beta_rho = ws_db->getDouble("beta");

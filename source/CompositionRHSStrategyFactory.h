@@ -87,6 +87,8 @@ class CompositionRHSStrategyFactory
              model_parameters.CH_well_scale(),
              model_parameters.avg_func_type()));
       } else if (model_parameters.isConcentrationModelWangSintering()) {
+         tbox::plog << "Use WangSinteringCompositionRHSStrategy..."
+                    << std::endl;
          strategy.reset(new WangSinteringCompositionRHSStrategy(
              conc_scratch_id, phase_scratch_id, temperature_scratch_id,
              conc_pfm_diffusion_id[0], model_parameters.conc_mobility(),

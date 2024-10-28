@@ -18,7 +18,6 @@ c
      &   norder, dx,
      &   flux0, flux1, flux2,
      &   ngflux,
-     &   beta,
      &   parameter_b,
      &   phi, ngphi,
      &   conc, ngc,
@@ -32,7 +31,7 @@ c input arrays:
       integer norder
 
       double precision dx(3)
-      double precision beta, parameter_b
+      double precision parameter_b
       integer ngflux, ngphi, ngc, ngrhs
 c
 c variables in 3d cell indexed
@@ -103,7 +102,7 @@ c precompute sum of phi**2 at each cell
      &                                    *phi(ic0,ic1,ic2,ip)
      &           +phi2sum(ic0,ic1,ic2)*phi(ic0,ic1,ic2,ip)
 
-               rhs(ic0,ic1,ic2,ip) = beta*diff_term
+               rhs(ic0,ic1,ic2,ip) = diff_term
      &                             -12.*parameter_b*g_prime
 
             enddo

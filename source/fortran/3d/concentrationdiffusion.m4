@@ -1080,21 +1080,19 @@ c variables in 3d cell indexed
       double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
 c
       integer ic0, ic1, ic2, ipa, ipb, ipbmin
-      double precision pa, pb, invT, factorT
-      double precision q0_invR
+      double precision pa, pb, invRT, factorT
       double precision dAB
       double precision threshold, factor
 c
       threshold = 1.0d-2
       factor = 1.d0/(0.5d0-threshold)
-      factor = factor**4
-      q0_invR = q0 / gas_constant_R
+      factor = factor**2
 c
       do ic2 = ifirst2, ilast2
         do ic1 = ifirst1, ilast1
           do ic0 = ifirst0, ilast0
-            invT = 1.0d0 / temp(ic0,ic1,ic2)
-            factorT = d0*exp(-q0_invR*invT)
+            invRT = 1.0d0 / (gas_constant_R*temp(ic0,ic1,ic2))
+            factorT = d0*invRT*exp(-q0*invRT)
 
             do ipa = 1, nphia
               pa =  phia(ic0,ic1,ic2,ipa)
@@ -1110,7 +1108,7 @@ c
                     pb = pb - threshold
 
 c factor 0.5 for two contributions, one from each side
-                    dAB = 0.5d0*factor*pa*pa*pb*pb*factorT
+                    dAB = 0.5d0*factor*pa*pb*factorT
 
 c add contribution to six sides of each cell
                     diffA0(ic0,ic1,ic2)   = diffA0(ic0,ic1,ic2) + dAB
@@ -1192,6 +1190,63 @@ c
       return
       end
 c
+c
+      subroutine add_ab_diffusion_of_temperature_single(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, ngphi,
+     &   temp, ngtemp,
+     &   diff0, diff1, diff2, ngdiff,
+     &   d0c, q0, gas_constant_R)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer ngphi, ngtemp, ngdiff
+      double precision d0c, q0, gas_constant_R
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi))
+      double precision temp(CELL3d(ifirst,ilast,ngtemp))
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2
+      double precision dAB, pa, invRT
+      double precision factor
+c
+      do ic2 = ifirst2-1, ilast2+1
+        do ic1 = ifirst1-1, ilast1+1
+          do ic0 = ifirst0-1, ilast0+1
+            invRT = 1.0d0 / (gas_constant_R*temp(ic0,ic1,ic2))
+c factor 0.5 for two contributions, one from each side
+c factor 4 to get value a in middle of interface
+            factor = 2.d0*d0c*exp(-q0*invRT)*invRT
+
+            pa =  phi(ic0,ic1,ic2)
+            if(pa .lt. 0.d0)then
+              pa = 0.d0
+            endif
+            if(pa .gt. 1.d0)then
+              pa = 1.d0
+            endif
+            dAB = factor*pa*(1.d0-pa)
+c add contribution to six sides of each cell
+            diff0(ic0,ic1,ic2)   = diff0(ic0,ic1,ic2) + dAB
+            diff0(ic0+1,ic1,ic2) = diff0(ic0+1,ic1,ic2) + dAB
+            diff1(ic0,ic1,ic2)   = diff1(ic0,ic1,ic2) + dAB
+            diff1(ic0,ic1+1,ic2) = diff1(ic0,ic1+1,ic2) + dAB
+            diff2(ic0,ic1,ic2)   = diff2(ic0,ic1,ic2) + dAB
+            diff2(ic0,ic1,ic2+1) = diff2(ic0,ic1,ic2+1) + dAB
+          end do
+        end do
+      end do
+c
+      return
+      end
+c
 c add interface diffusion to A and B diffusion
 c
       subroutine add_ab_diffusion(
@@ -1256,6 +1311,62 @@ c add contribution to four sides of each cell
                 end do
               endif
             end do
+          end do
+        end do
+      end do
+c
+      return
+      end
+c
+c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
+c
+      subroutine add_diffusion_scalar_of_temperature(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, ngphi,
+     &   temperature, ngtemp,
+     &   diff0, diff1, diff2, ngdiff,
+     &   d0_liquid, q0_liquid,
+     &   d0_solid, q0_solid,
+     &   gas_constant_R,
+     &   interp_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer ngphi, ngtemp, ngdiff
+      character*(*) interp_type
+      double precision d0_liquid, d0_solid, q0_liquid, q0_solid
+      double precision gas_constant_R
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi))
+      double precision temperature(CELL3d(ifirst,ilast,ngtemp))
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2
+      double precision hphi
+      double precision interp_func
+      double precision invRT, dl, ds, d
+c
+      do ic2 = ifirst2-1, ilast2+1
+        do ic1 = ifirst1-1, ilast1+1
+          do ic0 = ifirst0-1, ilast0+1
+            invRT = 1.0d0 / (gas_constant_R*temperature(ic0,ic1,ic2))
+            dl = 0.5d0*d0_liquid*invRT*exp(-q0_liquid*invRT)
+            ds = 0.5d0*d0_solid*invRT*exp(-q0_solid*invRT)
+
+            hphi = interp_func( phi(ic0,ic1,ic2), interp_type )
+            d = (1.d0-hphi)*dl+hphi*ds
+
+            diff0(ic0,ic1,ic2)   = diff0(ic0,ic1,ic2) + d
+            diff0(ic0+1,ic1,ic2) = diff0(ic0+1,ic1,ic2) + d
+            diff1(ic0,ic1,ic2)   = diff1(ic0,ic1,ic2) + d
+            diff1(ic0,ic1+1,ic2) = diff1(ic0,ic1+1,ic2) + d
+            diff2(ic0,ic1,ic2)   = diff2(ic0,ic1,ic2) + d
+            diff2(ic0,ic1,ic2+1) = diff2(ic0,ic1,ic2+1) + d
           end do
         end do
       end do

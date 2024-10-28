@@ -1,8 +1,8 @@
 // Based on Shi et al., Journal of the European Ceramic Society 41 (2021), p. 211-231
 // dimensionless parameters
 
-max_timesteps       = 300
-end_time            = 600.
+max_timesteps       = 200
+end_time            = 5000.
 
 Verbosity {  // optional, block
    initial_energy_diagnostics = TRUE  // optional, default=FALSE

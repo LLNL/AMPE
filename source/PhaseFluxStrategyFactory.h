@@ -15,11 +15,22 @@ class PhaseFluxStrategyFactory
 
       double epsilon_anisotropy = model_parameters.epsilon_anisotropy();
       double epsilon = model_parameters.epsilon_phase();
-      // if multi order parameters, divide d_epsilon_phase by sqrt(2.)
-      // to compensate for double counting
-      if (model_parameters.norderp() > 1 &&
-          !model_parameters.with_three_phases())
-         epsilon /= sqrt(2.);
+
+      bool use_epsilon = false;
+      if (model_parameters.with_concentration())
+         if (model_parameters.isConcentrationModelWangSintering()) {
+            // kappa = epsilon^2/2
+            // so just use epsilon*epsilon = 6*sigma*delta = 2*kappa
+            // in flux computation
+            use_epsilon = true;
+         }
+      if (!use_epsilon) {
+         // if multi order parameters, divide d_epsilon_phase by sqrt(2.)
+         // to compensate for double counting
+         if (model_parameters.norderp() > 1 &&
+             !model_parameters.with_three_phases())
+            epsilon /= sqrt(2.);
+      }
 
       if (epsilon_anisotropy >= 0.) {
          if (!model_parameters.with_orientation())

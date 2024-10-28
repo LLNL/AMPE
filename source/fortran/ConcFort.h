@@ -376,6 +376,35 @@ void ADD_AB_DIFFUSION_SINGLE(const int& ifirst0, const int& ilast0,
 #endif
                              const int& ngdiff, const double& d0);
 
+void ADD_AB_DIFFUSION_OF_TEMPERATURE_SINGLE(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* phi, const int& ngphi, const double* temp, const int& ngtemp,
+    const double* diff0, const double* diff1,
+#if (NDIM == 3)
+    const double* diff2,
+#endif
+    const int& ngdiff, const double& d0, const double& q0,
+    const double& gas_constant_R);
+
+void ADD_DIFFUSION_SCALAR_OF_TEMPERATURE(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* phi, const int& ngphi, const double* temp, const int& ngtemp,
+    const double* diff0, const double* diff1,
+#if (NDIM == 3)
+    const double* diff2,
+#endif
+    const int& ngdiff, const double& d0l, const double& q0l, const double& d0s,
+    const double& q0s, const double& gas_constant_R,
+    const char* phi_interp_type);
+
 void CONCENTRATION_DIFFCOEFF_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,

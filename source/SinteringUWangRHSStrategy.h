@@ -46,7 +46,6 @@ class SinteringUWangRHSStrategy : public PhaseRHSStrategy
    /*
     *  model parameters
     */
-   const double d_beta;
    const double d_B;
 
    const int d_phase_id;

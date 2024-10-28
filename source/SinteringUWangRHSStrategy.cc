@@ -26,7 +26,6 @@ SinteringUWangRHSStrategy::SinteringUWangRHSStrategy(
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
     : d_model_parameters(model_parameters),
-      d_beta(model_parameters.epsilon_phase()),
       d_B(model_parameters.WangSintering_B()),
       d_phase_id(phase_id),
       d_conc_id(conc_id),
@@ -185,7 +184,6 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
    std::vector<double> tmp(pbox.size());
 
    assert(phase_flux->getDepth() == phase_flux->getDepth());
-   assert(d_beta > 0.);
    assert(d_B > 0.);
    COMPUTERHS_WANG_SINTERING(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -196,7 +194,7 @@ void SinteringUWangRHSStrategy::evaluateRHS(const double time,
 #if (NDIM == 3)
                              phase_flux->getPointer(2),
 #endif
-                             phase_flux->getGhostCellWidth()[0], d_beta, d_B,
+                             phase_flux->getGhostCellWidth()[0], d_B,
                              phase->getPointer(), phase->getGhostCellWidth()[0],
                              conc->getPointer(), conc->getGhostCellWidth()[0],
                              tmp.data(), phase_rhs->getPointer(),

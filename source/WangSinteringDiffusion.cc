@@ -8,20 +8,16 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "WangSinteringCompositionDiffusionStrategy.h"
+#include "WangSinteringDiffusion.h"
 #include "toolsSAMRAI.h"
 
 #include "ConcFort.h"
-#include "PhysicalConstants.h"
 
-const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
-
-WangSinteringCompositionDiffusionStrategy::
-    WangSinteringCompositionDiffusionStrategy(
-        const int conc_id, const int diffusion_id, const double D0_liquid,
-        const double D0_solidA, const double D0_LA, const double D0_AA,
-        const DiffusionInterpolationType interp_func_type,
-        const std::string& avg_func_type)
+WangSinteringDiffusion::WangSinteringDiffusion(
+    const int conc_id, const int diffusion_id, const double D0_liquid,
+    const double D0_solidA, const double D0_LA, const double D0_AA,
+    const DiffusionInterpolationType interp_func_type,
+    const std::string& avg_func_type)
     : CompositionDiffusionStrategy(interp_func_type),
       d_conc_id(conc_id),
       d_diffusion_id(diffusion_id),
@@ -36,16 +32,15 @@ WangSinteringCompositionDiffusionStrategy::
    assert(D0_liquid >= 0.);
    assert(D0_solidA >= 0.);
 
-   tbox::plog << "WangSinteringCompositionDiffusionStrategy..." << std::endl;
+   tbox::plog << "WangSinteringDiffusion..." << std::endl;
 }
 
-void WangSinteringCompositionDiffusionStrategy::setDiffusion(
+void WangSinteringDiffusion::setDiffusion(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int temperature_id,
     int phase_id)
 {
    (void)temperature_id;
-   tbox::plog << "WangSinteringCompositionDiffusionStrategy::setDiffusion()"
-              << std::endl;
+   tbox::plog << "WangSinteringDiffusion::setDiffusion()" << std::endl;
    assert(phase_id >= 0);
    assert(d_diffusion_id >= 0);
    assert(d_conc_id >= 0);
@@ -81,7 +76,7 @@ void WangSinteringCompositionDiffusionStrategy::setDiffusion(
    }
 }
 
-void WangSinteringCompositionDiffusionStrategy::setDiffusionInterfaces(
+void WangSinteringDiffusion::setDiffusionInterfaces(
     std::shared_ptr<hier::Patch> patch,
     std::shared_ptr<pdat::CellData<double>> phi,
     std::shared_ptr<pdat::CellData<double>> conc,
@@ -129,7 +124,7 @@ void WangSinteringCompositionDiffusionStrategy::setDiffusionInterfaces(
                            diffusion->getGhostCellWidth()[0], d_d0_LA);
 }
 
-void WangSinteringCompositionDiffusionStrategy::setDiffusion(
+void WangSinteringDiffusion::setDiffusion(
     std::shared_ptr<hier::Patch> patch,
     std::shared_ptr<pdat::CellData<double>> phi,
     std::shared_ptr<pdat::CellData<double>> conc,
