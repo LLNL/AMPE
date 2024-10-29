@@ -23,6 +23,8 @@ class WangRigidBodyForces : public RigidBodyForces
                        const int phase_scratch_id, const int conc_id,
                        const int weight_id);
 
+   double totalEnergy();
+
  private:
    const int d_conc_id;
 

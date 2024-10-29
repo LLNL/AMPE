@@ -51,6 +51,9 @@ void RigidBodyForces::evaluatePairForces(
       for (auto& fij : fi)
          fij = zero;
 
+   for (auto& ei : d_energies)
+      ei = 0.;
+
    std::vector<double> forces(d_forces.size() * d_forces.size() * NDIM, 0.);
    int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
@@ -86,6 +89,8 @@ void RigidBodyForces::evaluatePairForces(
             f = *ptmp;
             ptmp++;
          }
+
+   sumReduction(d_energies.data(), d_energies.size());
 
    t_eval_pair_forces_timer->stop();
 }

@@ -53,16 +53,21 @@ void MultiOrderPEnergyEvaluationStrategy::printPairEnergy(std::ostream& os)
    int n = d_model_parameters.norderpA();
    assert(d_total_energy.size() == n * n);
 
+   double totale = 0.;
+
    os << "Interfacial pair energies:" << std::endl;
    for (int i = 0; i < n; i++) {
       os << i << ":";
       for (int j = 0; j < n; j++) {
          const double e = d_total_energy[i * n + j];
+         if (j != i) totale += e;
          if (std::abs(e) > threshold)
             os << " (" << j << ") " << d_total_energy[i * n + j];
       }
       os << std::endl;
    }
+
+   os << "Total multiorder interfacial energy: " << totale << std::endl;
 }
 
 void MultiOrderPEnergyEvaluationStrategy::evaluatePairEnergy(

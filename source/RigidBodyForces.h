@@ -41,6 +41,8 @@ class RigidBodyForces
     */
    std::vector<std::vector<std::array<double, NDIM>>> d_forces;
 
+   std::vector<double> d_energies;
+
    virtual void evaluatePairForces(std::shared_ptr<hier::Patch> patch,
                                    std::vector<double>& forces) = 0;
 

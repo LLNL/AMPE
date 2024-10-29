@@ -24,6 +24,8 @@ WangRigidBodyForces::WangRigidBodyForces(
    tbox::plog << "WangRigidBodyForces..." << std::endl;
 
    d_norderp = model_parameters.norderpA();
+
+   d_energies.resize(d_norderp);
 }
 
 void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
@@ -66,4 +68,24 @@ void WangRigidBodyForces::evaluatePairForces(std::shared_ptr<hier::Patch> patch,
                conc->getDepth(), d_model_parameters.rbEquilGB(),
                d_model_parameters.rbThreshold(), weight->getPointer(),
                forces.data());
+
+   assert(d_energies..size() == d_norderp );
+   WANG_RB_ENERGIES(ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                    ifirst(2), ilast(2),
+#endif
+                    phase->getPointer(), phase->getGhostCellWidth()[0],
+                    d_norderp, conc->getPointer(), conc->getGhostCellWidth()[0],
+                    conc->getDepth(), d_model_parameters.rbEquilGB(),
+                    d_model_parameters.rbThreshold(), weight->getPointer(),
+                    d_energies.data());
+}
+
+double WangRigidBodyForces::totalEnergy()
+{
+   double energy = 0.;
+   for (auto& e : d_energies)
+      energy += e;
+
+   return energy;
 }

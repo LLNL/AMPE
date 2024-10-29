@@ -178,3 +178,66 @@ c add force density to integral over domain
 
       return
       end
+c
+c energy associated with rigid body forces
+c
+      subroutine wang_rb_energies(
+     &   lo0, hi0, lo1, hi1, lo2, hi2,
+     &   phi, pghosts, nphases,
+     &   conc, ngc, nc,
+     &   rhoe, cthreshold,
+     &   weight, energies
+     &   )
+
+      implicit none
+
+      integer lo0, hi0, lo1, hi1, lo2, hi2
+      integer pghosts, nphases, ngc, nc
+      double precision rhoe, cthreshold
+      double precision phi(CELL3d(lo,hi,pghosts), nphases)
+      double precision weight(CELL3d(lo,hi,0))
+      double precision conc(CELL3d(lo,hi,ngc), nc)
+      double precision energies(nphases)
+
+      integer i, j, k, p1, p2, ic
+      double precision pp, cdiff, cutoff_slope, cfactor, de
+c
+      double precision interp_func
+c
+      cutoff_slope = 10.d0
+c
+      do p1 = 1, nphases
+        do p2 = 1, nphases
+c integral over domain
+          do k = lo2, hi2
+            do j = lo1, hi1
+              do i = lo0, hi0
+c smooth cutoff
+                pp = 0.5d0
+     &             + (phi(i,j,k,p1)*phi(i,j,k,p2)-cthreshold)
+     &             * cutoff_slope
+c screen out zero contributions
+c if pp<0., cfactor=0.
+                if( pp .gt. 0d0 )then
+                  cfactor = interp_func( pp, 'p')
+                  cdiff = 0.d0
+                  do ic = 1, nc
+                    cdiff = cdiff + conc(i,j,k,ic)
+                  enddo
+                  cdiff = min(cdiff,1.d0)
+                  cdiff = cdiff-rhoe
+                  de = weight(i,j,k)*cdiff*cfactor
+     &               * phi(i,j,k-1,p1)
+c add energy density to integral over domain
+c flip sign since F = - grad E
+                  energies(p1) = energies(p1)
+     &                                - de
+                endif
+              enddo
+            enddo
+          enddo
+        enddo
+      enddo
+
+      return
+      end

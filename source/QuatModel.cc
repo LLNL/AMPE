@@ -4982,6 +4982,14 @@ void QuatModel::evaluateEnergy(
 
       d_rigid_body_forces->printPairForces(tbox::plog);
 
+      std::shared_ptr<WangRigidBodyForces> rigid_body_forces =
+          std::dynamic_pointer_cast<WangRigidBodyForces>(d_rigid_body_forces);
+
+      if (rigid_body_forces) {
+         double rbenergy = rigid_body_forces->totalEnergy();
+         tbox::pout << "Rigid body energy: " << rbenergy << std::endl;
+      }
+
       mpi.Barrier();
    }
 }
