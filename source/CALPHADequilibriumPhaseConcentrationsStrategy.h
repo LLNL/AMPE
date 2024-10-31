@@ -16,6 +16,8 @@
 
 #include "SAMRAI/tbox/InputManager.h"
 
+#include <boost/property_tree/ptree.hpp>
+
 template <class FreeEnergyType>
 class CALPHADequilibriumPhaseConcentrationsStrategy
     : public PhaseConcentrationsStrategy
@@ -28,7 +30,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        const bool with_third_phase, boost::property_tree::ptree calphad_pt,
-       std::shared_ptr<tbox::Database> newton_d, const unsigned ncompositions);
+       std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions);
 
    ~CALPHADequilibriumPhaseConcentrationsStrategy() {}
 
@@ -42,12 +44,13 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_b,
        std::shared_ptr<hier::Patch> patch);
 
+ protected:
+   std::unique_ptr<FreeEnergyType> d_calphad_fenergy;
+
  private:
    int d_conc_l_ref_id;
    int d_conc_a_ref_id;
    int d_conc_b_ref_id;
-
-   std::unique_ptr<FreeEnergyType> d_calphad_fenergy;
 
    const Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 };
