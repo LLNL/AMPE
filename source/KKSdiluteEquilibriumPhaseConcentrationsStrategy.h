@@ -47,6 +47,8 @@ class KKSdiluteEquilibriumPhaseConcentrationsStrategy
    int d_conc_b_ref_id;
 
    Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary* d_fenergy;
+
+   const Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 };
 
 #endif
