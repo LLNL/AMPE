@@ -29,7 +29,8 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
                                   conc_b_scratch_id, false),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
-      d_conc_b_ref_id(conc_b_ref_id)
+      d_conc_b_ref_id(conc_b_ref_id),
+      d_conc_interp_func_type(conc_interp_func_type)
 {
    pt::ptree troot;
    copyDatabase(conc_db, troot);
@@ -151,6 +152,8 @@ int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
 
             const double temp = ptr_temp[idx_te];
             const double phi = ptr_phi[idx_pf];
+            const double hphi =
+                Thermo4PFM::interp_func(d_conc_interp_func_type, phi);
 
             double c = cd_conc->getPointer(0)[idx_pf];
             TBOX_ASSERT(c == c);
@@ -161,7 +164,7 @@ int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
             x[1] = cd_ca->getPointer(0)[idx_ci];
 
             // compute cL, cS
-            nits += d_fenergy->computePhaseConcentrations(temp, &c, &phi, x);
+            nits += d_fenergy->computePhaseConcentrations(temp, &c, &hphi, x);
             //            std::cout<<"cl, cs = "<<x[0]<<","<<x[1]<<std::endl;
 
             // set cell values with cL and cS just computed

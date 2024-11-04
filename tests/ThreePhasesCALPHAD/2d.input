@@ -72,7 +72,7 @@ ScalarDiagnostics {
 }   
 
 Integrator {
-   atol = 1.e-5
+   atol = 2.e-5
    Preconditioner{
      enabled = FALSE
    }
