@@ -11,7 +11,7 @@
 #ifndef included_PhaseConcentrationsStrategyFactory
 #define included_PhaseConcentrationsStrategyFactory
 
-#include "CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB.h"
+#include "CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
@@ -99,10 +99,12 @@ class PhaseConcentrationsStrategyFactory
                      // three phases model
                      if (cB >= 0.) {
                         phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB(
+                            new CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB(
                                 cB, conc_l_scratch_id, conc_a_scratch_id,
                                 conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
-                                conc_b_ref_id, calphad_pt, newton_db));
+                                conc_b_ref_id,
+                                model_parameters.energy_interp_func_type(),
+                                calphad_pt, newton_db, ncompositions));
                      } else if (subl) {
                         phase_conc_strategy.reset(
                             new CALPHADequilibriumPhaseConcentrationsStrategy<

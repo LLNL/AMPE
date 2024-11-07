@@ -8,37 +8,37 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB.h"
 #include "Database2JSON.h"
-
 namespace pt = boost::property_tree;
 
-CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB::
-    CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB(
-        const double cB, const int conc_l_scratch_id,
+#include "CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB.h"
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB.h"
+
+// Thermo4PFM
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB.h"
+
+CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
+    CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB(
+        const double concStochioB, const int conc_l_scratch_id,
         const int conc_a_scratch_id, const int conc_b_scratch_id,
         const int conc_l_ref_id, const int conc_a_ref_id,
-        const int conc_b_ref_id, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db)
+        const int conc_b_ref_id,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : CALPHADequilibriumPhaseConcentrationsStrategy<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>(
           conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
-          conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
-          Thermo4PFM::EnergyInterpolationType::LINEAR,
+          conc_l_ref_id, conc_a_ref_id, conc_b_ref_id, energy_interp_func_type,
           Thermo4PFM::ConcInterpolationType::LINEAR, false, calphad_pt,
-          newton_db, 1)
+          newton_db, ncompositions),
+      d_concStochioB(concStochioB)
 {
-   tbox::plog << "CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochi"
-                 "oB..."
-              << std::endl;
-
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
-
    d_calphad_fenergy = std::unique_ptr<
        Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>(
        new Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB(
-           cB, calphad_pt, newton_pt,
-           Thermo4PFM::EnergyInterpolationType::LINEAR,
+           concStochioB, calphad_pt, newton_pt, energy_interp_func_type,
            Thermo4PFM::ConcInterpolationType::LINEAR));
 }

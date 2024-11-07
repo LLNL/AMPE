@@ -8,28 +8,36 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB
-#define included_CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB
+#ifndef included_CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
+#define included_CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
 
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
+#include "InterpolationType.h"
+
+// Thermo4PFM
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 
 #include <boost/property_tree/ptree.hpp>
 
-class CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB
+class CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
     : public CALPHADequilibriumPhaseConcentrationsStrategy<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>
 {
  public:
-   CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB(
-       const double cB, const int conc_l_id, const int conc_a_id,
+   CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB(
+       const double concStochioB, const int conc_l_id, const int conc_a_id,
        const int conc_b_id, const int conc_l_ref_id, const int conc_a_ref_id,
-       const int conc_b_ref_id, boost::property_tree::ptree calphad_pt,
-       std::shared_ptr<tbox::Database> newton_db);
+       const int conc_b_ref_id,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       boost::property_tree::ptree calphad_pt,
+       std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions);
 
-   ~CALPHADequilibriumPhaseConcentrationsStrategyThreePhaseStochioB() {}
+   ~CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB() {}
+
+ private:
+   const double d_concStochioB;
 };
 
 #endif
