@@ -13,6 +13,7 @@
 
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "InterpolationType.h"
+#include "QuatModelParameters.h"
 
 // Thermo4PFM
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB.h"
@@ -27,9 +28,9 @@ class CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
 {
  public:
    CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB(
-       const double concStochioB, const int conc_l_id, const int conc_a_id,
-       const int conc_b_id, const int conc_l_ref_id, const int conc_a_ref_id,
-       const int conc_b_ref_id,
+       QuatModelParameters& model_parameters, const int conc_l_id,
+       const int conc_a_id, const int conc_b_id, const int conc_l_ref_id,
+       const int conc_a_ref_id, const int conc_b_ref_id,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        boost::property_tree::ptree calphad_pt,
        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions);
@@ -37,7 +38,14 @@ class CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
    ~CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB() {}
 
  private:
-   const double d_concStochioB;
+   QuatModelParameters d_model_parameters;
+
+   /*
+    * Implement specific method to compute auxilliary compositions when
+    * phase is nearly 100% the sochiometric phase B
+    */
+   int computeAuxilliaryConcentrations(const double temp, double* c,
+                                       double* hphi, double* x) override;
 };
 
 #endif

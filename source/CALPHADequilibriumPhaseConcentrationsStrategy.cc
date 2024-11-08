@@ -179,6 +179,17 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
                Thermo4PFM::ConcInterpolationType::LINEAR));
 }
 
+
+template <class FreeEnergyType>
+int CALPHADequilibriumPhaseConcentrationsStrategy<
+    FreeEnergyType>::computeAuxilliaryConcentrations(const double temp,
+                                                     double* c, double* hphi,
+                                                     double* x)
+{
+   return d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi, x);
+}
+
+
 template <class FreeEnergyType>
 int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
     computePhaseConcentrationsOnPatch(
@@ -402,9 +413,8 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                //   std::cerr << hphi[i] << ", ";
 
                // compute cL, cS
-               int status =
-                   d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi,
-                                                                 x);
+               int status = computeAuxilliaryConcentrations(temp, c, hphi, x);
+
                if (status < 0) {
                   std::cerr
                       << "computePhaseConcentrations failed for T=" << temp

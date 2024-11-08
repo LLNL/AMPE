@@ -19,7 +19,7 @@ namespace pt = boost::property_tree;
 
 CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
     CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB(
-        const double concStochioB, const int conc_l_scratch_id,
+        QuatModelParameters& model_parameters, const int conc_l_scratch_id,
         const int conc_a_scratch_id, const int conc_b_scratch_id,
         const int conc_l_ref_id, const int conc_a_ref_id,
         const int conc_b_ref_id,
@@ -32,13 +32,64 @@ CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
           conc_l_ref_id, conc_a_ref_id, conc_b_ref_id, energy_interp_func_type,
           Thermo4PFM::ConcInterpolationType::LINEAR, false, calphad_pt,
           newton_db, ncompositions),
-      d_concStochioB(concStochioB)
+      d_model_parameters(model_parameters)
 {
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
    d_calphad_fenergy = std::unique_ptr<
        Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>(
        new Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB(
-           concStochioB, calphad_pt, newton_pt, energy_interp_func_type,
-           Thermo4PFM::ConcInterpolationType::LINEAR));
+           model_parameters.getStochioB(), calphad_pt, newton_pt,
+           energy_interp_func_type, Thermo4PFM::ConcInterpolationType::LINEAR));
+}
+
+int CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
+    computeAuxilliaryConcentrations(const double temp, double* c, double* hphi,
+                                    double* x)
+{
+   const double epsilon1 = 1.e-4;
+   const double epsilon2 = 2.e-4;
+
+   double xkks[2] = {tbox::IEEE::getSignalingNaN(),
+                     tbox::IEEE::getSignalingNaN()};
+   if (hphi[2] < 1. - epsilon1) {
+      // solve KKS problem
+      int status =
+          d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi, xkks);
+      if (status < 0) {
+         std::cerr << "computePhaseConcentrations failed for T=" << temp
+                   << ", hphi=";
+         for (short i = 0; i < 3; i++)
+            std::cerr << hphi[i] << ", ";
+         std::cerr << ", c=" << c[0] << ", " << c[1] << ", " << c[2]
+                   << std::endl;
+         std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2] << std::endl;
+         const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+         MPI_Abort(mpi.getCommunicator(), -1);
+      }
+   }
+
+   double xeq[2] = {tbox::IEEE::getSignalingNaN(),
+                    tbox::IEEE::getSignalingNaN()};
+   if (hphi[2] > 1. - epsilon2) {
+      xeq[0] = d_model_parameters.ceq_liquid(temp);
+      xeq[1] = d_model_parameters.ceq_solidA(temp);
+   }
+
+   if (hphi[2] < 1. - epsilon2) {
+      x[0] = xkks[0];
+      x[1] = xkks[1];
+   } else if (hphi[2] > 1. - epsilon1) {
+      x[0] = xeq[0];
+      x[1] = xeq[1];
+   } else {
+      // map 1.-epsilon2 < hphi < 1-epsilon1 to (0,1)
+      double h = (hphi[2] - (1. - epsilon2)) / (epsilon2 - epsilon1);
+      // mix equilibrium compositions and KKS solution
+      double f =
+          Thermo4PFM::interp_func(Thermo4PFM::EnergyInterpolationType::PBG, h);
+      x[0] = f * xeq[0] + (1. - f) * xkks[0];
+      x[1] = f * xeq[1] + (1. - f) * xkks[1];
+   }
+   return 0;
 }

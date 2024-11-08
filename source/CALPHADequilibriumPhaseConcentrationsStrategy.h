@@ -47,6 +47,9 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
  protected:
    std::unique_ptr<FreeEnergyType> d_calphad_fenergy;
 
+   virtual int computeAuxilliaryConcentrations(const double temp, double* c,
+                                               double* hphi, double* x);
+
  private:
    int d_conc_l_ref_id;
    int d_conc_a_ref_id;

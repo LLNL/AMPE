@@ -91,6 +91,11 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_average_concentration = def_val;
    d_stochio_cB = -1.;
 
+   for (short i = 0; i < 3; i++) {
+      d_ceq0_solidA[i] = def_val;
+      d_ceq0_liquid[i] = def_val;
+   }
+
    d_avg_func_type = "";
    d_diffq_avg_func_type = "";
    d_phase_well_func_type = "";
@@ -169,6 +174,27 @@ void QuatModelParameters::readNumberSpecies(
 {
    int nspecies = conc_db->getIntegerWithDefault("nspecies", 2);
    d_ncompositions = nspecies - 1;
+}
+
+void QuatModelParameters::readEquilibriumCompositions(
+    std::shared_ptr<tbox::Database> conc_db)
+{
+   std::string db_name("ConcentrationModel");
+   if (conc_db->keyExists(db_name)) {
+      std::shared_ptr<tbox::Database> db = conc_db->getDatabase(db_name);
+
+      d_Tref = conc_db->getDouble("Tref");
+
+      std::shared_ptr<tbox::Database> dbl = db->getDatabase("liquid");
+      d_ceq0_liquid[0] = dbl->getDouble("c");
+      d_ceq0_liquid[1] = dbl->getDouble("b");
+      d_ceq0_liquid[2] = dbl->getDouble("a");
+
+      std::shared_ptr<tbox::Database> dba = db->getDatabase("solidA");
+      d_ceq0_solidA[0] = dba->getDouble("c");
+      d_ceq0_solidA[1] = dba->getDouble("b");
+      d_ceq0_solidA[2] = dba->getDouble("a");
+   }
 }
 
 //=======================================================================

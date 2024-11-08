@@ -526,6 +526,20 @@ class QuatModelParameters
    double WangSintering_B() const { return d_WangSintering_B; }
    double WangSintering_beta_rho() const { return d_WangSintering_beta_rho; }
 
+   double ceq_liquid(const double temperature) const
+   {
+      const double dT = temperature - d_Tref;
+      return d_ceq0_liquid[0] + d_ceq0_liquid[1] * dT +
+             d_ceq0_liquid[2] * dT * dT;
+   }
+
+   double ceq_solidA(const double temperature) const
+   {
+      const double dT = temperature - d_Tref;
+      return d_ceq0_solidA[0] + d_ceq0_solidA[1] * dT +
+             d_ceq0_solidA[2] * dT * dT;
+   }
+
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
@@ -772,7 +786,15 @@ class QuatModelParameters
    double d_WangSintering_B;
    double d_WangSintering_beta_rho;
 
+   /*!
+    * Polynomial expansion of equilibrium compositions
+    */
+   double d_Tref;
+   double d_ceq0_liquid[3];
+   double d_ceq0_solidA[3];
+
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
+   void readEquilibriumCompositions(std::shared_ptr<tbox::Database> conc_db);
 
    void readCahnHilliard(std::shared_ptr<tbox::Database> db);
    void readWangSintering(std::shared_ptr<tbox::Database> db);
