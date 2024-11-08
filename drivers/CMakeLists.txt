@@ -9,19 +9,19 @@ add_executable(plotCALPHADbinary
 target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI}
                                         ${THERMOLIB})
 
-add_executable(plotEquilibriumCompositions
-               plotEquilibriumCompositions.cc
+add_executable(computeEquilibriumCompositions
+               computeEquilibriumCompositions.cc
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
-target_link_libraries(plotEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
+target_link_libraries(computeEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${PROJECT_LINK_LIBS_HDF5}
                                                   ${THERMOLIB})
 
-add_executable(plotEquilibriumCompositionsTernary
-               plotEquilibriumCompositionsTernary.cc
+add_executable(computeEquilibriumCompositionsTernary
+               computeEquilibriumCompositionsTernary.cc
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
-target_link_libraries(plotEquilibriumCompositionsTernary
+target_link_libraries(computeEquilibriumCompositionsTernary
                          ${PROJECT_LINK_LIBS_SAMRAI}
                          ${PROJECT_LINK_LIBS_HDF5}
                          ${THERMOLIB})

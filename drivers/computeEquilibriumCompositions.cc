@@ -25,8 +25,11 @@
 
 using namespace SAMRAI;
 #include "Database2JSON.h"
+
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 namespace pt = boost::property_tree;
-using namespace Thermo4PFM;
 
 int main(int argc, char *argv[])
 {
@@ -63,9 +66,10 @@ int main(int argc, char *argv[])
       std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
-      EnergyInterpolationType energy_interp_func_type =
-          EnergyInterpolationType::PBG;
-      ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
+      Thermo4PFM::EnergyInterpolationType energy_interp_func_type =
+          Thermo4PFM::EnergyInterpolationType::PBG;
+      Thermo4PFM::ConcInterpolationType conc_interp_func_type =
+          Thermo4PFM::ConcInterpolationType::PBG;
 
       std::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
@@ -80,23 +84,29 @@ int main(int argc, char *argv[])
       std::shared_ptr<tbox::Database> dcalphad_db =
           conc_db->getDatabase("Calphad");
       std::string calphad_filename = dcalphad_db->getString("filename");
-      std::shared_ptr<tbox::MemoryDatabase> calphad_db(
-          new tbox::MemoryDatabase("calphad_db"));
-      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                       calphad_db);
+
+      boost::property_tree::ptree calphad_pt;
+      if (calphad_filename.compare(calphad_filename.size() - 4, 4, "json") ==
+          0) {
+         boost::property_tree::read_json(calphad_filename, calphad_pt);
+      } else {
+         std::shared_ptr<tbox::MemoryDatabase> calphad_db(
+             new tbox::MemoryDatabase("calphad_db"));
+         tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                          calphad_db);
+         copyDatabase(calphad_db, calphad_pt);
+      }
 
       std::shared_ptr<tbox::Database> newton_db;
       if (conc_db->isDatabase("NewtonSolver"))
          newton_db = conc_db->getDatabase("NewtonSolver");
 
-      pt::ptree calphad_pt;
       pt::ptree newton_pt;
-      copyDatabase(calphad_db, calphad_pt);
       copyDatabase(newton_db, newton_pt);
 
-      CALPHADFreeEnergyFunctionsBinary cafe(calphad_pt, newton_pt,
-                                            energy_interp_func_type,
-                                            conc_interp_func_type);
+      Thermo4PFM::CALPHADFreeEnergyFunctionsBinary cafe(calphad_pt, newton_pt,
+                                                        energy_interp_func_type,
+                                                        conc_interp_func_type);
 
 
       // initial guesses
@@ -110,6 +120,10 @@ int main(int argc, char *argv[])
 
       double dT = (temperature_high - temperature_low) / 50;
 
+      model_db->printClassData(tbox::plog);
+
+      const double tol = 1.e-4;
+
       // loop over temperature range
       for (int iT = 0; iT < 50; iT++) {
 
@@ -117,16 +131,16 @@ int main(int argc, char *argv[])
 
          // compute equilibrium concentrations
          bool found_ceq = cafe.computeCeqT(temperature, &lceq[0]);
-         if (lceq[0] > 1.) found_ceq = false;
-         if (lceq[0] < 0.) found_ceq = false;
-         if (lceq[1] > 1.) found_ceq = false;
-         if (lceq[1] < 0.) found_ceq = false;
+         if (lceq[0] > 1. + tol) found_ceq = false;
+         if (lceq[0] < 0. - tol) found_ceq = false;
+         if (lceq[1] > 1. + tol) found_ceq = false;
+         if (lceq[1] < 0. - tol) found_ceq = false;
 
          if (found_ceq) {
             // tbox::pout<<"Found equilibrium concentrations: "
             //          <<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
-            cleq.insert(std::pair<double, double>(lceq[0], temperature));
-            cseq.insert(std::pair<double, double>(lceq[1], temperature));
+            cleq.insert(std::pair<double, double>(temperature, lceq[0]));
+            cseq.insert(std::pair<double, double>(temperature, lceq[1]));
 
          } else {
             tbox::pout << "Temperature = " << temperature << std::endl;
@@ -136,27 +150,29 @@ int main(int argc, char *argv[])
          }
       }
 
-      std::ofstream os("TvsC.dat");
-      os << "#liquid\n";
       {
-         std::map<double, double>::iterator it = cleq.begin();
-         while (it != cleq.end()) {
-            os << it->first << "  " << it->second << std::endl;
-            ++it;
+         std::ofstream os("CvsTliquid.csv");
+         os << "T, ceq\n";
+         {
+            std::map<double, double>::iterator it = cleq.begin();
+            while (it != cleq.end()) {
+               os << it->first << ", " << it->second << std::endl;
+               ++it;
+            }
          }
       }
 
-      os << std::endl << std::endl;
-
-      os << "#solid\n";
       {
-         std::map<double, double>::iterator it = cseq.begin();
-         while (it != cseq.end()) {
-            os << it->first << "  " << it->second << std::endl;
-            ++it;
+         std::ofstream os("CvsTsolid.csv");
+         os << "T, ceq\n";
+         {
+            std::map<double, double>::iterator it = cseq.begin();
+            while (it != cseq.end()) {
+               os << it->first << ", " << it->second << std::endl;
+               ++it;
+            }
          }
       }
-
       input_db.reset();
    }
 
