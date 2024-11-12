@@ -125,6 +125,7 @@ FortranCInterface_HEADER(
         DERIV_AVERAGE_FUNC
         INTERP_RATIO_FUNC
         COMPL_INTERP_RATIO_FUNC
+        TRIPLE_WELL_FUNC
         DERIV_TRIPLE_WELL_FUNC
 )
 FortranCInterface_HEADER(

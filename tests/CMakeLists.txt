@@ -76,7 +76,7 @@ add_executable(testInterpolation
 add_executable(test3PhasesInterpolation
                ${CMAKE_SOURCE_DIR}/tests/test3PhasesInterpolationFunctions.cc
                ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc
-               ${CMAKE_SOURCE_DIR}/source/TiltingMoelans2011.cc )
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 add_executable(testWeights3Pairs
                ${CMAKE_SOURCE_DIR}/tests/testWeights3Pairs.cc
                ${CMAKE_SOURCE_DIR}/source/computeWeights3Pairs.cc )

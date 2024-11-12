@@ -23,6 +23,8 @@ double DERIV_INTERP_FUNC(const double&, const char*);
 double SECOND_DERIV_INTERP_FUNC(const double&, const char*);
 double INTERP_RATIO_FUNC(const double&, const char*, const char*);
 double COMPL_INTERP_RATIO_FUNC(const double&, const char*, const char*);
+double TRIPLE_WELL_FUNC(const double&, const double&, const double&);
+double DERIV_TRIPLE_WELL_FUNC(const double&, const double&, const double&);
 }
 
 #endif
