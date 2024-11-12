@@ -5246,6 +5246,35 @@ void QuatModel::resetRefPhaseConcentrations()
 }
 
 //=======================================================================
+
+void QuatModel::resetRefPhaseConcentrationsB()
+{
+   assert(d_conc_b_id >= 0);
+   assert(d_conc_b_ref_id >= 0);
+
+   // tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
+
+   math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
+
+   cellops.copyData(d_conc_b_ref_id, d_conc_b_id, false);
+}
+
+//=======================================================================
+
+void QuatModel::setPhaseConcentrationsBtoRef()
+{
+   assert(d_conc_b_id >= 0);
+   assert(d_conc_b_ref_id >= 0);
+
+   // tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
+
+   math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
+
+   cellops.copyData(d_conc_b_id, d_conc_b_ref_id, false);
+}
+
+
+//=======================================================================
 /*
 void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
 {

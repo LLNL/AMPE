@@ -294,6 +294,8 @@ class QuatModel : public PFModel
 
    void setDiffusionVisit(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
+   void resetRefPhaseConcentrationsB();
+   void setPhaseConcentrationsBtoRef();
 
  private:
    void setAuxilliaryCompositions();
