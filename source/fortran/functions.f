@@ -604,6 +604,21 @@ c-----------------------------------------------------------------------
       end
 
 c-----------------------------------------------------------------------
+      function triple_well_func(p0, p1, p2)
+
+      implicit none
+
+      double precision triple_well_func
+      double precision p0, p1, p2
+
+      triple_well_func = 16.d0 * (p0*p0*(1.d0-p0)*(1.d0-p0)
+     &                         +  p1*p1*(1.d0-p1)*(1.d0-p1)
+     &                         +  p2*p2*(1.d0-p2)*(1.d0-p2))
+
+      return
+      end
+
+c-----------------------------------------------------------------------
 c dF/dp0 - 1/3 * sum_j dF/dpj
 c
       function deriv_triple_well_func(p0, p1, p2)
