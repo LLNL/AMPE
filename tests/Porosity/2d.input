@@ -1,7 +1,7 @@
 // Based on Shi et al., Journal of the European Ceramic Society 41 (2021), p. 211-231
 // dimensionless parameters
 
-max_timesteps       = 200
+max_timesteps       = 250
 end_time            = 5000.
 
 Verbosity {  // optional, block
