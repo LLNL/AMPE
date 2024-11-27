@@ -33,10 +33,10 @@ CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
         const int conc_a_ref_id, const int conc_b_ref_id,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, with_third_phase),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -53,10 +53,10 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
         const int conc_a_ref_id, const int conc_b_ref_id,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, with_third_phase),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -80,10 +80,10 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
         const int conc_a_ref_id, const int conc_b_ref_id,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, with_third_phase),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -107,10 +107,10 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
         const int conc_a_ref_id, const int conc_b_ref_id,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, with_third_phase),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -134,10 +134,10 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
         const int conc_a_ref_id, const int conc_b_ref_id,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, with_third_phase),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -161,10 +161,10 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
         const int conc_a_ref_id, const int conc_b_ref_id,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase, pt::ptree calphad_pt,
-        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+        pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
+        const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, with_third_phase),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -214,7 +214,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_te,
         std::shared_ptr<pdat::CellData<double> > cd_pf,
-        std::shared_ptr<pdat::CellData<double> > cd_eta,
         std::shared_ptr<pdat::CellData<double> > cd_conc,
         std::shared_ptr<pdat::CellData<double> > cd_cl,
         std::shared_ptr<pdat::CellData<double> > cd_ca,
@@ -223,7 +222,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 {
    assert(cd_te);
    assert(cd_pf);
-   assert(!cd_eta);  // not supported
    assert(cd_conc);
    assert(cd_cl);
    assert(cd_ca);
@@ -254,7 +252,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    assert(cd_conc->getDepth() == cd_ca_ref->getDepth());
 
    std::shared_ptr<pdat::CellData<double> > cd_cb_ref;
-   if (d_with_third_phase || nphases == 3) {
+   if (nphases == 3) {
       cd_cb_ref =
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_conc_b_ref_id));
@@ -317,7 +315,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    // number of compositions fields (number of species -1)
    const int nc = cd_conc->getDepth();
    int N = 2 * cd_conc->getDepth();
-   if (d_with_third_phase || nphases == 3) {
+   if (nphases == 3) {
       N += cd_conc->getDepth();
    }
 
@@ -328,7 +326,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    double* cl_ref = cd_cl_ref->getPointer(0);
    double* ca_ref = cd_ca_ref->getPointer(0);
    double* cb_ref = nullptr;
-   if (d_with_third_phase || nphases == 3) {
+   if (nphases == 3) {
       cb = cd_cb->getPointer(0);
       cb_ref = cd_cb_ref->getPointer(0);
    }
@@ -416,7 +414,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                for (int ic = 0; ic < nc; ic++) {
                   x[ic] = cl_ref[ic * ncc + idx_ci];
                   x[ic + nc] = ca_ref[ic * ncc + idx_ci];
-                  if (d_with_third_phase || nphases == 3) {
+                  if (nphases == 3) {
                      x[ic + 2 * nc] = cb_ref[ic * ncc + idx_ci];
                   }
                }
@@ -445,7 +443,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                for (int ic = 0; ic < nc; ic++) {
                   cl[ic * ncc + idx_ci] = x[ic];
                   ca[ic * ncc + idx_ci] = x[ic + nc];
-                  if (d_with_third_phase || nphases == 3) {
+                  if (nphases == 3) {
                      cb[ic * ncc + idx_ci] = x[ic + 2 * nc];
                   }
 

@@ -30,8 +30,8 @@ CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>(
           conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
           conc_l_ref_id, conc_a_ref_id, conc_b_ref_id, energy_interp_func_type,
-          Thermo4PFM::ConcInterpolationType::LINEAR, false, calphad_pt,
-          newton_db, ncompositions),
+          Thermo4PFM::ConcInterpolationType::LINEAR, calphad_pt, newton_db,
+          ncompositions),
       d_model_parameters(model_parameters)
 {
    pt::ptree newton_pt;
@@ -80,8 +80,8 @@ int CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
    if (hphi[2] > 1. - epsilon2) {
       xeq[0] = d_model_parameters.ceq_liquid(temp);
       xeq[1] = d_model_parameters.ceq_solidA(temp);
-      //std::cout << "xeq[0] = " << xeq[0] << std::endl;
-      //std::cout << "xeq[1] = " << xeq[1] << std::endl;
+      // std::cout << "xeq[0] = " << xeq[0] << std::endl;
+      // std::cout << "xeq[1] = " << xeq[1] << std::endl;
    }
 
    if (hphi[2] < 1. - epsilon2) {

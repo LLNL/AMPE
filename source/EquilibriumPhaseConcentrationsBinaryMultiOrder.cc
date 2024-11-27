@@ -19,7 +19,7 @@ EquilibriumPhaseConcentrationsBinaryMultiOrder::
         const int conc_l_id, const int conc_a_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
-    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1, false),
+    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1),
       d_conc_interp_func_type(model_parameters.conc_interp_func_type())
 {
 }
@@ -28,7 +28,6 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
         std::shared_ptr<pdat::CellData<double> > cd_phi,
-        std::shared_ptr<pdat::CellData<double> > cd_eta,
         std::shared_ptr<pdat::CellData<double> > cd_concentration,
         std::shared_ptr<pdat::CellData<double> > cd_c_l,
         std::shared_ptr<pdat::CellData<double> > cd_c_a,
@@ -44,7 +43,6 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
    assert(cd_phi->getGhostCellWidth() == cd_concentration->getGhostCellWidth());
    assert(cd_phi->getDepth() > 1);
 
-   (void)cd_eta;
    (void)cd_c_b;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());

@@ -17,7 +17,7 @@ QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
         const short norderp_A, const int conc_l_id, const int conc_a_id,
         const int conc_b_id, const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
-    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id, false),
+    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id),
       d_norderp_A(norderp_A),
       d_conc_interp_func_type(model_parameters.conc_interp_func_type())
 {
@@ -49,7 +49,6 @@ int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
         std::shared_ptr<pdat::CellData<double> > cd_phi,
-        std::shared_ptr<pdat::CellData<double> > cd_eta,
         std::shared_ptr<pdat::CellData<double> > cd_concentration,
         std::shared_ptr<pdat::CellData<double> > cd_c_l,
         std::shared_ptr<pdat::CellData<double> > cd_c_a,
@@ -65,8 +64,6 @@ int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
    assert(cd_c_b);
    assert(cd_phi->getGhostCellWidth() == cd_concentration->getGhostCellWidth());
    assert(cd_phi->getDepth() > 1);
-
-   (void)cd_eta;
 
    const int norderp = cd_phi->getDepth();
 

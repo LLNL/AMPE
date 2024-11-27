@@ -115,8 +115,7 @@ class PhaseConcentrationsStrategyFactory
                                 conc_b_ref_id,
                                 model_parameters.energy_interp_func_type(),
                                 model_parameters.conc_interp_func_type(),
-                                model_parameters.with_third_phase(), calphad_pt,
-                                newton_db, ncompositions));
+                                calphad_pt, newton_db, ncompositions));
                      } else {
                         phase_conc_strategy.reset(
                             new CALPHADequilibriumPhaseConcentrationsStrategy<
@@ -127,8 +126,7 @@ class PhaseConcentrationsStrategyFactory
                                 conc_b_ref_id,
                                 model_parameters.energy_interp_func_type(),
                                 model_parameters.conc_interp_func_type(),
-                                model_parameters.with_third_phase(), calphad_pt,
-                                newton_db, ncompositions));
+                                calphad_pt, newton_db, ncompositions));
                      }
                   }
                } else {  // two phases only
@@ -151,8 +149,7 @@ class PhaseConcentrationsStrategyFactory
                                 conc_b_ref_id,
                                 model_parameters.energy_interp_func_type(),
                                 model_parameters.conc_interp_func_type(),
-                                model_parameters.with_third_phase(), calphad_pt,
-                                newton_db, ncompositions));
+                                calphad_pt, newton_db, ncompositions));
 
                      } else {
                         phase_conc_strategy.reset(
@@ -163,8 +160,7 @@ class PhaseConcentrationsStrategyFactory
                                 conc_b_ref_id,
                                 model_parameters.energy_interp_func_type(),
                                 model_parameters.conc_interp_func_type(),
-                                model_parameters.with_third_phase(), calphad_pt,
-                                newton_db, ncompositions));
+                                calphad_pt, newton_db, ncompositions));
                      }
                   }
                }
@@ -176,8 +172,7 @@ class PhaseConcentrationsStrategyFactory
                        conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
                        conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
                        model_parameters.energy_interp_func_type(),
-                       model_parameters.conc_interp_func_type(),
-                       model_parameters.with_third_phase(), calphad_pt,
+                       model_parameters.conc_interp_func_type(), calphad_pt,
                        newton_db, ncompositions));
             }
          } else if (model_parameters.isConcentrationModelKKSdilute()) {
