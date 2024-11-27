@@ -29,7 +29,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        const int conc_b_ref_id,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-       const bool with_third_phase, boost::property_tree::ptree calphad_pt,
+       boost::property_tree::ptree calphad_pt,
        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions);
 
    ~CALPHADequilibriumPhaseConcentrationsStrategy() {}
@@ -37,7 +37,6 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_eta,
        std::shared_ptr<pdat::CellData<double> > cd_concentration,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,

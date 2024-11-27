@@ -20,20 +20,18 @@ class PhaseConcentrationsStrategy
 {
  public:
    PhaseConcentrationsStrategy(const int conc_l_id, const int conc_a_id,
-                               const int conc_b_id,
-                               const bool with_third_phase);
+                               const int conc_b_id);
 
    virtual ~PhaseConcentrationsStrategy() {}
 
    void computePhaseConcentrations(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int phase_id, const int eta_id,
+       const int temperature_id, const int phase_id,
        const int concentration_id);
 
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_eta,
        std::shared_ptr<pdat::CellData<double> > cd_concentration,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
@@ -44,8 +42,6 @@ class PhaseConcentrationsStrategy
    int d_conc_l_id;
    int d_conc_a_id;
    int d_conc_b_id;
-
-   bool d_with_third_phase;
 };
 
 #endif

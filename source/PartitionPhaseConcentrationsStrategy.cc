@@ -14,7 +14,6 @@
 int PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::CellData<double> > cd_concentration,
     std::shared_ptr<pdat::CellData<double> > cd_c_l,
     std::shared_ptr<pdat::CellData<double> > cd_c_a,
@@ -22,7 +21,6 @@ int PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
     std::shared_ptr<hier::Patch> patch)
 {
    (void)cd_temperature;
-   (void)cd_eta;
    (void)cd_c_b;
 
    assert(cd_phi);

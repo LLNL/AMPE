@@ -11,13 +11,10 @@
 #include "PhaseConcentrationsStrategy.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
-PhaseConcentrationsStrategy::PhaseConcentrationsStrategy(
-    const int conc_l_id, const int conc_a_id, const int conc_b_id,
-    const bool with_third_phase)
-    : d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id),
-      d_conc_b_id(conc_b_id),
-      d_with_third_phase(with_third_phase)
+PhaseConcentrationsStrategy::PhaseConcentrationsStrategy(const int conc_l_id,
+                                                         const int conc_a_id,
+                                                         const int conc_b_id)
+    : d_conc_l_id(conc_l_id), d_conc_a_id(conc_a_id), d_conc_b_id(conc_b_id)
 {
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
@@ -25,8 +22,7 @@ PhaseConcentrationsStrategy::PhaseConcentrationsStrategy(
 
 void PhaseConcentrationsStrategy::computePhaseConcentrations(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id,
-    const int concentration_id)
+    const int temperature_id, const int phase_id, const int concentration_id)
 {
    // tbox::pout<<"CALPHADFreeEnergyStrategy::computePhaseConcentrations()"<<endl;
 
@@ -35,10 +31,6 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
    assert(concentration_id >= 0);
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
-   if (d_with_third_phase) {
-      assert(eta_id >= 0);
-      assert(d_conc_b_id >= 0);
-   }
 #ifdef DEBUG_CHECK_ASSERTIONS
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
    assert(cellops.max(phase_id) == cellops.max(phase_id));
@@ -82,13 +74,6 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          assert(l2phi < 1000.);
 #endif
 
-         std::shared_ptr<pdat::CellData<double> > eta;
-         if (d_with_third_phase) {
-            eta =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(eta_id));
-         }
-
          std::shared_ptr<pdat::CellData<double> > concentration(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(concentration_id)));
@@ -112,9 +97,9 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
             assert(c_b);
          }
 
-         int ret = computePhaseConcentrationsOnPatch(temperature, phi, eta,
-                                                     concentration, c_l, c_a,
-                                                     c_b, patch);
+         int ret =
+             computePhaseConcentrationsOnPatch(temperature, phi, concentration,
+                                               c_l, c_a, c_b, patch);
          if (ret < 0) tbox::SAMRAI_MPI::abort();
          nits += ret;
       }

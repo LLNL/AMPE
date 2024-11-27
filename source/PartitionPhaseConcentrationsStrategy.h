@@ -22,7 +22,7 @@ class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy
        const int conc_l_id, const int conc_a_id, const int conc_b_id,
        const Thermo4PFM::ConcInterpolationType phase_interp_func_type,
        const int partition_coeff_id)
-       : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id, false),
+       : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id),
          d_phase_interp_func_type(phase_interp_func_type),
          d_partition_coeff_id(partition_coeff_id)
    {
@@ -36,7 +36,6 @@ class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_eta,
        std::shared_ptr<pdat::CellData<double> > cd_concentration,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,

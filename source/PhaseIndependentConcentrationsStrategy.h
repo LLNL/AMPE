@@ -23,14 +23,13 @@ class PhaseIndependentConcentrationsStrategy
    PhaseIndependentConcentrationsStrategy(const int conc_l_id,
                                           const int conc_a_id,
                                           const int conc_b_id)
-       : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id, false){};
+       : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id){};
 
    ~PhaseIndependentConcentrationsStrategy(){};
 
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_eta,
        std::shared_ptr<pdat::CellData<double> > cd_concentration,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,

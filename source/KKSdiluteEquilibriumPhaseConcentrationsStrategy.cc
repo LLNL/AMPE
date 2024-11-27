@@ -26,7 +26,7 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
-                                  conc_b_scratch_id, false),
+                                  conc_b_scratch_id),
       d_conc_l_ref_id(conc_l_ref_id),
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id),
@@ -42,15 +42,12 @@ int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_te,
         std::shared_ptr<pdat::CellData<double> > cd_pf,
-        std::shared_ptr<pdat::CellData<double> > cd_eta,
         std::shared_ptr<pdat::CellData<double> > cd_conc,
         std::shared_ptr<pdat::CellData<double> > cd_cl,
         std::shared_ptr<pdat::CellData<double> > cd_ca,
         std::shared_ptr<pdat::CellData<double> > cd_cb,
         std::shared_ptr<hier::Patch> patch)
 {
-   (void)cd_eta;
-
    assert(cd_te);
    assert(cd_pf);
    assert(cd_conc);
@@ -95,7 +92,7 @@ int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
    inc_k_te = inc_j_te * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi, and concentration all have same box
    assert(cd_pf->getGhostCellWidth()[0] == cd_conc->getGhostCellWidth()[0]);
 
    const hier::Box& pf_gbox = cd_pf->getGhostBox();

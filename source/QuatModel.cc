@@ -4945,7 +4945,7 @@ void QuatModel::evaluateEnergy(
          assert(d_phase_conc_strategy != nullptr);
          d_phase_conc_strategy->computePhaseConcentrations(
              hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
-             d_eta_scratch_id, d_conc_scratch_id);
+             d_conc_scratch_id);
       }
    }
 
