@@ -19,6 +19,7 @@
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyStrategyMultiOrder.h"
+#include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "QuadraticFreeEnergyStrategyMultiOrder.h"
 #include "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase.h"
 #include "KKSdiluteBinary.h"
@@ -41,6 +42,9 @@ class FreeEnergyStrategyFactory
        MeltingTemperatureStrategy* meltingT_strategy, const double Tref,
        std::shared_ptr<tbox::Database> conc_db)
    {
+      tbox::plog << "FreeEnergyStrategyFactory: ncompositions = "
+                 << ncompositions << std::endl;
+
       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy;
 
       if (model_parameters.with_concentration()) {
@@ -71,6 +75,7 @@ class FreeEnergyStrategyFactory
             }
 
             if (ncompositions == 1) {
+               tbox::plog << "ncompositions: 1" << std::endl;
                if (model_parameters.withMultipleOrderP()) {
                   tbox::plog << "CALPHADFreeEnergyStrategyMultiOrder..."
                              << std::endl;
@@ -98,6 +103,7 @@ class FreeEnergyStrategyFactory
                } else {
                   // check if sublattice parameters are in CALPHAD database
                   bool subl = Thermo4PFM::checkSublattice(calphad_pt);
+                  if (subl) tbox::plog << "CALPHAD sublattice..." << std::endl;
                   if (conc_b_scratch_id >= 0) {
                      if (subl) {
                         tbox::plog << "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.."
@@ -117,16 +123,27 @@ class FreeEnergyStrategyFactory
                         tbox::plog << "CALPHADFreeEnergyFunctionsBinaryThreePha"
                                       "se"
                                    << std::endl;
-                        free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinaryThreePhase,
-                                TiltingFolchPlapp2005>(
-                                calphad_pt, newton_db,
-                                model_parameters.energy_interp_func_type(),
-                                model_parameters.conc_interp_func_type(),
-                                mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
+                        if (model_parameters.getStochioB()) {
+                           tbox::plog << "Stochio..." << std::endl;
+                           free_energy_strategy.reset(
+                               new CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB(
+                                   calphad_pt, newton_db,
+                                   model_parameters.energy_interp_func_type(),
+                                   model_parameters.conc_interp_func_type(),
+                                   mvstrategy, conc_l_scratch_id,
+                                   conc_a_scratch_id, conc_b_scratch_id));
+                        } else {
+                           free_energy_strategy.reset(
+                               new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                   Thermo4PFM::
+                                       CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                   TiltingFolchPlapp2005>(
+                                   calphad_pt, newton_db,
+                                   model_parameters.energy_interp_func_type(),
+                                   model_parameters.conc_interp_func_type(),
+                                   mvstrategy, conc_l_scratch_id,
+                                   conc_a_scratch_id, conc_b_scratch_id));
+                        }
                      }
                      // conc_b_scratch_id<0
                   } else {
@@ -143,6 +160,8 @@ class FreeEnergyStrategyFactory
                                 mvstrategy, conc_l_scratch_id,
                                 conc_a_scratch_id, conc_b_scratch_id, false));
                      } else {
+                        tbox::plog << "CALPHADFreeEnergyStrategyBinary..."
+                                   << std::endl;
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyStrategyBinary<
                                 Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
@@ -156,6 +175,7 @@ class FreeEnergyStrategyFactory
                   }
                }
             } else {  // ncompositions!=1
+               tbox::plog << "CALPHADFreeEnergyStrategyTernary..." << std::endl;
                assert(ncompositions == 2);
                free_energy_strategy.reset(new CALPHADFreeEnergyStrategyTernary(
                    calphad_db, newton_db,
@@ -166,24 +186,19 @@ class FreeEnergyStrategyFactory
          }
          // not CALPHAD
          else if (model_parameters.isConcentrationModelKKSdilute()) {
-            tbox::pout << "QuatModel: "
-                       << "Using KKS dilute model for concentration"
+            tbox::plog << "Using KKS dilute model for concentration"
                        << std::endl;
             free_energy_strategy.reset(new KKSdiluteBinary(
                 conc_db, model_parameters.energy_interp_func_type(),
                 model_parameters.conc_interp_func_type(), mvstrategy,
                 conc_l_scratch_id, conc_a_scratch_id));
          } else if (model_parameters.isConcentrationModelQuadratic()) {
-            tbox::plog << "QuatModel: "
-                       << "Using Quadratic model for concentration"
+            tbox::plog << "Using Quadratic model for concentration"
                        << std::endl;
-            if (model_parameters.norderp() > 1)
+            if (model_parameters.norderp() > 1) {
                if (conc_b_scratch_id > -1) {
-                  tbox::plog << "Use "
-                                "QuadraticFreeEnergyStrategyMultiOrderTernar"
-                                "yTh"
-                                "reeP"
-                                "hase..."
+                  tbox::plog << "QuadraticFreeEnergyStrategyMultiOrderTernaryTh"
+                                "reePhase..."
                              << std::endl;
                   free_energy_strategy.reset(
                       new QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
@@ -196,8 +211,7 @@ class FreeEnergyStrategyFactory
                           conc_l_scratch_id, conc_a_scratch_id,
                           conc_b_scratch_id));
                } else {
-                  tbox::plog << "Use "
-                                "QuadraticFreeEnergyStrategyMultiOrder..."
+                  tbox::plog << "QuadraticFreeEnergyStrategyMultiOrder..."
                              << std::endl;
                   free_energy_strategy.reset(
                       new QuadraticFreeEnergyStrategyMultiOrder(
@@ -207,13 +221,15 @@ class FreeEnergyStrategyFactory
                           model_parameters.molar_volume_solid_A(),
                           conc_l_scratch_id, conc_a_scratch_id));
                }
-            else
+            } else {
+               tbox::plog << "QuadraticFreeEnergyStrategy" << std::endl;
                free_energy_strategy.reset(new QuadraticFreeEnergyStrategy(
                    conc_db->getDatabase("Quadratic"),
                    model_parameters.energy_interp_func_type(),
                    model_parameters.molar_volume_liquid(),
                    model_parameters.molar_volume_solid_A(), conc_l_scratch_id,
                    conc_a_scratch_id));
+            }
          } else if (model_parameters.with_bias_well()) {
             if (model_parameters.wellBiasBeckermann()) {
                free_energy_strategy.reset(

@@ -35,7 +35,7 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
        const int conc_a_id, const int conc_b_id);
 
-   ~CALPHADFreeEnergyStrategyBinaryThreePhase(){};
+   virtual ~CALPHADFreeEnergyStrategyBinaryThreePhase(){};
 
    void setup(boost::property_tree::ptree calphad_db,
               std::shared_ptr<tbox::Database> newton_db);
@@ -128,6 +128,10 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
       d_calphad_fenergy->preRunDiagnostics(temperature);
    }
 
+ protected:
+   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
+   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
+
  private:
    int d_conc_l_id;
    int d_conc_a_id;
@@ -136,9 +140,6 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
    std::shared_ptr<FreeEnergyFunctionType> d_calphad_fenergy;
 
    MolarVolumeStrategy* d_mv_strategy;
-
-   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
-   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
    void defaultComputeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,

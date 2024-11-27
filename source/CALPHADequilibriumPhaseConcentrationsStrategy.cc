@@ -17,12 +17,32 @@ namespace pt = boost::property_tree;
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB.h"
 
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 #include "SAMRAI/tbox/IEEE.h"
 
 #include <omp.h>
+
+template <class FreeEnergyType>
+CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
+    CALPHADequilibriumPhaseConcentrationsStrategy(
+        const int conc_l_scratch_id, const int conc_a_scratch_id,
+        const int conc_b_scratch_id, const int conc_l_ref_id,
+        const int conc_a_ref_id, const int conc_b_ref_id,
+        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+        const bool with_third_phase, pt::ptree calphad_pt,
+        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+    : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
+                                  conc_b_scratch_id, with_third_phase),
+      d_conc_l_ref_id(conc_l_ref_id),
+      d_conc_a_ref_id(conc_a_ref_id),
+      d_conc_b_ref_id(conc_b_ref_id),
+      d_conc_interp_func_type(conc_interp_func_type)
+{
+}
 
 template <>
 CALPHADequilibriumPhaseConcentrationsStrategy<
@@ -159,6 +179,36 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
                Thermo4PFM::ConcInterpolationType::LINEAR));
 }
 
+
+template <class FreeEnergyType>
+int CALPHADequilibriumPhaseConcentrationsStrategy<
+    FreeEnergyType>::computeAuxilliaryConcentrations(const double temp,
+                                                     double* c, double* hphi,
+                                                     double* x)
+{
+   double x_init[4] = {x[0], x[1], x[2], x[3]};
+
+   int status = d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi, x);
+
+#ifndef GPU_OFFLOAD
+   if (status < 0 || std::isnan(x[0])) {
+      std::cerr << "CALPHADequilibriumPhaseConcentrationsStrategy" << std::endl;
+      std::cerr << "computePhaseConcentrations failed for T = " << temp
+                << ", hphi = ";
+      for (short i = 0; i < 3; i++)
+         std::cerr << hphi[i] << ", ";
+      std::cerr << "c =" << c[0] << std::endl;
+      std::cerr << "cinit = " << x_init[0] << "," << x_init[1] << ","
+                << x_init[2] << std::endl;
+      std::cerr << "x = " << x[0] << "," << x[1] << "," << x[2] << std::endl;
+      const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+      MPI_Abort(mpi.getCommunicator(), -1);
+   }
+#endif
+   return status;
+}
+
+
 template <class FreeEnergyType>
 int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
     computePhaseConcentrationsOnPatch(
@@ -187,7 +237,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    double l2n = cops.L2Norm(cd_conc, patch->getBox());
    assert(l2n == l2n);
 #endif
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    const int nphases = cd_pf->getDepth();
    if (nphases == 3) assert(cd_cb);
@@ -382,50 +431,10 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                //   std::cerr << hphi[i] << ", ";
 
                // compute cL, cS
-               int status =
-                   d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi,
-                                                                 x);
-               // std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
-               //          << std::endl;
-               if (status < 0) {
-                  std::cerr
-                      << "computePhaseConcentrations failed for T=" << temp
-                      << ", " << nphases << " phases, hphi=";
-                  for (short i = 0; i < nphases; i++)
-                     std::cerr << hphi[i] << ", ";
-                  std::cerr << ", c=" << c[0] << std::endl;
-                  std::cerr << "c_ref=" << cl_ref[idx_ci] << ","
-                            << ca_ref[idx_ci] << "," << cb_ref[idx_ci]
-                            << std::endl;
-                  std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
-                            << std::endl;
-                  MPI_Abort(mpi.getCommunicator(), -1);
-               }
-#ifndef GPU_OFFLOAD
-               assert(!std::isnan(x[0]));
-               /*
-                              if(std::isnan(x[0]))
-                              {
-                                 std::cerr
-                                     << "computePhaseConcentrations failed for
-                  T=" << temp
-                                     << ", hphi=";
-                                 for (short i = 0; i < nphases; i++)
-                                    std::cerr << hphi[i] << ", ";
-                                 std::cerr << "c=" << c[0] << std::endl;
-                                 std::cerr << ", c_ref=" << cl_ref[0] << "," <<
-                  ca_ref[0] << ","
-                                           << cb_ref[0] << std::endl;
-                                 std::cerr << ", x=" << x[0] << "," << x[1] <<
-                  "," << x[2]
-                                           << ", idx_pf="<<idx_pf<<",
-                  imin[0]="<<imin[0]
-                                           << std::endl;
-                                 abort();
-                              }
-               */
+               int status = computeAuxilliaryConcentrations(temp, c, hphi, x);
+
                nits += status;
-#endif
+
                // std::cout << "phi=" << phi[0] << "," << phi[1] << "," <<
                // phi[2]
                //          << "c=" << c[0] << ", x=" << x[0] << "," << x[1] <<
@@ -452,3 +461,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 #endif
    return nits;
 }
+
+template class CALPHADequilibriumPhaseConcentrationsStrategy<
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>;

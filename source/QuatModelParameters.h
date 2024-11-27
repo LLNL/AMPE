@@ -136,6 +136,7 @@ class QuatModelParameters
    {
       return d_initc_in_phase[d_ncompositions + index];
    }
+   double getStochioB() { return d_stochio_cB; }
    double meltingT() const { return d_meltingT; }
    double interfaceMobility() const { return d_interface_mobility; }
    double rescale_factorT() const { return d_rescale_factorT; }
@@ -525,6 +526,20 @@ class QuatModelParameters
    double WangSintering_B() const { return d_WangSintering_B; }
    double WangSintering_beta_rho() const { return d_WangSintering_beta_rho; }
 
+   double ceq_liquid(const double temperature) const
+   {
+      const double dT = temperature - d_Tref;
+      return d_ceq0_liquid[0] + d_ceq0_liquid[1] * dT +
+             d_ceq0_liquid[2] * dT * dT;
+   }
+
+   double ceq_solidA(const double temperature) const
+   {
+      const double dT = temperature - d_Tref;
+      return d_ceq0_solidA[0] + d_ceq0_solidA[1] * dT +
+             d_ceq0_solidA[2] * dT * dT;
+   }
+
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
@@ -585,6 +600,9 @@ class QuatModelParameters
     * cL0, cL1, ..., cS0, cS1, ...
     */
    std::vector<double> d_initc_in_phase;
+
+   // stochio composition of phase B (if set to value >= 0)
+   double d_stochio_cB;
 
    // free energy parameters:
    // f(phi) = d_phase_well_scale * g(phi)
@@ -768,7 +786,15 @@ class QuatModelParameters
    double d_WangSintering_B;
    double d_WangSintering_beta_rho;
 
+   /*!
+    * Polynomial expansion of equilibrium compositions
+    */
+   double d_Tref;
+   double d_ceq0_liquid[3];
+   double d_ceq0_solidA[3];
+
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
+   void readEquilibriumCompositions(std::shared_ptr<tbox::Database> conc_db);
 
    void readCahnHilliard(std::shared_ptr<tbox::Database> db);
    void readWangSintering(std::shared_ptr<tbox::Database> db);
