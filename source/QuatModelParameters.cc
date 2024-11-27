@@ -179,11 +179,11 @@ void QuatModelParameters::readNumberSpecies(
 void QuatModelParameters::readEquilibriumCompositions(
     std::shared_ptr<tbox::Database> conc_db)
 {
-   std::string db_name("ConcentrationModel");
+   std::string db_name("Equilibrium");
    if (conc_db->keyExists(db_name)) {
       std::shared_ptr<tbox::Database> db = conc_db->getDatabase(db_name);
 
-      d_Tref = conc_db->getDouble("Tref");
+      d_Tref = db->getDouble("Tref");
 
       std::shared_ptr<tbox::Database> dbl = db->getDatabase("liquid");
       d_ceq0_liquid[0] = dbl->getDouble("c");
@@ -428,6 +428,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
        conc_db->getBoolWithDefault("init_phase_conc_eq", true);
 
    d_stochio_cB = conc_db->getDoubleWithDefault("stochio_cB", -1.);
+
+   readEquilibriumCompositions(conc_db);
 }
 
 void QuatModelParameters::readDiluteAlloy(

@@ -47,15 +47,22 @@ int CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
     computeAuxilliaryConcentrations(const double temp, double* c, double* hphi,
                                     double* x)
 {
-   const double epsilon1 = 1.e-4;
-   const double epsilon2 = 2.e-4;
+   const double epsilon1 = 1.e-2;
+   const double epsilon2 = 2.e-2;
 
+   // initialize to NaN to trigger error if used when not set
    double xkks[2] = {tbox::IEEE::getSignalingNaN(),
                      tbox::IEEE::getSignalingNaN()};
+   double xeq[2] = {tbox::IEEE::getSignalingNaN(),
+                    tbox::IEEE::getSignalingNaN()};
+
    if (hphi[2] < 1. - epsilon1) {
       // solve KKS problem
+      xkks[0] = x[0];
+      xkks[1] = x[1];
       int status =
           d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi, xkks);
+#ifndef GPU_OFFLOAD
       if (status < 0) {
          std::cerr << "computePhaseConcentrations failed for T=" << temp
                    << ", hphi=";
@@ -63,17 +70,18 @@ int CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
             std::cerr << hphi[i] << ", ";
          std::cerr << ", c=" << c[0] << ", " << c[1] << ", " << c[2]
                    << std::endl;
-         std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2] << std::endl;
+         std::cerr << "xkks = " << xkks[0] << ", " << xkks[1] << std::endl;
          const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
          MPI_Abort(mpi.getCommunicator(), -1);
       }
+#endif
    }
 
-   double xeq[2] = {tbox::IEEE::getSignalingNaN(),
-                    tbox::IEEE::getSignalingNaN()};
    if (hphi[2] > 1. - epsilon2) {
       xeq[0] = d_model_parameters.ceq_liquid(temp);
       xeq[1] = d_model_parameters.ceq_solidA(temp);
+      //std::cout << "xeq[0] = " << xeq[0] << std::endl;
+      //std::cout << "xeq[1] = " << xeq[1] << std::endl;
    }
 
    if (hphi[2] < 1. - epsilon2) {

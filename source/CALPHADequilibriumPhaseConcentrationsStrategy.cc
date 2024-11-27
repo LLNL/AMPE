@@ -186,7 +186,26 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<
                                                      double* c, double* hphi,
                                                      double* x)
 {
-   return d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi, x);
+   double x_init[4] = {x[0], x[1], x[2], x[3]};
+
+   int status = d_calphad_fenergy->computePhaseConcentrations(temp, c, hphi, x);
+
+#ifndef GPU_OFFLOAD
+   if (status < 0 || std::isnan(x[0])) {
+      std::cerr << "CALPHADequilibriumPhaseConcentrationsStrategy" << std::endl;
+      std::cerr << "computePhaseConcentrations failed for T = " << temp
+                << ", hphi = ";
+      for (short i = 0; i < 3; i++)
+         std::cerr << hphi[i] << ", ";
+      std::cerr << "c =" << c[0] << std::endl;
+      std::cerr << "cinit = " << x_init[0] << "," << x_init[1] << ","
+                << x_init[2] << std::endl;
+      std::cerr << "x = " << x[0] << "," << x[1] << "," << x[2] << std::endl;
+      const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+      MPI_Abort(mpi.getCommunicator(), -1);
+   }
+#endif
+   return status;
 }
 
 
@@ -218,7 +237,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    double l2n = cops.L2Norm(cd_conc, patch->getBox());
    assert(l2n == l2n);
 #endif
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    const int nphases = cd_pf->getDepth();
    if (nphases == 3) assert(cd_cb);
@@ -415,45 +433,8 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                // compute cL, cS
                int status = computeAuxilliaryConcentrations(temp, c, hphi, x);
 
-               if (status < 0) {
-                  std::cerr
-                      << "computePhaseConcentrations failed for T=" << temp
-                      << ", " << nphases << " phases, hphi=";
-                  for (short i = 0; i < nphases; i++)
-                     std::cerr << hphi[i] << ", ";
-                  std::cerr << ", c=" << c[0] << std::endl;
-                  std::cerr << "c_ref=" << cl_ref[idx_ci] << ","
-                            << ca_ref[idx_ci] << "," << cb_ref[idx_ci]
-                            << std::endl;
-                  std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
-                            << std::endl;
-                  MPI_Abort(mpi.getCommunicator(), -1);
-               }
-#ifndef GPU_OFFLOAD
-               assert(!std::isnan(x[0]));
-               /*
-                              if(std::isnan(x[0]))
-                              {
-                                 std::cerr
-                                     << "computePhaseConcentrations failed for
-                  T=" << temp
-                                     << ", hphi=";
-                                 for (short i = 0; i < nphases; i++)
-                                    std::cerr << hphi[i] << ", ";
-                                 std::cerr << "c=" << c[0] << std::endl;
-                                 std::cerr << ", c_ref=" << cl_ref[0] << "," <<
-                  ca_ref[0] << ","
-                                           << cb_ref[0] << std::endl;
-                                 std::cerr << ", x=" << x[0] << "," << x[1] <<
-                  "," << x[2]
-                                           << ", idx_pf="<<idx_pf<<",
-                  imin[0]="<<imin[0]
-                                           << std::endl;
-                                 abort();
-                              }
-               */
                nits += status;
-#endif
+
                // std::cout << "phi=" << phi[0] << "," << phi[1] << "," <<
                // phi[2]
                //          << "c=" << c[0] << ", x=" << x[0] << "," << x[1] <<
