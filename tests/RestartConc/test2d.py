@@ -21,7 +21,11 @@ thermdatadir = sys.argv[6]
 calphad_data = "calphad3phases.json"
 src = thermdatadir+'/'+calphad_data
 print(src)
-os.symlink(src, calphad_data)
+try:
+  os.symlink(src, calphad_data)
+except FileExistsError:
+  os.remove(calphad_data)
+  os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
