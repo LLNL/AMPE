@@ -60,9 +60,9 @@ QuadraticFreeEnergyStrategyMultiOrderThreePhase::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::
-    computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                            const int fl_id, const bool gp)
+void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergyLiquid(
+    hier::Patch& patch, const int temperature_id, const int fl_id,
+    const bool gp)
 {
    assert(fl_id >= 0);
    assert(temperature_id >= 0.);
@@ -74,9 +74,9 @@ void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::
-    computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                            const int fa_id, const bool gp)
+void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergySolidA(
+    hier::Patch& patch, const int temperature_id, const int fa_id,
+    const bool gp)
 {
    assert(fa_id >= 0);
    assert(temperature_id >= 0.);
@@ -88,9 +88,9 @@ void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::
-    computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                            const int fb_id, const bool gp)
+void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergySolidB(
+    hier::Patch& patch, const int temperature_id, const int fb_id,
+    const bool gp)
 {
    assert(fb_id >= 0);
    assert(temperature_id >= 0.);

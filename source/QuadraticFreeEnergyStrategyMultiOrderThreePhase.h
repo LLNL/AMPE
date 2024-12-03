@@ -46,7 +46,8 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
                         const int eta_id, const int conc_id, const int f_l_id,
-                        const int f_a_id, const int f_b_id, const int rhs_id)override;
+                        const int f_a_id, const int f_b_id,
+                        const int rhs_id) override;
 
    void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
@@ -127,13 +128,13 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
 
    virtual void computeSecondDerivativeEnergyPhaseL(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)=0;
+       const bool use_internal_units) = 0;
    virtual void computeSecondDerivativeEnergyPhaseA(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)=0;
+       const bool use_internal_units) = 0;
    virtual void computeSecondDerivativeEnergyPhaseB(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)=0;
+       const bool use_internal_units) = 0;
 
    virtual void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
@@ -144,7 +145,8 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
        std::shared_ptr<pdat::CellData<double> > cd_f_b,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)=0;
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
+       const hier::Box& pbox) = 0;
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
                           const int f_id, const int c_i_id,
@@ -155,7 +157,7 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor)=0;
+       Thermo4PFM::PhaseIndex pi, const double energy_factor) = 0;
 };
 
 #endif

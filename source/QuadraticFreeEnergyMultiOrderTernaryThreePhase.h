@@ -29,19 +29,18 @@ class QuadraticFreeEnergyMultiOrderTernaryThreePhase
    ~QuadraticFreeEnergyMultiOrderTernaryThreePhase();
 
  private:
-
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsTernaryThreePhase>
        d_quadratic_fenergy;
 
    void computeSecondDerivativeEnergyPhaseL(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)override;
+       const bool use_internal_units) override;
    void computeSecondDerivativeEnergyPhaseA(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)override;
+       const bool use_internal_units) override;
    void computeSecondDerivativeEnergyPhaseB(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)override;
+       const bool use_internal_units) override;
 
    void computeMuL(const double t, const double c0, const double c1,
                    double* mu);
@@ -59,13 +58,14 @@ class QuadraticFreeEnergyMultiOrderTernaryThreePhase
        std::shared_ptr<pdat::CellData<double> > cd_f_b,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)override;
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
+       const hier::Box& pbox) override;
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor)override;
+       Thermo4PFM::PhaseIndex pi, const double energy_factor) override;
 };
 
 #endif

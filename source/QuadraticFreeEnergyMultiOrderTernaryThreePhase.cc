@@ -28,8 +28,11 @@ QuadraticFreeEnergyMultiOrderTernaryThreePhase::
         const short norderp_A, const double vml, const double vma,
         const double vmb, const int conc_l_id, const int conc_a_id,
         const int conc_b_id)
-    : QuadraticFreeEnergyStrategyMultiOrderThreePhase(
-input_db,energy_interp_func_type,norderp_A,vml,vma,vmb,conc_l_id,conc_a_id,conc_b_id)
+    : QuadraticFreeEnergyStrategyMultiOrderThreePhase(input_db,
+                                                      energy_interp_func_type,
+                                                      norderp_A, vml, vma, vmb,
+                                                      conc_l_id, conc_a_id,
+                                                      conc_b_id)
 {
    tbox::plog << "QuadraticFreeEnergyMultiOrderTernaryThreePhase..."
               << std::endl;
@@ -67,7 +70,10 @@ input_db,energy_interp_func_type,norderp_A,vml,vma,vmb,conc_l_id,conc_a_id,conc_
 
 //=======================================================================
 
-QuadraticFreeEnergyMultiOrderTernaryThreePhase::~QuadraticFreeEnergyMultiOrderTernaryThreePhase(){}
+QuadraticFreeEnergyMultiOrderTernaryThreePhase::
+    ~QuadraticFreeEnergyMultiOrderTernaryThreePhase()
+{
+}
 
 
 void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeFreeEnergy(
@@ -155,17 +161,16 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeFreeEnergy(
 
 //=======================================================================
 
-void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
-    addDrivingForceOnPatch(
-        std::shared_ptr<pdat::CellData<double> > cd_rhs,
-        std::shared_ptr<pdat::CellData<double> > cd_temperature,
-        std::shared_ptr<pdat::CellData<double> > cd_phi,
-        std::shared_ptr<pdat::CellData<double> > cd_f_l,
-        std::shared_ptr<pdat::CellData<double> > cd_f_a,
-        std::shared_ptr<pdat::CellData<double> > cd_f_b,
-        std::shared_ptr<pdat::CellData<double> > cd_c_l,
-        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-        std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+void QuadraticFreeEnergyMultiOrderTernaryThreePhase::addDrivingForceOnPatch(
+    std::shared_ptr<pdat::CellData<double> > cd_rhs,
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_f_l,
+    std::shared_ptr<pdat::CellData<double> > cd_f_a,
+    std::shared_ptr<pdat::CellData<double> > cd_f_b,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    assert(cd_temperature);
    assert(cd_f_b);
@@ -364,8 +369,10 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
 
 //=======================================================================
 
-void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuL(
-    const double t, const double c0, const double c1, double* mu)
+void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuL(const double t,
+                                                                const double c0,
+                                                                const double c1,
+                                                                double* mu)
 {
    double c[2] = {c0, c1};
    d_quadratic_fenergy->computeDerivFreeEnergy(t, c,
@@ -377,8 +384,10 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuL(
 
 //=======================================================================
 
-void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuA(
-    const double t, const double c0, const double c1, double* mu)
+void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuA(const double t,
+                                                                const double c0,
+                                                                const double c1,
+                                                                double* mu)
 {
    double c[2] = {c0, c1};
    d_quadratic_fenergy->computeDerivFreeEnergy(t, c,
@@ -390,8 +399,10 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuA(
 
 //=======================================================================
 
-void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuB(
-    const double t, const double c0, const double c1, double* mu)
+void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuB(const double t,
+                                                                const double c0,
+                                                                const double c1,
+                                                                double* mu)
 {
    double c[2] = {c0, c1};
    d_quadratic_fenergy->computeDerivFreeEnergy(t, c,
@@ -405,8 +416,8 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::computeMuB(
 
 void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
     computeSecondDerivativeEnergyPhaseL(const std::vector<double>& c_l,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
+                                        std::vector<double>& d2fdc2,
+                                        const bool use_internal_units)
 {
    d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
        0., &c_l[0], Thermo4PFM::PhaseIndex::phaseL, &d2fdc2[0]);
@@ -419,8 +430,8 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
 
 void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
     computeSecondDerivativeEnergyPhaseA(const std::vector<double>& c_a,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
+                                        std::vector<double>& d2fdc2,
+                                        const bool use_internal_units)
 {
    d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
        0., &c_a[0], Thermo4PFM::PhaseIndex::phaseA, &d2fdc2[0]);
@@ -433,8 +444,8 @@ void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
 
 void QuadraticFreeEnergyMultiOrderTernaryThreePhase::
     computeSecondDerivativeEnergyPhaseB(const std::vector<double>& c_b,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
+                                        std::vector<double>& d2fdc2,
+                                        const bool use_internal_units)
 {
    d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
        0., &c_b[0], Thermo4PFM::PhaseIndex::phaseB, &d2fdc2[0]);
