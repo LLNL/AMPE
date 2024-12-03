@@ -8,11 +8,10 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
-#define included_QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
+#ifndef included_QuadraticFreeEnergyStrategyMultiOrderThreePhase
+#define included_QuadraticFreeEnergyStrategyMultiOrderThreePhase
 
-#include "QuadraticFreeEnergyFunctionsTernaryThreePhase.h"
-#include "QuadraticFreeEnergyStrategyMultiOrderThreePhase.h"
+#include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/pdat/CellData.h"
@@ -24,18 +23,18 @@ class MolarVolumeStrategy;
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 
-class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
-    : public QuadraticFreeEnergyStrategyMultiOrderThreePhase
+class QuadraticFreeEnergyStrategyMultiOrderThreePhase
+    : public FreeEnergyStrategy
 {
  public:
-   QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
+   QuadraticFreeEnergyStrategyMultiOrderThreePhase(
        std::shared_ptr<tbox::Database> input_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const short norderp_A, const double vml, const double vma,
        const double vmb, const int conc_l_id, const int conc_a_id,
        const int conc_b_id);
 
-   ~QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(){};
+   virtual ~QuadraticFreeEnergyStrategyMultiOrderThreePhase(){};
 
    // implement pure virtual functions of FreeEnergyStrategy
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
@@ -52,6 +51,41 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
                         const int eta_id, const int conc_id, const int f_l_id,
                         const int f_a_id, const int f_b_id, const int rhs_id);
 
+   void computeSecondDerivativeEnergyPhaseL(
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true)
+   {
+      (void)temperature;
+
+      computeSecondDerivativeEnergyPhaseL(c, d2fdc2, use_internal_units);
+      // if( d2fdc2[0]<0. )
+      //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase L
+      //   for c="<<c[0]<<"!!!"<<std::endl;
+   }
+   void computeSecondDerivativeEnergyPhaseA(
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true)
+   {
+      (void)temperature;
+
+      computeSecondDerivativeEnergyPhaseA(c, d2fdc2, use_internal_units);
+      // if( d2fdc2[0]<0. )
+      //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase A
+      //   for c="<<c[0]<<"!!!"<<std::endl;
+   }
+
+   void computeSecondDerivativeEnergyPhaseB(
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true)
+   {
+      (void)temperature;
+
+      computeSecondDerivativeEnergyPhaseB(c, d2fdc2, use_internal_units);
+      // if( d2fdc2[0]<0. )
+      //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase A
+      //   for c="<<c[0]<<"!!!"<<std::endl;
+   }
+
    void computeSecondDerivativeEnergyPhase(const char phase,
                                            const std::vector<double>& c,
                                            std::vector<double>& d2fdc2,
@@ -59,17 +93,17 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
    {
       switch (phase) {
          case 'l':
-            computeSecondDerivativeEnergyPhaseL(c, d2fdc2,
+            computeSecondDerivativeEnergyPhaseL(-1., c, d2fdc2,
                                                 use_internal_units);
             break;
 
          case 'a':
-            computeSecondDerivativeEnergyPhaseA(c, d2fdc2,
+            computeSecondDerivativeEnergyPhaseA(-1., c, d2fdc2,
                                                 use_internal_units);
             break;
 
          case 'b':
-            computeSecondDerivativeEnergyPhaseB(c, d2fdc2,
+            computeSecondDerivativeEnergyPhaseB(-1., c, d2fdc2,
                                                 use_internal_units);
             break;
 
@@ -82,29 +116,29 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
    void preRunDiagnostics(const double temperature){};
 
 
- private:
+ protected:
+   // number of order parameters associated with phase A
+   const short d_norderp_A;
 
-   std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsTernaryThreePhase>
-       d_quadratic_fenergy;
+   double d_energy_conv_factor_L;  // molar volume
+   double d_energy_conv_factor_A;  // molar volume
+   double d_energy_conv_factor_B;  // molar volume
 
-   void computeSecondDerivativeEnergyPhaseL(
+   int d_conc_l_id;
+   int d_conc_a_id;
+   int d_conc_b_id;
+
+   virtual void computeSecondDerivativeEnergyPhaseL(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)override;
-   void computeSecondDerivativeEnergyPhaseA(
+       const bool use_internal_units)=0;
+   virtual void computeSecondDerivativeEnergyPhaseA(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)override;
-   void computeSecondDerivativeEnergyPhaseB(
+       const bool use_internal_units)=0;
+   virtual void computeSecondDerivativeEnergyPhaseB(
        const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units)override;
+       const bool use_internal_units)=0;
 
-   void computeMuL(const double t, const double c0, const double c1,
-                   double* mu);
-   void computeMuA(const double t, const double c0, const double c1,
-                   double* mu);
-   void computeMuB(const double t, const double c0, const double c1,
-                   double* mu);
-
-   void addDrivingForceOnPatch(
+   virtual void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -113,18 +147,18 @@ class QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase
        std::shared_ptr<pdat::CellData<double> > cd_f_b,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
+       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)=0;
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
                           const int f_id, const int c_i_id,
                           Thermo4PFM::PhaseIndex pi,
                           const double energy_factor);
 
-   void computeFreeEnergy(
+   virtual void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor);
+       Thermo4PFM::PhaseIndex pi, const double energy_factor)=0;
 };
 
 #endif

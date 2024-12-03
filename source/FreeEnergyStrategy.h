@@ -90,9 +90,5 @@ class FreeEnergyStrategy
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true) = 0;
    virtual void preRunDiagnostics(const double temperature) = 0;
-
- private:
-   void computeDerivFreeEnergy(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int df_id);
 };
 #endif

@@ -28,24 +28,11 @@ QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
         const short norderp_A, const double vml, const double vma,
         const double vmb, const int conc_l_id, const int conc_a_id,
         const int conc_b_id)
-    : d_norderp_A(norderp_A),
-      d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id),
-      d_conc_b_id(conc_b_id)
+    : QuadraticFreeEnergyStrategyMultiOrderThreePhase(
+input_db,energy_interp_func_type,norderp_A,vml,vma,vmb,conc_l_id,conc_a_id,conc_b_id)
 {
    tbox::plog << "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase..."
               << std::endl;
-
-   assert(d_conc_l_id >= 0);
-   assert(d_conc_a_id >= 0);
-   assert(d_conc_b_id >= 0);
-   assert(vml > 0.);
-   assert(vma > 0.);
-   assert(vmb > 0.);
-
-   d_energy_conv_factor_L = 1.e-6 / vml;
-   d_energy_conv_factor_A = 1.e-6 / vma;
-   d_energy_conv_factor_B = 1.e-6 / vmb;
 
    double A_liquid[2];
    input_db->getDoubleArray("A_liquid", &A_liquid[0], 2);
@@ -558,7 +545,7 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::computeMuB(
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    defaultComputeSecondDerivativeEnergyPhaseL(const std::vector<double>& c_l,
+    computeSecondDerivativeEnergyPhaseL(const std::vector<double>& c_l,
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
@@ -572,7 +559,7 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    defaultComputeSecondDerivativeEnergyPhaseA(const std::vector<double>& c_a,
+    computeSecondDerivativeEnergyPhaseA(const std::vector<double>& c_a,
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
@@ -586,7 +573,7 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
 //=======================================================================
 
 void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    defaultComputeSecondDerivativeEnergyPhaseB(const std::vector<double>& c_b,
+    computeSecondDerivativeEnergyPhaseB(const std::vector<double>& c_b,
                                                std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
