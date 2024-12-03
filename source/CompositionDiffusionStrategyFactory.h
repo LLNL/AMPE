@@ -52,10 +52,8 @@ class CompositionDiffusionStrategyFactory
                     << std::endl;
 
          const bool three_phases_model = model_parameters.with_three_phases();
-         const short norderpA =
-             three_phases_model ? 1 : model_parameters.norderpA();
-         const short norderpB =
-             three_phases_model ? 1 : model_parameters.norderpB();
+         const short norderpA = model_parameters.norderpA();
+         const short norderpB = model_parameters.norderpB();
 
          strategy.reset(new TbasedCompositionDiffusionStrategy(
              model_parameters.norderp(), norderpA, norderpB, three_phases_model,
@@ -92,10 +90,8 @@ class CompositionDiffusionStrategyFactory
          tbox::plog << "Uses temperature based composition for scalar diffusion"
                     << std::endl;
          const bool three_phases_model = model_parameters.with_three_phases();
-         const short norderpA =
-             three_phases_model ? 1 : model_parameters.norderpA();
-         const short norderpB =
-             three_phases_model ? 1 : model_parameters.norderpB();
+         const short norderpA = model_parameters.norderpA();
+         const short norderpB = model_parameters.norderpB();
 
          strategy.reset(new ScalarCompositionDiffusionStrategy(
              model_parameters.norderp(), norderpA, norderpB, three_phases_model,

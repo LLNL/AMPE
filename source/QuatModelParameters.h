@@ -79,12 +79,15 @@ class QuatModelParameters
    void initializeEta(std::shared_ptr<tbox::Database> quat_db);
 
    // accessors for parameters
-   int norderp() const { return (with_three_phases() ? 3 : d_norderp); }
+   int norderp() const { return d_norderp; }
    int norderpA() const { return d_norderp_A; }
    int norderpB() const { return d_norderp_B; }
 
-   bool withPhaseB() const { return (with_three_phases() || d_norderp_B > 0); }
-   bool withMultipleOrderP() const { return (d_norderp > 1); }
+   bool withPhaseB() const { return (d_norderp_B > 0); }
+   bool withMultipleOrderP() const
+   {
+      return ((d_norderp > 1) and !d_with_three_phases);
+   }
 
    double H_parameter() const { return d_H_parameter; }
    bool with_orientation() const { return (d_H_parameter >= 0.); }

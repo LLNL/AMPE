@@ -185,8 +185,8 @@ void ScalarCompositionDiffusionStrategy::setDiffusion(
              d_with3phases ? phi->getPointer(2) : phi->getPointer(d_norderpA);
 
          const int nphiL = 1;
-         const int nphiA = d_with3phases ? 1 : d_norderpA;
-         const int nphiB = d_with3phases ? 1 : d_norderpB;
+         const int nphiA = d_norderpA;
+         const int nphiB = d_norderpB;
 
          // this call assumes the order phiA, phiB, phiL
          CONCENTRATION_PFMDIFFUSION_SCALAR_3PHASES(
