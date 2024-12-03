@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase.h"
+#include "QuadraticFreeEnergyMultiOrderBinaryThreePhase.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -21,49 +21,33 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
+QuadraticFreeEnergyMultiOrderBinaryThreePhase::
+    QuadraticFreeEnergyMultiOrderBinaryThreePhase(
         std::shared_ptr<tbox::Database> input_db,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const short norderp_A, const double vml, const double vma,
         const double vmb, const int conc_l_id, const int conc_a_id,
         const int conc_b_id)
-    : d_norderp_A(norderp_A),
-      d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id),
-      d_conc_b_id(conc_b_id)
+    : QuadraticFreeEnergyStrategyMultiOrderThreePhase(input_db,
+                                                      energy_interp_func_type,
+                                                      norderp_A, vml, vma, vmb,
+                                                      conc_l_id, conc_a_id,
+                                                      conc_b_id)
 {
-   tbox::plog << "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase..."
+   tbox::plog << "QuadraticFreeEnergyMultiOrderBinaryThreePhase..."
               << std::endl;
 
-   assert(d_conc_l_id >= 0);
-   assert(d_conc_a_id >= 0);
-   assert(d_conc_b_id >= 0);
-   assert(vml > 0.);
-   assert(vma > 0.);
-   assert(vmb > 0.);
+   double A_liquid = input_db->getDouble("A_liquid");
+   double Ceq_liquid = input_db->getDouble("Ceq_liquid");
 
-   d_energy_conv_factor_L = 1.e-6 / vml;
-   d_energy_conv_factor_A = 1.e-6 / vma;
-   d_energy_conv_factor_B = 1.e-6 / vmb;
+   double A_solid_A = input_db->getDouble("A_solid_A");
+   double Ceq_solid_A = input_db->getDouble("Ceq_solid_A");
 
-   double A_liquid[2];
-   input_db->getDoubleArray("A_liquid", &A_liquid[0], 2);
-   double Ceq_liquid[2];
-   input_db->getDoubleArray("Ceq_liquid", &Ceq_liquid[0], 2);
-
-   double A_solid_A[2];
-   input_db->getDoubleArray("A_solid_A", &A_solid_A[0], 2);
-   double Ceq_solid_A[2];
-   input_db->getDoubleArray("Ceq_solid_A", &Ceq_solid_A[0], 2);
-
-   double A_solid_B[2];
-   input_db->getDoubleArray("A_solid_B", &A_solid_B[0], 2);
-   double Ceq_solid_B[2];
-   input_db->getDoubleArray("Ceq_solid_B", &Ceq_solid_B[0], 2);
+   double A_solid_B = input_db->getDouble("A_solid_B");
+   double Ceq_solid_B = input_db->getDouble("Ceq_solid_B");
 
    d_quadratic_fenergy.reset(
-       new Thermo4PFM::QuadraticFreeEnergyFunctionsTernaryThreePhase(
+       new Thermo4PFM::QuadraticFreeEnergyFunctionsBinaryThreePhase(
            A_liquid, Ceq_liquid, A_solid_A, Ceq_solid_A, A_solid_B, Ceq_solid_B,
            energy_interp_func_type, Thermo4PFM::ConcInterpolationType::LINEAR));
 
@@ -72,84 +56,18 @@ QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase:" <<
+   // tbox::plog << "QuadraticFreeEnergyMultiOrderBinaryThreePhase:" <<
    // std::endl; tbox::plog << "Molar volume L =" << vml << std::endl;
    // tbox::plog << "Molar volume A =" << vma << std::endl;
    // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 }
 
-//=======================================================================
-
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase ::
-    computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                            const int fl_id, const bool gp)
-{
-   assert(fl_id >= 0);
-   assert(temperature_id >= 0.);
-   assert(d_conc_l_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     Thermo4PFM::PhaseIndex::phaseL, d_energy_conv_factor_L);
-}
+QuadraticFreeEnergyMultiOrderBinaryThreePhase::
+    ~QuadraticFreeEnergyMultiOrderBinaryThreePhase(){};
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase ::
-    computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                            const int fa_id, const bool gp)
-{
-   assert(fa_id >= 0);
-   assert(temperature_id >= 0.);
-   assert(d_conc_a_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fa_id, d_conc_a_id,
-                     Thermo4PFM::PhaseIndex::phaseA, d_energy_conv_factor_A);
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase ::
-    computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                            const int fb_id, const bool gp)
-{
-   assert(fb_id >= 0);
-   assert(temperature_id >= 0.);
-   assert(d_conc_b_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fb_id, d_conc_b_id,
-                     Thermo4PFM::PhaseIndex::phaseB, d_energy_conv_factor_B);
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase ::computeFreeEnergy(
-    hier::Patch& patch, const int temperature_id, const int f_id,
-    const int conc_i_id, Thermo4PFM::PhaseIndex pi, const double energy_factor)
-{
-   assert(temperature_id >= 0);
-   assert(f_id >= 0);
-   assert(conc_i_id >= 0);
-
-   const hier::Box& pbox = patch.getBox();
-
-   std::shared_ptr<pdat::CellData<double> > temperature(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(temperature_id)));
-
-   std::shared_ptr<pdat::CellData<double> > f(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_id)));
-
-   std::shared_ptr<pdat::CellData<double> > c_i(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(conc_i_id)));
-
-   computeFreeEnergy(pbox, temperature, f, c_i, pi, energy_factor);
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::computeFreeEnergy(
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i,
@@ -234,92 +152,16 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::computeFreeEnergy(
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::addDrivingForce(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
-{
-   (void)time;
-   (void)eta_id;
-
-   assert(conc_id >= 0);
-   assert(phase_id >= 0);
-   assert(f_l_id >= 0);
-   assert(f_a_id >= 0);
-   assert(f_b_id >= 0);
-   assert(rhs_id >= 0);
-   assert(d_conc_l_id >= 0);
-   assert(d_conc_a_id >= 0);
-   assert(d_conc_b_id >= 0);
-   assert(temperature_id >= 0);
-
-   std::shared_ptr<pdat::CellData<double> > phase(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(phase_id)));
-   assert(phase);
-   assert(phase->getDepth() > 1);
-
-   std::shared_ptr<pdat::CellData<double> > t(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(temperature_id)));
-   assert(t);
-
-   std::shared_ptr<pdat::CellData<double> > fl(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_l_id)));
-   assert(fl);
-
-   std::shared_ptr<pdat::CellData<double> > fa(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_a_id)));
-   assert(fa);
-
-   std::shared_ptr<pdat::CellData<double> > fb(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_b_id)));
-   assert(fb);
-
-   std::shared_ptr<pdat::CellData<double> > c_l(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_l_id)));
-   assert(c_l);
-
-   std::shared_ptr<pdat::CellData<double> > c_a(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_a_id)));
-   assert(c_a);
-
-   std::shared_ptr<pdat::CellData<double> > c_b(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_b_id)));
-   assert(c_b);
-
-   std::shared_ptr<pdat::CellData<double> > rhs(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(rhs_id)));
-
-   assert(rhs);
-   assert(rhs->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-
-   const hier::Box& pbox(patch.getBox());
-
-   addDrivingForceOnPatch(rhs, t, phase, fl, fa, fb, c_l, c_a, c_b, pbox);
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    addDrivingForceOnPatch(
-        std::shared_ptr<pdat::CellData<double> > cd_rhs,
-        std::shared_ptr<pdat::CellData<double> > cd_temperature,
-        std::shared_ptr<pdat::CellData<double> > cd_phi,
-        std::shared_ptr<pdat::CellData<double> > cd_f_l,
-        std::shared_ptr<pdat::CellData<double> > cd_f_a,
-        std::shared_ptr<pdat::CellData<double> > cd_f_b,
-        std::shared_ptr<pdat::CellData<double> > cd_c_l,
-        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-        std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::addDrivingForceOnPatch(
+    std::shared_ptr<pdat::CellData<double> > cd_rhs,
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_f_l,
+    std::shared_ptr<pdat::CellData<double> > cd_f_a,
+    std::shared_ptr<pdat::CellData<double> > cd_f_b,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    assert(cd_temperature);
    assert(cd_f_b);
@@ -446,25 +288,25 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
             double fl = ptr_f_l[idx_f_i];
             double fa = ptr_f_a[idx_f_i];
             double fb = ptr_f_b[idx_f_i];
-            double cl[2] = {ptr_c_l[idx_c_i], ptr_c_l[idx_c_i + coffset]};
-            double ca[2] = {ptr_c_a[idx_c_i], ptr_c_a[idx_c_i + coffset]};
-            double cb[2] = {ptr_c_b[idx_c_i], ptr_c_b[idx_c_i + coffset]};
+            double cl = ptr_c_l[idx_c_i];
+            double ca = ptr_c_a[idx_c_i];
+            double cb = ptr_c_b[idx_c_i];
 
-            double muA[2];
-            computeMuA(t, ca[0], ca[1], muA);
-            double muB[2];
-            computeMuB(t, cb[0], cb[1], muB);
-            double muL[2];
-            computeMuL(t, cl[0], cl[1], muL);
+            double muA;
+            computeMuA(t, ca, &muA);
+            double muB;
+            computeMuB(t, cb, &muB);
+            double muL;
+            computeMuL(t, cl, &muL);
 
             //
             // see Moelans, Acta Mat 59 (2011)
             //
 
             // driving forces
-            double dfa = (fa - muA[0] * ca[0] - muA[1] * ca[1]);
-            double dfb = (fb - muB[0] * cb[0] - muB[1] * cb[1]);
-            double dfl = (fl - muL[0] * cl[0] - muL[1] * cl[1]);
+            double dfa = (fa - muA * ca);
+            double dfb = (fb - muB * cb);
+            double dfl = (fl - muL * cl);
             assert(!std::isnan(dfa));
 
             // interpolation polynomials
@@ -518,49 +360,49 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::computeMuL(
-    const double t, const double c0, const double c1, double* mu)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::computeMuL(const double t,
+                                                               const double c0,
+                                                               double* mu)
 {
-   double c[2] = {c0, c1};
-   d_quadratic_fenergy->computeDerivFreeEnergy(t, c,
+   double c = c0;
+   d_quadratic_fenergy->computeDerivFreeEnergy(t, &c,
                                                Thermo4PFM::PhaseIndex::phaseL,
                                                mu);
    mu[0] *= d_energy_conv_factor_L;
-   mu[1] *= d_energy_conv_factor_L;
 }
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::computeMuA(
-    const double t, const double c0, const double c1, double* mu)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::computeMuA(const double t,
+                                                               const double c0,
+                                                               double* mu)
 {
-   double c[2] = {c0, c1};
-   d_quadratic_fenergy->computeDerivFreeEnergy(t, c,
+   double c = c0;
+   d_quadratic_fenergy->computeDerivFreeEnergy(t, &c,
                                                Thermo4PFM::PhaseIndex::phaseA,
                                                mu);
    mu[0] *= d_energy_conv_factor_A;
-   mu[1] *= d_energy_conv_factor_A;
 }
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::computeMuB(
-    const double t, const double c0, const double c1, double* mu)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::computeMuB(const double t,
+                                                               const double c0,
+                                                               double* mu)
 {
-   double c[2] = {c0, c1};
-   d_quadratic_fenergy->computeDerivFreeEnergy(t, c,
+   double c = c0;
+   d_quadratic_fenergy->computeDerivFreeEnergy(t, &c,
                                                Thermo4PFM::PhaseIndex::phaseB,
                                                mu);
    mu[0] *= d_energy_conv_factor_B;
-   mu[1] *= d_energy_conv_factor_B;
 }
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    defaultComputeSecondDerivativeEnergyPhaseL(const std::vector<double>& c_l,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::
+    computeSecondDerivativeEnergyPhaseL(const std::vector<double>& c_l,
+                                        std::vector<double>& d2fdc2,
+                                        const bool use_internal_units)
 {
    d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
        0., &c_l[0], Thermo4PFM::PhaseIndex::phaseL, &d2fdc2[0]);
@@ -571,10 +413,10 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    defaultComputeSecondDerivativeEnergyPhaseA(const std::vector<double>& c_a,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::
+    computeSecondDerivativeEnergyPhaseA(const std::vector<double>& c_a,
+                                        std::vector<double>& d2fdc2,
+                                        const bool use_internal_units)
 {
    d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
        0., &c_a[0], Thermo4PFM::PhaseIndex::phaseA, &d2fdc2[0]);
@@ -585,10 +427,10 @@ void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase::
-    defaultComputeSecondDerivativeEnergyPhaseB(const std::vector<double>& c_b,
-                                               std::vector<double>& d2fdc2,
-                                               const bool use_internal_units)
+void QuadraticFreeEnergyMultiOrderBinaryThreePhase::
+    computeSecondDerivativeEnergyPhaseB(const std::vector<double>& c_b,
+                                        std::vector<double>& d2fdc2,
+                                        const bool use_internal_units)
 {
    d_quadratic_fenergy->computeSecondDerivativeFreeEnergy(
        0., &c_b[0], Thermo4PFM::PhaseIndex::phaseB, &d2fdc2[0]);

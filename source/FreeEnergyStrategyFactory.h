@@ -21,7 +21,7 @@
 #include "CALPHADFreeEnergyStrategyMultiOrder.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "QuadraticFreeEnergyStrategyMultiOrder.h"
-#include "QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase.h"
+#include "QuadraticFreeEnergyMultiOrderTernaryThreePhase.h"
 #include "KKSdiluteBinary.h"
 #include "QuadraticFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
@@ -201,7 +201,7 @@ class FreeEnergyStrategyFactory
                                 "reePhase..."
                              << std::endl;
                   free_energy_strategy.reset(
-                      new QuadraticFreeEnergyStrategyMultiOrderTernaryThreePhase(
+                      new QuadraticFreeEnergyMultiOrderTernaryThreePhase(
                           conc_db->getDatabase("Quadratic"),
                           model_parameters.energy_interp_func_type(),
                           model_parameters.norderpA(),
