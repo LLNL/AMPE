@@ -1,0 +1,20 @@
+#! /bin/bash
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+rm -f ../source/fortran/2d/*.f
+
+cmake \
+        -DCMAKE_CXX_COMPILER=mpiCC.openmpi \
+        -DCMAKE_C_COMPILER=mpif77.openmpi \
+        -DCMAKE_Fortran_COMPILER=mpif77 \
+        -DHYPRE_DIR=${HOME}/hypre \
+        -DSAMRAI_DIR=${HOME}/SAMRAI/SAMRAI-v4.1.0 \
+        -DSUNDIALS_DIR=${HOME}/sundials \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DTHERMO4PFM_DIR=$HOME/Thermo4PFM \
+        -DCMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu/hdf5/openmpi \
+        -DHDF5_SHARED_LIBS=true \
+        -DNDIM=2 \
+        ..
