@@ -844,19 +844,24 @@ void QuatModelParameters::readModelParameters(
 {
    d_with_three_phases = model_db->getBoolWithDefault("three_phases", false);
 
-   // unless otherwise specifies, we use one order parameter
-   // phi, and define second phase as 1.-phi
-   d_norderp = model_db->getIntegerWithDefault("norderp", 1);
-   tbox::plog << "norderp = " << d_norderp << std::endl;
-
-   const int def_norderp_A = (d_norderp == 1) ? 1 : d_norderp - 1;
-   d_norderp_A = model_db->getIntegerWithDefault("norderp_A", def_norderp_A);
-   if (d_norderp_A > 0) {
-      tbox::plog << "norderp_A = " << d_norderp_A << std::endl;
-      d_norderp_B = d_norderp - d_norderp_A - 1;
-      if (d_norderp_B < 0) d_norderp_B = 0;
-      tbox::plog << "norderp_B = " << d_norderp_B << std::endl;
+   if (d_with_three_phases) {
+      d_norderp_A = 1;
+      d_norderp_B = 1;
+      d_norderp = 3;
+   } else {
+      // unless otherwise specifies, we use one order parameter
+      // phi, and define second phase as 1.-phi
+      d_norderp = model_db->getIntegerWithDefault("norderp", 1);
+      const int def_norderp_A = (d_norderp == 1) ? 1 : d_norderp - 1;
+      d_norderp_A = model_db->getIntegerWithDefault("norderp_A", def_norderp_A);
+      if (d_norderp_A > 0) {
+         d_norderp_B = d_norderp - d_norderp_A - 1;
+         if (d_norderp_B < 0) d_norderp_B = 0;
+      }
    }
+   tbox::plog << "norderp_A = " << d_norderp_A << std::endl;
+   tbox::plog << "norderp_B = " << d_norderp_B << std::endl;
+   tbox::plog << "norderp = " << d_norderp << std::endl;
 
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
