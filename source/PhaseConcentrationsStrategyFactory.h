@@ -14,9 +14,9 @@
 #include "CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
-#include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
-#include "QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder.h"
-#include "QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder.h"
+#include "QuadraticEquilibriumPhaseConcentrationsBinary.h"
+#include "QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder.h"
+#include "QuadraticEquilibriumThreePhasesTernaryMultiOrder.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "Database2JSON.h"
@@ -191,13 +191,13 @@ class PhaseConcentrationsStrategyFactory
                      tbox::plog << "Quadratic, MultiOrder, Three phases..."
                                 << std::endl;
                      phase_conc_strategy.reset(
-                         new QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder(
+                         new QuadraticEquilibriumThreePhasesTernaryMultiOrder(
                              model_parameters.norderpA(), conc_l_scratch_id,
                              conc_a_scratch_id, conc_b_scratch_id,
                              model_parameters, conc_db));
                   } else {
                      phase_conc_strategy.reset(
-                         new QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder(
+                         new QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder(
                              conc_l_scratch_id, conc_a_scratch_id,
                              model_parameters, conc_db));
                   }
@@ -205,7 +205,7 @@ class PhaseConcentrationsStrategyFactory
                   tbox::plog << "Quadratic..." << std::endl;
                   assert(conc_b_scratch_id == -1);
                   phase_conc_strategy.reset(
-                      new QuadraticEquilibriumPhaseConcentrationsStrategy(
+                      new QuadraticEquilibriumPhaseConcentrationsBinary(
                           conc_l_scratch_id, conc_a_scratch_id,
                           model_parameters, conc_db));
                }

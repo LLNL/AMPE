@@ -8,12 +8,12 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder.h"
+#include "QuadraticEquilibriumThreePhasesTernaryMultiOrder.h"
 #include "FuncFort.h"
 
 
-QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
-    QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder(
+QuadraticEquilibriumThreePhasesTernaryMultiOrder::
+    QuadraticEquilibriumThreePhasesTernaryMultiOrder(
         const short norderp_A, const int conc_l_id, const int conc_a_id,
         const int conc_b_id, const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
@@ -45,7 +45,7 @@ QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
            model_parameters.conc_interp_func_type()));
 }
 
-int QuadraticEquilibriumThreePhasesTernaryStrategyMultiOrder::
+int QuadraticEquilibriumThreePhasesTernaryMultiOrder::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
         std::shared_ptr<pdat::CellData<double> > cd_phi,
