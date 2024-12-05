@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
-#define included_QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
+#ifndef included_QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder
+#define included_QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder
 
 #include "PhaseConcentrationsStrategy.h"
 #include "QuatModelParameters.h"
@@ -18,16 +18,16 @@
 
 #include <string>
 
-class QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder
+class QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder
     : public EquilibriumPhaseConcentrationsBinaryMultiOrder
 {
  public:
-   QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder(
+   QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder(
        const int conc_l_id, const int conc_a_id,
        const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db);
 
-   ~QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder() {}
+   ~QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder() {}
 
  protected:
    virtual int computePhaseConcentrations(const double t, double* c,

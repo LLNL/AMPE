@@ -8,13 +8,13 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder.h"
+#include "QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder.h"
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 #include "FuncFort.h"
 
 
-QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder::
-    QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder(
+QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder::
+    QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder(
         const int conc_l_id, const int conc_a_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)

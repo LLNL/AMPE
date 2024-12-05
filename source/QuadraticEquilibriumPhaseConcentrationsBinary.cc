@@ -8,13 +8,13 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
+#include "QuadraticEquilibriumPhaseConcentrationsBinary.h"
 #include "QuadraticFreeEnergyStrategy.h"
 #include "FuncFort.h"
 
 
-QuadraticEquilibriumPhaseConcentrationsStrategy::
-    QuadraticEquilibriumPhaseConcentrationsStrategy(
+QuadraticEquilibriumPhaseConcentrationsBinary::
+    QuadraticEquilibriumPhaseConcentrationsBinary(
         const int conc_l_id, const int conc_a_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
@@ -39,7 +39,7 @@ QuadraticEquilibriumPhaseConcentrationsStrategy::
        model_parameters.conc_interp_func_type()));
 }
 
-int QuadraticEquilibriumPhaseConcentrationsStrategy::
+int QuadraticEquilibriumPhaseConcentrationsBinary::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
         std::shared_ptr<pdat::CellData<double> > cd_phi,

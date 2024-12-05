@@ -8,25 +8,25 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticEquilibriumPhaseConcentrationsStrategy
-#define included_QuadraticEquilibriumPhaseConcentrationsStrategy
+#ifndef included_QuadraticEquilibriumThreePhasesTernaryMultiOrder
+#define included_QuadraticEquilibriumThreePhasesTernaryMultiOrder
 
 #include "PhaseConcentrationsStrategy.h"
 #include "QuatModelParameters.h"
-#include "QuadraticFreeEnergyFunctionsBinary.h"
+#include "QuadraticFreeEnergyFunctionsTernaryThreePhase.h"
 
 #include <string>
 
-class QuadraticEquilibriumPhaseConcentrationsStrategy
+class QuadraticEquilibriumThreePhasesTernaryMultiOrder
     : public PhaseConcentrationsStrategy
 {
  public:
-   QuadraticEquilibriumPhaseConcentrationsStrategy(
-       const int conc_l_id, const int conc_a_id,
-       const QuatModelParameters& model_parameters,
+   QuadraticEquilibriumThreePhasesTernaryMultiOrder(
+       const short norderp_A, const int conc_l_id, const int conc_a_id,
+       const int conc_b_id, const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db);
 
-   ~QuadraticEquilibriumPhaseConcentrationsStrategy() {}
+   ~QuadraticEquilibriumThreePhasesTernaryMultiOrder() {}
 
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -38,9 +38,13 @@ class QuadraticEquilibriumPhaseConcentrationsStrategy
        std::shared_ptr<hier::Patch> patch);
 
  private:
+   // number of order parameters associated with phase A
+   const short d_norderp_A;
+
    Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
-   std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary> d_fenergy;
+   std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsTernaryThreePhase>
+       d_fenergy;
 };
 
 #endif
