@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "QuadraticFreeEnergyStrategyMultiOrderThreePhase.h"
+#include "FreeEnergyStrategyThreePhase.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -21,20 +21,13 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-QuadraticFreeEnergyStrategyMultiOrderThreePhase::
-    QuadraticFreeEnergyStrategyMultiOrderThreePhase(
-        std::shared_ptr<tbox::Database> input_db,
-        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-        const short norderp_A, const double vml, const double vma,
-        const double vmb, const int conc_l_id, const int conc_a_id,
-        const int conc_b_id)
-    : d_norderp_A(norderp_A),
-      d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id),
-      d_conc_b_id(conc_b_id)
+FreeEnergyStrategyThreePhase::FreeEnergyStrategyThreePhase(
+    std::shared_ptr<tbox::Database> input_db, const double vml,
+    const double vma, const double vmb, const int conc_l_id,
+    const int conc_a_id, const int conc_b_id)
+    : d_conc_l_id(conc_l_id), d_conc_a_id(conc_a_id), d_conc_b_id(conc_b_id)
 {
-   tbox::plog << "QuadraticFreeEnergyStrategyMultiOrderThreePhase..."
-              << std::endl;
+   tbox::plog << "FreeEnergyStrategyThreePhase..." << std::endl;
 
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
@@ -52,7 +45,7 @@ QuadraticFreeEnergyStrategyMultiOrderThreePhase::
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "QuadraticFreeEnergyStrategyMultiOrderThreePhase:" <<
+   // tbox::plog << "FreeEnergyStrategyThreePhase:" <<
    // std::endl; tbox::plog << "Molar volume L =" << vml << std::endl;
    // tbox::plog << "Molar volume A =" << vma << std::endl;
    // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
@@ -60,7 +53,7 @@ QuadraticFreeEnergyStrategyMultiOrderThreePhase::
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergyLiquid(
+void FreeEnergyStrategyThreePhase ::computeFreeEnergyLiquid(
     hier::Patch& patch, const int temperature_id, const int fl_id,
     const bool gp)
 {
@@ -74,7 +67,7 @@ void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergyLiquid(
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergySolidA(
+void FreeEnergyStrategyThreePhase ::computeFreeEnergySolidA(
     hier::Patch& patch, const int temperature_id, const int fa_id,
     const bool gp)
 {
@@ -88,7 +81,7 @@ void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergySolidA(
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergySolidB(
+void FreeEnergyStrategyThreePhase ::computeFreeEnergySolidB(
     hier::Patch& patch, const int temperature_id, const int fb_id,
     const bool gp)
 {
@@ -102,7 +95,7 @@ void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergySolidB(
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergy(
+void FreeEnergyStrategyThreePhase ::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int f_id,
     const int conc_i_id, Thermo4PFM::PhaseIndex pi, const double energy_factor)
 {
@@ -129,7 +122,7 @@ void QuadraticFreeEnergyStrategyMultiOrderThreePhase ::computeFreeEnergy(
 
 //=======================================================================
 
-void QuadraticFreeEnergyStrategyMultiOrderThreePhase::addDrivingForce(
+void FreeEnergyStrategyThreePhase::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
     const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
     const int f_a_id, const int f_b_id, const int rhs_id)

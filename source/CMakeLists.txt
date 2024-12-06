@@ -65,7 +65,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategyMultiOrder.cc
-            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategyMultiOrderThreePhase.cc
+            ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategyThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderTernaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/EquilibriumPhaseConcentrationsBinaryMultiOrder.cc

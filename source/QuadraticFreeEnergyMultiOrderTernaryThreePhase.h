@@ -12,11 +12,11 @@
 #define included_QuadraticFreeEnergyMultiOrderTernaryThreePhase
 
 #include "QuadraticFreeEnergyFunctionsTernaryThreePhase.h"
-#include "QuadraticFreeEnergyStrategyMultiOrderThreePhase.h"
+#include "FreeEnergyStrategyThreePhase.h"
 #include "InterpolationType.h"
 
 class QuadraticFreeEnergyMultiOrderTernaryThreePhase
-    : public QuadraticFreeEnergyStrategyMultiOrderThreePhase
+    : public FreeEnergyStrategyThreePhase
 {
  public:
    QuadraticFreeEnergyMultiOrderTernaryThreePhase(
@@ -29,6 +29,11 @@ class QuadraticFreeEnergyMultiOrderTernaryThreePhase
    ~QuadraticFreeEnergyMultiOrderTernaryThreePhase();
 
  private:
+   //
+   // number of order parameters associated with phase A
+   //
+   const short d_norderp_A;
+
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsTernaryThreePhase>
        d_quadratic_fenergy;
 

@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticFreeEnergyStrategyMultiOrderThreePhase
-#define included_QuadraticFreeEnergyStrategyMultiOrderThreePhase
+#ifndef included_FreeEnergyStrategyThreePhase
+#define included_FreeEnergyStrategyThreePhase
 
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
@@ -20,18 +20,15 @@
 
 #include <vector>
 
-class QuadraticFreeEnergyStrategyMultiOrderThreePhase
-    : public FreeEnergyStrategy
+class FreeEnergyStrategyThreePhase : public FreeEnergyStrategy
 {
  public:
-   QuadraticFreeEnergyStrategyMultiOrderThreePhase(
-       std::shared_ptr<tbox::Database> input_db,
-       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-       const short norderp_A, const double vml, const double vma,
-       const double vmb, const int conc_l_id, const int conc_a_id,
-       const int conc_b_id);
+   FreeEnergyStrategyThreePhase(std::shared_ptr<tbox::Database> input_db,
+                                const double vml, const double vma,
+                                const double vmb, const int conc_l_id,
+                                const int conc_a_id, const int conc_b_id);
 
-   virtual ~QuadraticFreeEnergyStrategyMultiOrderThreePhase(){};
+   virtual ~FreeEnergyStrategyThreePhase(){};
 
    // implement pure virtual functions of FreeEnergyStrategy
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
@@ -115,9 +112,6 @@ class QuadraticFreeEnergyStrategyMultiOrderThreePhase
 
 
  protected:
-   // number of order parameters associated with phase A
-   const short d_norderp_A;
-
    double d_energy_conv_factor_L;  // molar volume
    double d_energy_conv_factor_A;  // molar volume
    double d_energy_conv_factor_B;  // molar volume
