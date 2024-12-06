@@ -28,11 +28,9 @@ QuadraticFreeEnergyMultiOrderTernaryThreePhase::
         const short norderp_A, const double vml, const double vma,
         const double vmb, const int conc_l_id, const int conc_a_id,
         const int conc_b_id)
-    : QuadraticFreeEnergyStrategyMultiOrderThreePhase(input_db,
-                                                      energy_interp_func_type,
-                                                      norderp_A, vml, vma, vmb,
-                                                      conc_l_id, conc_a_id,
-                                                      conc_b_id)
+    : FreeEnergyStrategyThreePhase(input_db, vml, vma, vmb, conc_l_id,
+                                   conc_a_id, conc_b_id),
+      d_norderp_A(norderp_A)
 {
    tbox::plog << "QuadraticFreeEnergyMultiOrderTernaryThreePhase..."
               << std::endl;
