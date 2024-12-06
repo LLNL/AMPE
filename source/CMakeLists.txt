@@ -72,6 +72,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderBinary.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderTernaryThreePhase.cc
+            ${CMAKE_SOURCE_DIR}/source/ParabolicFreeEnergyMultiOrderBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/EquilibriumPhaseConcentrationsBinaryMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder.cc
@@ -82,6 +83,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticEquilibriumThreePhasesTernaryMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticEquilibriumPhaseConcentrationsBinary.cc
             ${CMAKE_SOURCE_DIR}/source/ParabolicEquilibriumPhaseConcentrationsBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/ParabolicEquilibriumThreePhasesBinaryMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.cc

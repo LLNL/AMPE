@@ -18,6 +18,7 @@
 #include "QuadraticEquilibriumPhaseConcentrationsBinary.h"
 #include "QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder.h"
 #include "QuadraticEquilibriumThreePhasesTernaryMultiOrder.h"
+#include "ParabolicEquilibriumThreePhasesBinaryMultiOrder.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "Database2JSON.h"
@@ -234,6 +235,19 @@ class PhaseConcentrationsStrategyFactory
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
                              conc_db));
+                  }
+               }
+            } else if (model_parameters.isConcentrationModelParabolic()) {
+               if (model_parameters.norderp() > 1) {
+                  tbox::plog << "Parabolic,  MultiOrder..." << std::endl;
+                  if (conc_b_scratch_id >= 0) {
+                     tbox::plog << "Parabolic, MultiOrder, Three phases..."
+                                << std::endl;
+                     phase_conc_strategy.reset(
+                         new ParabolicEquilibriumThreePhasesBinaryMultiOrder(
+                             model_parameters.norderpA(), conc_l_scratch_id,
+                             conc_a_scratch_id, conc_b_scratch_id,
+                             model_parameters, conc_db));
                   }
                }
             }

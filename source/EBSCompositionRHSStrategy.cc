@@ -137,7 +137,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 {
    assert(diffusion_l_id >= 0);
    assert(temperature_scratch_id >= 0);
-   assert(d_free_energy_strategy);
 
    tbox::plog << "EBSCompositionRHSStrategy" << std::endl;
 
