@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticFreeEnergyStrategyMultiOrder
-#define included_QuadraticFreeEnergyStrategyMultiOrder
+#ifndef included_QuadraticFreeEnergyMultiOrderBinary
+#define included_QuadraticFreeEnergyMultiOrderBinary
 
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 #include "ConcFreeEnergyStrategy.h"
@@ -24,16 +24,16 @@ class MolarVolumeStrategy;
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 
-class QuadraticFreeEnergyStrategyMultiOrder : public FreeEnergyStrategy
+class QuadraticFreeEnergyMultiOrderBinary : public FreeEnergyStrategy
 {
  public:
-   QuadraticFreeEnergyStrategyMultiOrder(
+   QuadraticFreeEnergyMultiOrderBinary(
        std::shared_ptr<tbox::Database> input_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const double vml, const double vma, const int conc_l_id,
        const int conc_a_id);
 
-   ~QuadraticFreeEnergyStrategyMultiOrder(){};
+   ~QuadraticFreeEnergyMultiOrderBinary(){};
 
    // implement pure virtual functions of FreeEnergyStrategy
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
@@ -45,7 +45,7 @@ class QuadraticFreeEnergyStrategyMultiOrder : public FreeEnergyStrategy
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
                                 const int fs_id, const bool gp) override
    {
-      tbox::plog << "QuadraticFreeEnergyStrategyMultiOrder::"
+      tbox::plog << "QuadraticFreeEnergyMultiOrderBinary::"
                     "computeFreeEnergySolidB..."
                  << std::endl;
    };

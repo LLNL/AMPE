@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_QuadraticFreeEnergyStrategy
-#define included_QuadraticFreeEnergyStrategy
+#ifndef included_QuadraticFreeEnergyBinary
+#define included_QuadraticFreeEnergyBinary
 
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
@@ -18,16 +18,16 @@
 
 #include <string>
 
-class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
+class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
 {
  public:
-   QuadraticFreeEnergyStrategy(
+   QuadraticFreeEnergyBinary(
        std::shared_ptr<tbox::Database> input_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const double vml, const double vma, const int conc_l_id,
        const int conc_a_id);
 
-   ~QuadraticFreeEnergyStrategy(){};
+   ~QuadraticFreeEnergyBinary(){};
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
                                 const int fl_id,
