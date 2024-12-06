@@ -9,7 +9,7 @@
 // Please also read AMPE/LICENSE.
 //
 #include "QuadraticEquilibriumPhaseConcentrationsBinary.h"
-#include "QuadraticFreeEnergyStrategy.h"
+#include "QuadraticFreeEnergyBinary.h"
 #include "FuncFort.h"
 
 

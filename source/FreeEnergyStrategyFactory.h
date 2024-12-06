@@ -20,10 +20,10 @@
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyStrategyMultiOrder.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
-#include "QuadraticFreeEnergyStrategyMultiOrder.h"
+#include "QuadraticFreeEnergyBinary.h"
+#include "QuadraticFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyMultiOrderTernaryThreePhase.h"
 #include "KKSdiluteBinary.h"
-#include "QuadraticFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
@@ -214,7 +214,7 @@ class FreeEnergyStrategyFactory
                   tbox::plog << "QuadraticFreeEnergyStrategyMultiOrder..."
                              << std::endl;
                   free_energy_strategy.reset(
-                      new QuadraticFreeEnergyStrategyMultiOrder(
+                      new QuadraticFreeEnergyMultiOrderBinary(
                           conc_db->getDatabase("Quadratic"),
                           model_parameters.energy_interp_func_type(),
                           model_parameters.molar_volume_liquid(),
@@ -223,7 +223,7 @@ class FreeEnergyStrategyFactory
                }
             } else {
                tbox::plog << "QuadraticFreeEnergyStrategy" << std::endl;
-               free_energy_strategy.reset(new QuadraticFreeEnergyStrategy(
+               free_energy_strategy.reset(new QuadraticFreeEnergyBinary(
                    conc_db->getDatabase("Quadratic"),
                    model_parameters.energy_interp_func_type(),
                    model_parameters.molar_volume_liquid(),

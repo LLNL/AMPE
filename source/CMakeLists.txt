@@ -64,8 +64,9 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyMultiOrder.cc
-            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategyMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategyThreePhase.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderBinary.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyMultiOrderTernaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/EquilibriumPhaseConcentrationsBinaryMultiOrder.cc
@@ -134,7 +135,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/EventInterval.cc
-            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADequilibriumPhaseConcentrationsStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/GaussianTemperatureStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/ScalarTemperatureStrategy.cc
