@@ -162,6 +162,7 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases::
                          << hphi[2] << std::endl;
                MPI_Abort(mpi.getCommunicator(), -1);
             }
+            assert(!std::isnan(x[0]));
             ptr_c_l[idx_c_i] = x[0];
             ptr_c_a[idx_c_i] = x[1];
             ptr_c_b[idx_c_i] = x[2];

@@ -9,6 +9,11 @@ add_executable(plotCALPHADbinary
 target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI}
                                         ${THERMOLIB})
 
+add_executable(plotEnergyVsCompositionParabolicThreePhase
+               ${CMAKE_SOURCE_DIR}/drivers/plotEnergyVsCompositionParabolicThreePhase.cc )
+target_link_libraries(plotEnergyVsCompositionParabolicThreePhase ${PROJECT_LINK_LIBS_SAMRAI}
+                                        ${THERMOLIB})
+
 add_executable(computeEquilibriumCompositions
                computeEquilibriumCompositions.cc
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
