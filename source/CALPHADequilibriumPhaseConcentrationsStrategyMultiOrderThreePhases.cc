@@ -30,6 +30,9 @@ CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
     : EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases(
           norderp_A, conc_l_id, conc_a_id, conc_b_id, model_parameters, conc_db)
 {
+   tbox::plog << "CALPHADequilPhaseConcMultiOrderThreePhases..." << std::endl;
+   tbox::plog << "Type: " << typeid(FreeEnergyType).name() << std::endl;
+
    std::shared_ptr<tbox::Database> conc_calphad_db =
        conc_db->getDatabase("Calphad");
    std::string calphad_filename = conc_calphad_db->getString("filename");

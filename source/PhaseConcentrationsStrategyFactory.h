@@ -25,6 +25,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases.h"
+#include "CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioB.h"
 #include "CALPHADFunctions.h"
 
 #include <boost/property_tree/ptree.hpp>
@@ -70,30 +71,43 @@ class PhaseConcentrationsStrategyFactory
             tbox::plog << "CALPHAD..." << std::endl;
             if (ncompositions == 1) {
                tbox::plog << "Binary alloy..." << std::endl;
-               bool subl = Thermo4PFM::checkSublattice(calphad_pt);
-               double cB = model_parameters.getStochioB();
+               const bool subl = Thermo4PFM::checkSublattice(calphad_pt);
+               const double cB = model_parameters.getStochioB();
+               tbox::plog << "cB = " << cB << std::endl;
                if (conc_b_scratch_id >= 0) {
                   tbox::plog << "Three phases..." << std::endl;
                   // three phases
                   if (model_parameters.withMultipleOrderP()) {
-                     tbox::plog << "Multi-order parameters..." << std::endl;
                      // multi-order parameters model
-                     if (subl) {
+                     tbox::plog << "Multi-order parameters..." << std::endl;
+                     if (cB >= 0.) {
+                        tbox::plog << "Stochiometric case..." << std::endl;
                         phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                            new CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioB(
                                 model_parameters.norderpA(), conc_l_scratch_id,
                                 conc_a_scratch_id, conc_b_scratch_id,
                                 model_parameters, conc_db, newton_db));
                      } else {
-                        phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
-                                Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-                                model_parameters.norderpA(), conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id,
-                                model_parameters, conc_db, newton_db));
+                        if (subl) {
+                           tbox::plog << "sublattice..." << std::endl;
+                           phase_conc_strategy.reset(
+                               new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+                                   Thermo4PFM::
+                                       CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                                   model_parameters.norderpA(),
+                                   conc_l_scratch_id, conc_a_scratch_id,
+                                   conc_b_scratch_id, model_parameters, conc_db,
+                                   newton_db));
+                        } else {
+                           phase_conc_strategy.reset(
+                               new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+                                   Thermo4PFM::
+                                       CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                                   model_parameters.norderpA(),
+                                   conc_l_scratch_id, conc_a_scratch_id,
+                                   conc_b_scratch_id, model_parameters, conc_db,
+                                   newton_db));
+                        }
                      }
                   } else {
                      // three phases model

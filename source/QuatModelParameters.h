@@ -139,7 +139,7 @@ class QuatModelParameters
    {
       return d_initc_in_phase[d_ncompositions + index];
    }
-   double getStochioB() { return d_stochio_cB; }
+   double getStochioB() const { return d_stochio_cB; }
    double meltingT() const { return d_meltingT; }
    double interfaceMobility() const { return d_interface_mobility; }
    double rescale_factorT() const { return d_rescale_factorT; }
