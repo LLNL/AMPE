@@ -12,7 +12,7 @@
 #define included_PhaseConcentrationsStrategyFactory
 
 #include "CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB.h"
-#include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
+#include "EquilibriumPhaseConcentrationsThreePhases.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "QuadraticEquilibriumPhaseConcentrationsBinary.h"
 #include "QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder.h"
@@ -107,7 +107,7 @@ class PhaseConcentrationsStrategyFactory
                                 calphad_pt, newton_db, ncompositions));
                      } else if (subl) {
                         phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                            new EquilibriumPhaseConcentrationsThreePhases<
                                 Thermo4PFM::
                                     CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
                                 conc_l_scratch_id, conc_a_scratch_id,
@@ -118,7 +118,7 @@ class PhaseConcentrationsStrategyFactory
                                 calphad_pt, newton_db, ncompositions));
                      } else {
                         phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                            new EquilibriumPhaseConcentrationsThreePhases<
                                 Thermo4PFM::
                                     CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                                 conc_l_scratch_id, conc_a_scratch_id,
@@ -141,7 +141,7 @@ class PhaseConcentrationsStrategyFactory
                   } else {  // single order parameter
                      if (subl) {
                         phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                            new EquilibriumPhaseConcentrationsThreePhases<
                                 Thermo4PFM::
                                     CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
                                 conc_l_scratch_id, conc_a_scratch_id,
@@ -153,7 +153,7 @@ class PhaseConcentrationsStrategyFactory
 
                      } else {
                         phase_conc_strategy.reset(
-                            new CALPHADequilibriumPhaseConcentrationsStrategy<
+                            new EquilibriumPhaseConcentrationsThreePhases<
                                 Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>(
                                 conc_l_scratch_id, conc_a_scratch_id,
                                 conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
@@ -167,7 +167,7 @@ class PhaseConcentrationsStrategyFactory
             } else if (ncompositions == 2) {
                tbox::plog << "Ternary..." << std::endl;
                phase_conc_strategy.reset(
-                   new CALPHADequilibriumPhaseConcentrationsStrategy<
+                   new EquilibriumPhaseConcentrationsThreePhases<
                        Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>(
                        conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
                        conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
