@@ -34,10 +34,9 @@ CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
     : CALPHADFreeEnergyStrategyBinaryThreePhase<
-          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
-          TiltingFolchPlapp2005>(calphad_db, newton_db, energy_interp_func_type,
-                                 conc_interp_func_type, mvstrategy, conc_l_id,
-                                 conc_a_id, conc_b_id)
+          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
+          mvstrategy, conc_l_id, conc_a_id, conc_b_id)
 {
    setup(calphad_db, newton_db);
 }

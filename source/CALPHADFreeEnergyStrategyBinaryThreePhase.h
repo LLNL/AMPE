@@ -23,7 +23,7 @@ class MolarVolumeStrategy;
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
 {
  public:

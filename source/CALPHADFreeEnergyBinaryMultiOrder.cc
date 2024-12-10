@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "CALPHADFreeEnergyStrategyMultiOrder.h"
+#include "CALPHADFreeEnergyBinaryMultiOrder.h"
 #include "Database2JSON.h"
 
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
@@ -27,8 +27,8 @@ namespace pt = boost::property_tree;
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-CALPHADFreeEnergyStrategyMultiOrder<FreeEnergyFunctionType>::
-    CALPHADFreeEnergyStrategyMultiOrder(
+CALPHADFreeEnergyBinaryMultiOrder<FreeEnergyFunctionType>::
+    CALPHADFreeEnergyBinaryMultiOrder(
         pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         const short norderp_A, MolarVolumeStrategy* mvstrategy,
@@ -44,18 +44,17 @@ CALPHADFreeEnergyStrategyMultiOrder<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyMultiOrder<FreeEnergyFunctionType>::
-    addDrivingForce(std::shared_ptr<pdat::CellData<double> > cd_rhs,
-                    std::shared_ptr<pdat::CellData<double> > cd_temperature,
-                    std::shared_ptr<pdat::CellData<double> > cd_phi,
-                    std::shared_ptr<pdat::CellData<double> > cd_eta,
-                    std::shared_ptr<pdat::CellData<double> > cd_f_l,
-                    std::shared_ptr<pdat::CellData<double> > cd_f_a,
-                    std::shared_ptr<pdat::CellData<double> > cd_f_b,
-                    std::shared_ptr<pdat::CellData<double> > cd_c_l,
-                    std::shared_ptr<pdat::CellData<double> > cd_c_a,
-                    std::shared_ptr<pdat::CellData<double> > cd_c_b,
-                    const hier::Box& pbox)
+void CALPHADFreeEnergyBinaryMultiOrder<FreeEnergyFunctionType>::addDrivingForce(
+    std::shared_ptr<pdat::CellData<double> > cd_rhs,
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_f_l,
+    std::shared_ptr<pdat::CellData<double> > cd_f_a,
+    std::shared_ptr<pdat::CellData<double> > cd_f_b,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    (void)cd_eta;
 
@@ -248,7 +247,7 @@ void CALPHADFreeEnergyStrategyMultiOrder<FreeEnergyFunctionType>::
    }
 }
 
-template class CALPHADFreeEnergyStrategyMultiOrder<
+template class CALPHADFreeEnergyBinaryMultiOrder<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>;
-template class CALPHADFreeEnergyStrategyMultiOrder<
+template class CALPHADFreeEnergyBinaryMultiOrder<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;

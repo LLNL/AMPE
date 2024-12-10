@@ -13,7 +13,6 @@
 
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "InterpolationType.h"
-#include "TiltingFolchPlapp2005.h"
 
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
@@ -29,8 +28,7 @@ class MolarVolumeStrategy;
 
 class CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB
     : public CALPHADFreeEnergyStrategyBinaryThreePhase<
-          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
-          TiltingFolchPlapp2005>
+          Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>
 {
  public:
    CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB(

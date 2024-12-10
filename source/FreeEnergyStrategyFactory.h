@@ -18,7 +18,7 @@
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
-#include "CALPHADFreeEnergyStrategyMultiOrder.h"
+#include "CALPHADFreeEnergyBinaryMultiOrder.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "QuadraticFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
@@ -27,7 +27,6 @@
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
-#include "TiltingFolchPlapp2005.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -81,7 +80,7 @@ class FreeEnergyStrategyFactory
                              << std::endl;
                   if (conc_b_scratch_id >= 0) {
                      free_energy_strategy.reset(
-                         new CALPHADFreeEnergyStrategyMultiOrder<
+                         new CALPHADFreeEnergyBinaryMultiOrder<
                              Thermo4PFM::
                                  CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                              calphad_pt, newton_db,
@@ -91,7 +90,7 @@ class FreeEnergyStrategyFactory
                              conc_b_scratch_id));
                   } else {
                      free_energy_strategy.reset(
-                         new CALPHADFreeEnergyStrategyMultiOrder<
+                         new CALPHADFreeEnergyBinaryMultiOrder<
                              Thermo4PFM::
                                  CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
                              calphad_pt, newton_db,
@@ -112,8 +111,7 @@ class FreeEnergyStrategyFactory
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyStrategyBinaryThreePhase<
                                 Thermo4PFM::
-                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
-                                TiltingFolchPlapp2005>(
+                                    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
                                 calphad_pt, newton_db,
                                 model_parameters.energy_interp_func_type(),
                                 model_parameters.conc_interp_func_type(),
@@ -136,8 +134,7 @@ class FreeEnergyStrategyFactory
                            free_energy_strategy.reset(
                                new CALPHADFreeEnergyStrategyBinaryThreePhase<
                                    Thermo4PFM::
-                                       CALPHADFreeEnergyFunctionsBinaryThreePhase,
-                                   TiltingFolchPlapp2005>(
+                                       CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                                    calphad_pt, newton_db,
                                    model_parameters.energy_interp_func_type(),
                                    model_parameters.conc_interp_func_type(),

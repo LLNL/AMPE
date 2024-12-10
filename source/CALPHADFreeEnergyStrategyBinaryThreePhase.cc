@@ -29,9 +29,8 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                          TiltingFunction>::
+template <class FreeEnergyFunctionType>
+CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     CALPHADFreeEnergyStrategyBinaryThreePhase(
         pt::ptree calphad_db, std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
@@ -64,11 +63,9 @@ CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::setup(pt::ptree calphad_pt,
-                            std::shared_ptr<tbox::Database> newton_db)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::setup(
+    pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db)
 {
    tbox::pout << "CALPHADFreeEnergyStrategyBinaryThreePhase<"
                  "FreeEnergyFunctionType>::setup()"
@@ -85,12 +82,10 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeDerivFreeEnergyLiquid(hier::Patch& patch,
-                                                   const int temperature_id,
-                                                   const int dfl_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+    computeDerivFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
+                                 const int dfl_id)
 {
    assert(temperature_id >= 0);
    assert(dfl_id >= 0);
@@ -101,12 +96,10 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeDerivFreeEnergySolidA(hier::Patch& patch,
-                                                   const int temperature_id,
-                                                   const int dfa_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+    computeDerivFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
+                                 const int dfa_id)
 {
    assert(temperature_id >= 0.);
    assert(dfa_id >= 0);
@@ -117,12 +110,10 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeDerivFreeEnergySolidB(hier::Patch& patch,
-                                                   const int temperature_id,
-                                                   const int dfb_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+    computeDerivFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
+                                 const int dfb_id)
 {
    assert(temperature_id >= 0.);
    assert(dfb_id >= 0);
@@ -133,12 +124,12 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeFreeEnergyLiquid(hier::Patch& patch,
-                                              const int temperature_id,
-                                              const int fl_id, const bool gp)
+    FreeEnergyFunctionType>::computeFreeEnergyLiquid(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fl_id,
+                                                     const bool gp)
 {
    assert(temperature_id >= 0);
    assert(fl_id >= 0);
@@ -151,12 +142,12 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeFreeEnergySolidA(hier::Patch& patch,
-                                              const int temperature_id,
-                                              const int fa_id, const bool gp)
+    FreeEnergyFunctionType>::computeFreeEnergySolidA(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fa_id,
+                                                     const bool gp)
 {
    assert(temperature_id >= 0.);
    assert(fa_id >= 0);
@@ -167,12 +158,12 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeFreeEnergySolidB(hier::Patch& patch,
-                                              const int temperature_id,
-                                              const int fb_id, const bool gp)
+    FreeEnergyFunctionType>::computeFreeEnergySolidB(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fb_id,
+                                                     const bool gp)
 {
    assert(temperature_id >= 0.);
    assert(fb_id >= 0);
@@ -183,14 +174,14 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeFreeEnergy(hier::Patch& patch,
-                                        const int temperature_id,
-                                        const int f_id, const int conc_i_id,
-                                        const Thermo4PFM::PhaseIndex pi,
-                                        const bool gp)
+    FreeEnergyFunctionType>::computeFreeEnergy(hier::Patch& patch,
+                                               const int temperature_id,
+                                               const int f_id,
+                                               const int conc_i_id,
+                                               const Thermo4PFM::PhaseIndex pi,
+                                               const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -215,14 +206,11 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::computeDerivFreeEnergy(hier::Patch& patch,
-                                             const int temperature_id,
-                                             const int df_id,
-                                             const int conc_i_id,
-                                             const Thermo4PFM::PhaseIndex pi)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+    computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
+                           const int df_id, const int conc_i_id,
+                           const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -247,9 +235,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                               TiltingFunction>::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     computeFreeEnergy(const hier::Box& pbox,
                       std::shared_ptr<pdat::CellData<double> > cd_temp,
                       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -330,9 +317,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                               TiltingFunction>::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     computeDerivFreeEnergy(
         const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
         std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -413,15 +399,12 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType,
-    TiltingFunction>::addDrivingForce(const double time, hier::Patch& patch,
-                                      const int temperature_id,
-                                      const int phase_id, const int eta_id,
-                                      const int conc_id, const int f_l_id,
-                                      const int f_a_id, const int f_b_id,
-                                      const int rhs_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+    addDrivingForce(const double time, hier::Patch& patch,
+                    const int temperature_id, const int phase_id,
+                    const int eta_id, const int conc_id, const int f_l_id,
+                    const int f_a_id, const int f_b_id, const int rhs_id)
 {
    (void)time;
 
@@ -492,9 +475,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                               TiltingFunction>::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     addDrivingForceOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_rhs,
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -639,20 +621,26 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
             //             muB
             //             << std::endl;
             //}
-            double rhs0 =
-                (TiltingFunction::dg0dp0(phi0, phi1, phi2) * (fl - mu * cl) +
-                 TiltingFunction::dg0dp1(phi1, phi0, phi2) * (fa - mu * ca) +
-                 TiltingFunction::dg0dp1(phi2, phi0, phi1) * (fb - mu * cb));
+            double rhs0 = (TiltingFolchPlapp2005::dg0dp0(phi0, phi1, phi2) *
+                               (fl - mu * cl) +
+                           TiltingFolchPlapp2005::dg0dp1(phi1, phi0, phi2) *
+                               (fa - mu * ca) +
+                           TiltingFolchPlapp2005::dg0dp1(phi2, phi0, phi1) *
+                               (fb - mu * cb));
 
-            double rhs1 =
-                (TiltingFunction::dg0dp0(phi1, phi0, phi2) * (fa - mu * ca) +
-                 TiltingFunction::dg0dp1(phi0, phi1, phi2) * (fl - mu * cl) +
-                 TiltingFunction::dg0dp1(phi2, phi1, phi0) * (fb - mu * cb));
+            double rhs1 = (TiltingFolchPlapp2005::dg0dp0(phi1, phi0, phi2) *
+                               (fa - mu * ca) +
+                           TiltingFolchPlapp2005::dg0dp1(phi0, phi1, phi2) *
+                               (fl - mu * cl) +
+                           TiltingFolchPlapp2005::dg0dp1(phi2, phi1, phi0) *
+                               (fb - mu * cb));
 
-            double rhs2 =
-                (TiltingFunction::dg0dp0(phi2, phi1, phi0) * (fb - mu * cb) +
-                 TiltingFunction::dg0dp1(phi1, phi2, phi0) * (fa - mu * ca) +
-                 TiltingFunction::dg0dp1(phi0, phi2, phi1) * (fl - mu * cl));
+            double rhs2 = (TiltingFolchPlapp2005::dg0dp0(phi2, phi1, phi0) *
+                               (fb - mu * cb) +
+                           TiltingFolchPlapp2005::dg0dp1(phi1, phi2, phi0) *
+                               (fa - mu * ca) +
+                           TiltingFolchPlapp2005::dg0dp1(phi0, phi2, phi1) *
+                               (fl - mu * cl));
             // add to rhs a component that satisfies the constraint on phi
             double corr = (rhs0 + rhs1 + rhs2) / 3.;
             ptr_rhs0[idx_rhs] -= (rhs0 - corr);
@@ -665,10 +653,9 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 double CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType, TiltingFunction>::computeMuA(const double t,
-                                                         const double c)
+    FreeEnergyFunctionType>::computeMuA(const double t, const double c)
 {
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
@@ -682,10 +669,9 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 double CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType, TiltingFunction>::computeMuL(const double t,
-                                                         const double c)
+    FreeEnergyFunctionType>::computeMuL(const double t, const double c)
 {
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
@@ -699,10 +685,9 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
+template <class FreeEnergyFunctionType>
 double CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType, TiltingFunction>::computeMuB(const double t,
-                                                         const double c)
+    FreeEnergyFunctionType>::computeMuB(const double t, const double c)
 {
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t, &c,
@@ -716,9 +701,8 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                               TiltingFunction>::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseL(const double temp,
                                                const std::vector<double>& c_l,
                                                std::vector<double>& d2fdc2,
@@ -735,9 +719,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 
 //=======================================================================
 
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                               TiltingFunction>::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseA(const double temp,
                                                const std::vector<double>& c_a,
                                                std::vector<double>& d2fdc2,
@@ -753,9 +736,8 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 }
 
 //=======================================================================
-template <class FreeEnergyFunctionType, class TiltingFunction>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
-                                               TiltingFunction>::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
                                                const std::vector<double>& c_b,
                                                std::vector<double>& d2fdc2,
@@ -771,7 +753,6 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 }
 
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
-    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase,
-    TiltingFolchPlapp2005>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>;
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
-    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingFolchPlapp2005>;
+    Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
