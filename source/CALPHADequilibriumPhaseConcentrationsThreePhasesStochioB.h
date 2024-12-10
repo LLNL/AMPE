@@ -11,7 +11,7 @@
 #ifndef included_CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
 #define included_CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
 
-#include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
+#include "EquilibriumPhaseConcentrationsThreePhases.h"
 #include "InterpolationType.h"
 #include "QuatModelParameters.h"
 
@@ -23,7 +23,7 @@
 #include <boost/property_tree/ptree.hpp>
 
 class CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB
-    : public CALPHADequilibriumPhaseConcentrationsStrategy<
+    : public EquilibriumPhaseConcentrationsThreePhases<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>
 {
  public:

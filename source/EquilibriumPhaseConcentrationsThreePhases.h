@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_CALPHADequilibriumPhaseConcentrationsStrategy
-#define included_CALPHADequilibriumPhaseConcentrationsStrategy
+#ifndef included_EquilibriumPhaseConcentrationsThreePhases
+#define included_EquilibriumPhaseConcentrationsThreePhases
 
 #include "PhaseConcentrationsStrategy.h"
 #include "InterpolationType.h"
@@ -19,11 +19,11 @@
 #include <boost/property_tree/ptree.hpp>
 
 template <class FreeEnergyType>
-class CALPHADequilibriumPhaseConcentrationsStrategy
+class EquilibriumPhaseConcentrationsThreePhases
     : public PhaseConcentrationsStrategy
 {
  public:
-   CALPHADequilibriumPhaseConcentrationsStrategy(
+   EquilibriumPhaseConcentrationsThreePhases(
        const int conc_l_id, const int conc_a_id, const int conc_b_id,
        const int conc_l_ref_id, const int conc_a_ref_id,
        const int conc_b_ref_id,
@@ -32,7 +32,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        boost::property_tree::ptree calphad_pt,
        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions);
 
-   ~CALPHADequilibriumPhaseConcentrationsStrategy() {}
+   ~EquilibriumPhaseConcentrationsThreePhases() {}
 
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,

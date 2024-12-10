@@ -11,7 +11,7 @@
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 
-#include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
+#include "EquilibriumPhaseConcentrationsThreePhases.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
@@ -26,8 +26,8 @@ namespace pt = boost::property_tree;
 #include <omp.h>
 
 template <class FreeEnergyType>
-CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
-    CALPHADequilibriumPhaseConcentrationsStrategy(
+EquilibriumPhaseConcentrationsThreePhases<FreeEnergyType>::
+    EquilibriumPhaseConcentrationsThreePhases(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
@@ -45,9 +45,9 @@ CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 }
 
 template <>
-CALPHADequilibriumPhaseConcentrationsStrategy<
+EquilibriumPhaseConcentrationsThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary>::
-    CALPHADequilibriumPhaseConcentrationsStrategy(
+    EquilibriumPhaseConcentrationsThreePhases(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
@@ -72,9 +72,9 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 }
 
 template <>
-CALPHADequilibriumPhaseConcentrationsStrategy<
+EquilibriumPhaseConcentrationsThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>::
-    CALPHADequilibriumPhaseConcentrationsStrategy(
+    EquilibriumPhaseConcentrationsThreePhases(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
@@ -99,9 +99,9 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 }
 
 template <>
-CALPHADequilibriumPhaseConcentrationsStrategy<
+EquilibriumPhaseConcentrationsThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>::
-    CALPHADequilibriumPhaseConcentrationsStrategy(
+    EquilibriumPhaseConcentrationsThreePhases(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
@@ -126,9 +126,9 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 }
 
 template <>
-CALPHADequilibriumPhaseConcentrationsStrategy<
+EquilibriumPhaseConcentrationsThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>::
-    CALPHADequilibriumPhaseConcentrationsStrategy(
+    EquilibriumPhaseConcentrationsThreePhases(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
@@ -153,9 +153,9 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 }
 
 template <>
-CALPHADequilibriumPhaseConcentrationsStrategy<
+EquilibriumPhaseConcentrationsThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsTernary>::
-    CALPHADequilibriumPhaseConcentrationsStrategy(
+    EquilibriumPhaseConcentrationsThreePhases(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
         const int conc_a_ref_id, const int conc_b_ref_id,
@@ -181,7 +181,7 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 
 
 template <class FreeEnergyType>
-int CALPHADequilibriumPhaseConcentrationsStrategy<
+int EquilibriumPhaseConcentrationsThreePhases<
     FreeEnergyType>::computeAuxilliaryConcentrations(const double temp,
                                                      double* c, double* hphi,
                                                      double* x)
@@ -192,7 +192,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<
 
 #ifndef GPU_OFFLOAD
    if (status < 0 || std::isnan(x[0])) {
-      std::cerr << "CALPHADequilibriumPhaseConcentrationsStrategy" << std::endl;
+      std::cerr << "EquilibriumPhaseConcentrationsThreePhases" << std::endl;
       std::cerr << "computePhaseConcentrations failed for T = " << temp
                 << ", hphi = ";
       for (short i = 0; i < 3; i++)
@@ -210,7 +210,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<
 
 
 template <class FreeEnergyType>
-int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
+int EquilibriumPhaseConcentrationsThreePhases<FreeEnergyType>::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_te,
         std::shared_ptr<pdat::CellData<double> > cd_pf,
@@ -225,7 +225,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    assert(cd_conc);
    assert(cd_cl);
    assert(cd_ca);
-   assert(d_calphad_fenergy != nullptr);
    assert(cd_conc->getDepth() == cd_cl->getDepth());
    assert(cd_conc->getDepth() == cd_ca->getDepth());
    assert(cd_cl->getGhostCellWidth()[0] <= cd_te->getGhostCellWidth()[0]);
@@ -460,5 +459,5 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    return nits;
 }
 
-template class CALPHADequilibriumPhaseConcentrationsStrategy<
+template class EquilibriumPhaseConcentrationsThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>;

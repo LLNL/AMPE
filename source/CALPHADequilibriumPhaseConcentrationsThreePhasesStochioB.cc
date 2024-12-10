@@ -26,7 +26,7 @@ CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB ::
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
         const unsigned ncompositions)
-    : CALPHADequilibriumPhaseConcentrationsStrategy<
+    : EquilibriumPhaseConcentrationsThreePhases<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhaseStochioB>(
           conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
           conc_l_ref_id, conc_a_ref_id, conc_b_ref_id, energy_interp_func_type,
