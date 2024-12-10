@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_CALPHADFreeEnergyStrategyMultiOrder
-#define included_CALPHADFreeEnergyStrategyMultiOrder
+#ifndef included_CALPHADFreeEnergyBinaryMultiOrder
+#define included_CALPHADFreeEnergyBinaryMultiOrder
 
 #include "CALPHADFreeEnergyStrategyBinary.h"
 
@@ -23,18 +23,18 @@ class MolarVolumeStrategy;
 #include <boost/property_tree/ptree.hpp>
 
 template <class FreeEnergyFunctionType>
-class CALPHADFreeEnergyStrategyMultiOrder
+class CALPHADFreeEnergyBinaryMultiOrder
     : public CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>
 {
  public:
-   CALPHADFreeEnergyStrategyMultiOrder(
+   CALPHADFreeEnergyBinaryMultiOrder(
        boost::property_tree::ptree calphad_db,
        std::shared_ptr<tbox::Database> newton_db,
        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        const short _norderp_A, MolarVolumeStrategy* mvstrategy,
        const int conc_l_id, const int conc_a_id, const int conc_b_id);
 
-   ~CALPHADFreeEnergyStrategyMultiOrder(){};
+   ~CALPHADFreeEnergyBinaryMultiOrder(){};
 
    void addDrivingForce(std::shared_ptr<pdat::CellData<double> > cd_rhs,
                         std::shared_ptr<pdat::CellData<double> > cd_temperature,
