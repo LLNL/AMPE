@@ -18,7 +18,7 @@
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
-#include "CALPHADFreeEnergyBinaryMultiOrder.h"
+#include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "QuadraticFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
@@ -80,7 +80,7 @@ class FreeEnergyStrategyFactory
                              << std::endl;
                   if (conc_b_scratch_id >= 0) {
                      free_energy_strategy.reset(
-                         new CALPHADFreeEnergyBinaryMultiOrder<
+                         new CALPHADFreeEnergyBinaryMultiOrderThreePhases<
                              Thermo4PFM::
                                  CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                              calphad_pt, newton_db,
@@ -90,7 +90,7 @@ class FreeEnergyStrategyFactory
                              conc_b_scratch_id));
                   } else {
                      free_energy_strategy.reset(
-                         new CALPHADFreeEnergyBinaryMultiOrder<
+                         new CALPHADFreeEnergyBinaryMultiOrderThreePhases<
                              Thermo4PFM::
                                  CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
                              calphad_pt, newton_db,

@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "CALPHADFreeEnergyBinaryMultiOrder.h"
+#include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "Database2JSON.h"
 
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
@@ -27,8 +27,8 @@ namespace pt = boost::property_tree;
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-CALPHADFreeEnergyBinaryMultiOrder<FreeEnergyFunctionType>::
-    CALPHADFreeEnergyBinaryMultiOrder(
+CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::
+    CALPHADFreeEnergyBinaryMultiOrderThreePhases(
         pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         const short norderp_A, MolarVolumeStrategy* mvstrategy,
@@ -44,7 +44,7 @@ CALPHADFreeEnergyBinaryMultiOrder<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyBinaryMultiOrder<FreeEnergyFunctionType>::addDrivingForce(
+void CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::addDrivingForce(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -247,7 +247,7 @@ void CALPHADFreeEnergyBinaryMultiOrder<FreeEnergyFunctionType>::addDrivingForce(
    }
 }
 
-template class CALPHADFreeEnergyBinaryMultiOrder<
+template class CALPHADFreeEnergyBinaryMultiOrderThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>;
-template class CALPHADFreeEnergyBinaryMultiOrder<
+template class CALPHADFreeEnergyBinaryMultiOrderThreePhases<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
