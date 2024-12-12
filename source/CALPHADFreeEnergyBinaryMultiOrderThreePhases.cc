@@ -44,17 +44,18 @@ CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::addDrivingForce(
-    std::shared_ptr<pdat::CellData<double> > cd_rhs,
-    std::shared_ptr<pdat::CellData<double> > cd_temperature,
-    std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
-    std::shared_ptr<pdat::CellData<double> > cd_f_l,
-    std::shared_ptr<pdat::CellData<double> > cd_f_a,
-    std::shared_ptr<pdat::CellData<double> > cd_f_b,
-    std::shared_ptr<pdat::CellData<double> > cd_c_l,
-    std::shared_ptr<pdat::CellData<double> > cd_c_a,
-    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+void CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::
+    addDrivingForce(std::shared_ptr<pdat::CellData<double> > cd_rhs,
+                    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+                    std::shared_ptr<pdat::CellData<double> > cd_phi,
+                    std::shared_ptr<pdat::CellData<double> > cd_eta,
+                    std::shared_ptr<pdat::CellData<double> > cd_f_l,
+                    std::shared_ptr<pdat::CellData<double> > cd_f_a,
+                    std::shared_ptr<pdat::CellData<double> > cd_f_b,
+                    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+                    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+                    std::shared_ptr<pdat::CellData<double> > cd_c_b,
+                    const hier::Box& pbox)
 {
    (void)cd_eta;
 

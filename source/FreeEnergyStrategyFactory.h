@@ -19,6 +19,7 @@
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
+#include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "QuadraticFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
@@ -73,21 +74,31 @@ class FreeEnergyStrategyFactory
                newton_db = conc_db->getDatabase("NewtonSolver");
             }
 
-            if (ncompositions == 1) {
+            if (ncompositions == 1) {  // binary case
                tbox::plog << "ncompositions: 1" << std::endl;
                if (model_parameters.withMultipleOrderP()) {
-                  tbox::plog << "CALPHADFreeEnergyStrategyMultiOrder..."
-                             << std::endl;
+                  tbox::plog << "MultiOrder..." << std::endl;
                   if (conc_b_scratch_id >= 0) {
-                     free_energy_strategy.reset(
-                         new CALPHADFreeEnergyBinaryMultiOrderThreePhases<
-                             Thermo4PFM::
-                                 CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-                             calphad_pt, newton_db,
-                             model_parameters.conc_interp_func_type(),
-                             model_parameters.norderpA(), mvstrategy,
-                             conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id));
+                     if (model_parameters.getStochioB() >= 0.) {
+                        tbox::plog << "StochioB..." << std::endl;
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB(
+                                model_parameters.norderpA(), calphad_pt,
+                                newton_db,
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
+                     } else {
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyBinaryMultiOrderThreePhases<
+                                Thermo4PFM::
+                                    CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                                calphad_pt, newton_db,
+                                model_parameters.conc_interp_func_type(),
+                                model_parameters.norderpA(), mvstrategy,
+                                conc_l_scratch_id, conc_a_scratch_id,
+                                conc_b_scratch_id));
+                     }
                   } else {
                      free_energy_strategy.reset(
                          new CALPHADFreeEnergyBinaryMultiOrderThreePhases<
