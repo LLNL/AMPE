@@ -306,11 +306,10 @@ void QuadraticFreeEnergyMultiOrderBinary::computeDerivFreeEnergy(
 
 void QuadraticFreeEnergyMultiOrderBinary::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    (void)time;
-   (void)eta_id;
    (void)f_b_id;
 
    assert(conc_id >= 0);

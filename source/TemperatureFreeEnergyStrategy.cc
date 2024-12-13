@@ -114,8 +114,8 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergySolidB(
 
 void TemperatureFreeEnergyStrategy::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    assert(phase_id >= 0);
    assert(f_l_id >= 0);
@@ -125,7 +125,6 @@ void TemperatureFreeEnergyStrategy::addDrivingForce(
    (void)time;
    (void)conc_id;         // unused
    (void)temperature_id;  // unused
-   (void)eta_id;
    (void)f_b_id;
 
    std::shared_ptr<pdat::CellData<double> > phase(

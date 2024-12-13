@@ -95,8 +95,8 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
 
 void PhaseFreeEnergyStrategy::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    assert(phase_id >= 0);
    assert(f_l_id >= 0);
@@ -104,7 +104,6 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
    assert(rhs_id >= 0);
    (void)conc_id;         // unused
    (void)temperature_id;  // unused
-   (void)eta_id;
 
    std::shared_ptr<pdat::CellData<double> > phase(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(

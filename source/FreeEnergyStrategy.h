@@ -55,22 +55,20 @@ class FreeEnergyStrategy
 
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
-                                const int eta_id, const int conc_id,
-                                const int f_l_id, const int f_a_id,
-                                const int f_b_id, const int rhs_id) = 0;
+                                const int conc_id, const int f_l_id,
+                                const int f_a_id, const int f_b_id,
+                                const int rhs_id) = 0;
 
    virtual void computeDrivingForce(
        const double time, const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int phase_id, const int eta_id,
-       const int conc_id, const int f_l_id, const int f_a_id, const int f_b_id,
-       const int rhs_id);
+       const int temperature_id, const int phase_id, const int conc_id,
+       const int f_l_id, const int f_a_id, const int f_b_id, const int rhs_id);
 
    virtual void computeDrivingForce(const double time, hier::Patch& patch,
                                     const int temperature_id,
-                                    const int phase_id, const int eta_id,
-                                    const int conc_id, const int f_l_id,
-                                    const int f_a_id, const int f_b_id,
-                                    const int rhs_id)
+                                    const int phase_id, const int conc_id,
+                                    const int f_l_id, const int f_a_id,
+                                    const int f_b_id, const int rhs_id)
    {
       std::shared_ptr<pdat::CellData<double> > rhs(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -78,8 +76,8 @@ class FreeEnergyStrategy
       math::PatchCellDataOpsReal<double> ops;
       ops.setToScalar(rhs, 0., patch.getBox());
 
-      addDrivingForce(time, patch, temperature_id, phase_id, eta_id, conc_id,
-                      f_l_id, f_a_id, f_b_id, rhs_id);
+      addDrivingForce(time, patch, temperature_id, phase_id, conc_id, f_l_id,
+                      f_a_id, f_b_id, rhs_id);
    };
 
    // pointwise functions

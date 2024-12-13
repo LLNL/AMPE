@@ -259,8 +259,6 @@ void QuadraticFreeEnergyMultiOrderBinaryThreePhase::addDrivingForceOnPatch(
    for (short i = 0; i < norderp; i++)
       ptr_phi[i] = cd_phi->getPointer(i);
 
-   // number of cells for each field
-   const size_t coffset = c_i_gbox.size();
    // tbox::plog<<"d_norderp_A = "<<d_norderp_A<<std::endl;
 
    for (int kk = kmin; kk <= kmax; kk++) {

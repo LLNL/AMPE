@@ -231,7 +231,7 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
 
       // then add component from chemical energy
       d_free_energy_strategy->addDrivingForce(
-          time, *patch, d_temperature_scratch_id, d_phase_scratch_id, -1,
+          time, *patch, d_temperature_scratch_id, d_phase_scratch_id,
           d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id, ydot_phase_id);
    }
 

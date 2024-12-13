@@ -48,7 +48,6 @@ void CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::
     addDrivingForce(std::shared_ptr<pdat::CellData<double> > cd_rhs,
                     std::shared_ptr<pdat::CellData<double> > cd_temperature,
                     std::shared_ptr<pdat::CellData<double> > cd_phi,
-                    std::shared_ptr<pdat::CellData<double> > cd_eta,
                     std::shared_ptr<pdat::CellData<double> > cd_f_l,
                     std::shared_ptr<pdat::CellData<double> > cd_f_a,
                     std::shared_ptr<pdat::CellData<double> > cd_f_b,
@@ -57,8 +56,6 @@ void CALPHADFreeEnergyBinaryMultiOrderThreePhases<FreeEnergyFunctionType>::
                     std::shared_ptr<pdat::CellData<double> > cd_c_b,
                     const hier::Box& pbox)
 {
-   (void)cd_eta;
-
    assert(cd_f_l->getGhostCellWidth()[0] == cd_f_a->getGhostCellWidth()[0]);
    assert(cd_c_l->getGhostCellWidth()[0] == cd_c_a->getGhostCellWidth()[0]);
    assert(cd_phi->getDepth() > 1);

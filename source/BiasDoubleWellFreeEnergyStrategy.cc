@@ -21,35 +21,12 @@ BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy() {}
 
 //=======================================================================
 
-void BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
-{
-   (void)patch;
-   (void)temperature_id;
-   (void)phase_id;
-   (void)eta_id;
-   (void)conc_id;
-   (void)f_l_id;
-   (void)f_a_id;
-   (void)f_b_id;
-   (void)rhs_id;
-   TBOX_ERROR(
-       "BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta() not "
-       "implemented!!!\n");
-}
-
-//=======================================================================
-
 void BiasDoubleWellFreeEnergyStrategy::computePhaseConcentrations(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id,
-    const int concentration_id)
+    const int temperature_id, const int phase_id, const int concentration_id)
 {
    (void)temperature_id;
    (void)phase_id;
-   (void)eta_id;
    (void)concentration_id;
 }
 

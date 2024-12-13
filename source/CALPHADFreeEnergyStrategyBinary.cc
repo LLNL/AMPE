@@ -414,8 +414,8 @@ template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     computeDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
-                        const int eta_id, const int conc_id, const int f_l_id,
-                        const int f_a_id, const int f_b_id, const int rhs_id)
+                        const int conc_id, const int f_l_id, const int f_a_id,
+                        const int f_b_id, const int rhs_id)
 {
    Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type_saved(
        d_energy_interp_func_type);
@@ -424,8 +424,8 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
    d_energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::LINEAR,
 
    FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
-                                           phase_id, eta_id, conc_id, f_l_id,
-                                           f_a_id, f_b_id, rhs_id);
+                                           phase_id, conc_id, f_l_id, f_a_id,
+                                           f_b_id, rhs_id);
 
    d_energy_interp_func_type = d_energy_interp_func_type_saved;
 };
@@ -435,8 +435,8 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
 template <class FreeEnergyFunctionType>
 void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    (void)time;
 
@@ -447,7 +447,6 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
    assert(rhs_id >= 0);
    assert(temperature_id >= 0);
    if (d_with_third_phase) {
-      assert(eta_id >= 0);
       assert(f_b_id >= 0);
    }
    assert(d_conc_l_id >= 0);
@@ -491,14 +490,8 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
    assert(rhs->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
-   std::shared_ptr<pdat::CellData<double> > eta;
    std::shared_ptr<pdat::CellData<double> > fb;
    std::shared_ptr<pdat::CellData<double> > c_b;
-   if (d_with_third_phase) {
-      eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-          patch.getPatchData(eta_id));
-      assert(eta);
-   }
    if (d_conc_b_id > -1) {
       assert(f_b_id > -1);
       fb = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -512,7 +505,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
 
    const hier::Box& pbox(patch.getBox());
 
-   addDrivingForce(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b, pbox);
+   addDrivingForce(rhs, t, phase, fl, fa, fb, c_l, c_a, c_b, pbox);
 }
 
 //=======================================================================
@@ -522,7 +515,6 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::CellData<double> > cd_f_l,
     std::shared_ptr<pdat::CellData<double> > cd_f_a,
     std::shared_ptr<pdat::CellData<double> > cd_f_b,
@@ -533,19 +525,10 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
    double* ptr_rhs = cd_rhs->getPointer();
    double* ptr_temp = cd_temperature->getPointer();
    double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = NULL;
    double* ptr_f_l = cd_f_l->getPointer();
    double* ptr_f_a = cd_f_a->getPointer();
-   double* ptr_f_b = NULL;
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
-   double* ptr_c_b = NULL;
-
-   if (d_with_third_phase) {
-      ptr_eta = cd_eta->getPointer();
-      ptr_f_b = cd_f_b->getPointer();
-      ptr_c_b = cd_c_b->getPointer();
-   }
 
    const hier::Box& rhs_gbox = cd_rhs->getGhostBox();
    int imin_rhs = rhs_gbox.lower(0);
@@ -569,7 +552,7 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
    kp_temp = jp_temp * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -639,28 +622,14 @@ void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
             double phi = ptr_phi[idx_pf];
             double f_l = ptr_f_l[idx_f_i];
             double f_a = ptr_f_a[idx_f_i];
-            double f_b = 0.0;
             double c_l = ptr_c_l[idx_c_i];
             double c_a = ptr_c_a[idx_c_i];
-            double c_b = 0.0;
 
             double mu = computeMuA(t, c_a);
 
             double hphi_prime = hprime(phi);
 
-            double heta = 0.0;
-
-            if (d_with_third_phase) {
-               double eta = ptr_eta[idx_pf];
-               f_b = ptr_f_b[idx_f_i];
-               c_b = ptr_c_b[idx_c_i];
-
-               heta = hprime(eta);
-            }
-
-            ptr_rhs[idx_rhs] +=
-                hphi_prime * ((f_l - (1.0 - heta) * f_a - heta * f_b) -
-                              mu * (c_l - (1.0 - heta) * c_a - heta * c_b));
+            ptr_rhs[idx_rhs] += hphi_prime * ((f_l - f_a) - mu * (c_l - c_a));
          }
       }
    }
@@ -710,217 +679,6 @@ double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuB(
                                               Thermo4PFM::PhaseIndex::phaseB);
 
    return mu;
-}
-
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
-    addDrivingForceEta(const double time, hier::Patch& patch,
-                       const int temperature_id, const int phase_id,
-                       const int eta_id, const int conc_id, const int f_l_id,
-                       const int f_a_id, const int f_b_id, const int rhs_id)
-{
-   (void)time;
-
-   assert(conc_id >= 0);
-   assert(phase_id >= 0);
-   assert(f_l_id >= 0);
-   assert(f_a_id >= 0);
-   assert(rhs_id >= 0);
-   assert(temperature_id >= 0);
-   assert(eta_id >= 0);
-   assert(f_b_id >= 0);
-
-   std::shared_ptr<pdat::CellData<double> > phase(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(phase_id)));
-   assert(phase);
-
-   std::shared_ptr<pdat::CellData<double> > eta(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(eta_id)));
-   assert(eta);
-
-   std::shared_ptr<pdat::CellData<double> > t(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(temperature_id)));
-   assert(t);
-
-   std::shared_ptr<pdat::CellData<double> > f_l(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_l_id)));
-   assert(f_l);
-
-   std::shared_ptr<pdat::CellData<double> > f_a(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_a_id)));
-   assert(f_a);
-
-   std::shared_ptr<pdat::CellData<double> > f_b(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(f_b_id)));
-   assert(f_b);
-
-   std::shared_ptr<pdat::CellData<double> > c_l(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_l_id)));
-   assert(c_l);
-
-   std::shared_ptr<pdat::CellData<double> > c_a(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_a_id)));
-   assert(c_a);
-
-   std::shared_ptr<pdat::CellData<double> > c_b(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_conc_b_id)));
-   assert(c_b);
-
-   std::shared_ptr<pdat::CellData<double> > rhs(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(rhs_id)));
-   assert(rhs);
-
-   const hier::Box& pbox = patch.getBox();
-
-   addDrivingForceEta(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a, c_b, pbox);
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
-    addDrivingForceEta(std::shared_ptr<pdat::CellData<double> > cd_rhs,
-                       std::shared_ptr<pdat::CellData<double> > cd_temperature,
-                       std::shared_ptr<pdat::CellData<double> > cd_phi,
-                       std::shared_ptr<pdat::CellData<double> > cd_eta,
-                       std::shared_ptr<pdat::CellData<double> > cd_f_l,
-                       std::shared_ptr<pdat::CellData<double> > cd_f_a,
-                       std::shared_ptr<pdat::CellData<double> > cd_f_b,
-                       std::shared_ptr<pdat::CellData<double> > cd_c_l,
-                       std::shared_ptr<pdat::CellData<double> > cd_c_a,
-                       std::shared_ptr<pdat::CellData<double> > cd_c_b,
-                       const hier::Box& pbox)
-{
-   double* ptr_rhs = cd_rhs->getPointer();
-
-   const double* const ptr_temp = cd_temperature->getPointer();
-   const double* const ptr_phi = cd_phi->getPointer();
-   const double* const ptr_eta = cd_eta->getPointer();
-   const double* const ptr_f_a = cd_f_a->getPointer();
-   const double* const ptr_f_b = cd_f_b->getPointer();
-   const double* const ptr_c_a = cd_c_a->getPointer();
-   const double* const ptr_c_b = cd_c_b->getPointer();
-
-   const hier::Box& rhs_gbox = cd_rhs->getGhostBox();
-   int imin_rhs = rhs_gbox.lower(0);
-   int jmin_rhs = rhs_gbox.lower(1);
-   int jp_rhs = rhs_gbox.numberCells(0);
-   int kmin_rhs = 0;
-   int kp_rhs = 0;
-#if (NDIM == 3)
-   kmin_rhs = rhs_gbox.lower(2);
-   kp_rhs = jp_rhs * rhs_gbox.numberCells(1);
-#endif
-
-   const hier::Box& temp_gbox = cd_temperature->getGhostBox();
-   int imin_temp = temp_gbox.lower(0);
-   int jmin_temp = temp_gbox.lower(1);
-   int jp_temp = temp_gbox.numberCells(0);
-   int kmin_temp = 0;
-   int kp_temp = 0;
-#if (NDIM == 3)
-   kmin_temp = temp_gbox.lower(2);
-   kp_temp = jp_temp * temp_gbox.numberCells(1);
-#endif
-
-   // Assuming phi, eta, and concentration all have same box
-   const hier::Box& pf_gbox = cd_phi->getGhostBox();
-   int imin_pf = pf_gbox.lower(0);
-   int jmin_pf = pf_gbox.lower(1);
-   int jp_pf = pf_gbox.numberCells(0);
-   int kmin_pf = 0;
-   int kp_pf = 0;
-#if (NDIM == 3)
-   kmin_pf = pf_gbox.lower(2);
-   kp_pf = jp_pf * pf_gbox.numberCells(1);
-#endif
-
-   // Assuming f_l, f_a, and f_b all have same box
-   const hier::Box& f_i_gbox = cd_f_l->getGhostBox();
-   int imin_f_i = f_i_gbox.lower(0);
-   int jmin_f_i = f_i_gbox.lower(1);
-   int jp_f_i = f_i_gbox.numberCells(0);
-   int kmin_f_i = 0;
-   int kp_f_i = 0;
-#if (NDIM == 3)
-   kmin_f_i = f_i_gbox.lower(2);
-   kp_f_i = jp_f_i * f_i_gbox.numberCells(1);
-#endif
-
-   // Assuming c_l, c_a, and c_b all have same box
-   const hier::Box& c_i_gbox = cd_c_l->getGhostBox();
-   int imin_c_i = c_i_gbox.lower(0);
-   int jmin_c_i = c_i_gbox.lower(1);
-   int jp_c_i = c_i_gbox.numberCells(0);
-   int kmin_c_i = 0;
-   int kp_c_i = 0;
-#if (NDIM == 3)
-   kmin_c_i = c_i_gbox.lower(2);
-   kp_c_i = jp_c_i * c_i_gbox.numberCells(1);
-#endif
-
-   int imin = pbox.lower(0);
-   int imax = pbox.upper(0);
-   int jmin = pbox.lower(1);
-   int jmax = pbox.upper(1);
-   int kmin = 0;
-   int kmax = 0;
-#if (NDIM == 3)
-   kmin = pbox.lower(2);
-   kmax = pbox.upper(2);
-#endif
-   const char interpf = Thermo4PFM::energyInterpChar(d_energy_interp_func_type);
-
-   for (int kk = kmin; kk <= kmax; kk++) {
-      for (int jj = jmin; jj <= jmax; jj++) {
-         for (int ii = imin; ii <= imax; ii++) {
-
-            const int idx_rhs = (ii - imin_rhs) + (jj - jmin_rhs) * jp_rhs +
-                                (kk - kmin_rhs) * kp_rhs;
-
-            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
-                                 (kk - kmin_temp) * kp_temp;
-
-            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
-                               (kk - kmin_pf) * kp_pf;
-
-            const int idx_f_i = (ii - imin_f_i) + (jj - jmin_f_i) * jp_f_i +
-                                (kk - kmin_f_i) * kp_f_i;
-
-            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
-                                (kk - kmin_c_i) * kp_c_i;
-
-            const double t = ptr_temp[idx_temp];
-            const double phi = ptr_phi[idx_pf];
-            const double eta = ptr_eta[idx_pf];
-            const double f_a = ptr_f_a[idx_f_i];
-            const double f_b = ptr_f_b[idx_f_i];
-            const double c_a = ptr_c_a[idx_c_i];
-            const double c_b = ptr_c_b[idx_c_i];
-
-            const double mu = computeMuA(t, c_a);
-            // const double mu = 0.;
-
-            const double hphi = INTERP_FUNC(phi, &interpf);
-            const double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-            ptr_rhs[idx_rhs] +=
-                hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
-         }
-      }
-   }
 }
 
 
