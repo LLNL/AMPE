@@ -421,10 +421,9 @@ void KKSdiluteBinary::computeDerivFreeEnergy(
 
 void KKSdiluteBinary::computeDrivingForce(const double time, hier::Patch& patch,
                                           const int temperature_id,
-                                          const int phase_id, const int eta_id,
-                                          const int conc_id, const int f_l_id,
-                                          const int f_a_id, const int f_b_id,
-                                          const int rhs_id)
+                                          const int phase_id, const int conc_id,
+                                          const int f_l_id, const int f_a_id,
+                                          const int f_b_id, const int rhs_id)
 {
    Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type_saved(
        d_energy_interp_func_type);
@@ -433,8 +432,8 @@ void KKSdiluteBinary::computeDrivingForce(const double time, hier::Patch& patch,
    d_energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::LINEAR,
 
    FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
-                                           phase_id, eta_id, conc_id, f_l_id,
-                                           f_a_id, f_b_id, rhs_id);
+                                           phase_id, conc_id, f_l_id, f_a_id,
+                                           f_b_id, rhs_id);
 
    d_energy_interp_func_type = d_energy_interp_func_type_saved;
 };
@@ -443,10 +442,9 @@ void KKSdiluteBinary::computeDrivingForce(const double time, hier::Patch& patch,
 
 void KKSdiluteBinary::addDrivingForce(const double time, hier::Patch& patch,
                                       const int temperature_id,
-                                      const int phase_id, const int eta_id,
-                                      const int conc_id, const int f_l_id,
-                                      const int f_a_id, const int f_b_id,
-                                      const int rhs_id)
+                                      const int phase_id, const int conc_id,
+                                      const int f_l_id, const int f_a_id,
+                                      const int f_b_id, const int rhs_id)
 {
    (void)time;
 
@@ -543,7 +541,7 @@ void KKSdiluteBinary::addDrivingForceOnPatch(
    kp_temp = jp_temp * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -652,18 +650,6 @@ double KKSdiluteBinary::computeMuL(const double t, const double c)
                                               Thermo4PFM::PhaseIndex::phaseL);
 
    return mu;
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::addDrivingForceEta(const double time, hier::Patch& patch,
-                                         const int temperature_id,
-                                         const int phase_id, const int eta_id,
-                                         const int conc_id, const int f_l_id,
-                                         const int f_a_id, const int f_b_id,
-                                         const int rhs_id)
-{
-   (void)time;
 }
 
 //=======================================================================

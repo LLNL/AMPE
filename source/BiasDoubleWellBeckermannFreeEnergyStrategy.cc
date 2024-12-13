@@ -32,8 +32,8 @@ BiasDoubleWellBeckermannFreeEnergyStrategy::
 
 void BiasDoubleWellBeckermannFreeEnergyStrategy::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    assert(phase_id >= 0);
    assert(rhs_id >= 0);

@@ -374,12 +374,11 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergy(
 
 void CALPHADFreeEnergyStrategyTernary::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    (void)time;
    (void)f_b_id;
-   (void)eta_id;
 
    assert(conc_id >= 0);
    assert(phase_id >= 0);
@@ -426,7 +425,6 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForce(
    assert(rhs->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
-   std::shared_ptr<pdat::CellData<double> > eta;
    std::shared_ptr<pdat::CellData<double> > fb;
    std::shared_ptr<pdat::CellData<double> > c_b;
 
@@ -476,7 +474,7 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
    kp_temp = jp_temp * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -609,25 +607,6 @@ void CALPHADFreeEnergyStrategyTernary::computeMuL(const double t,
    mu[1] *= fac;
 }
 
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::addDrivingForceEta(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
-{
-   (void)time;
-   (void)eta_id;
-   (void)f_b_id;
-   (void)patch;
-
-   assert(conc_id >= 0);
-   assert(phase_id >= 0);
-   assert(f_l_id >= 0);
-   assert(f_a_id >= 0);
-   assert(rhs_id >= 0);
-   assert(temperature_id >= 0);
-}
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyTernary::

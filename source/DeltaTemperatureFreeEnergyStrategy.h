@@ -29,15 +29,9 @@ class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
-                                const int eta_id, const int conc_id,
-                                const int fl_id, const int fa_id,
-                                const int fb_id, const int rhs_id);
-
-   void addDrivingForceEta(const double time, hier::Patch& patch,
-                           const int temperature_id, const int phase_id,
-                           const int eta_id, const int conc_id, const int fl_id,
-                           const int fa_id, const int fb_id,
-                           const int rhs_id){};
+                                const int conc_id, const int fl_id,
+                                const int fa_id, const int fb_id,
+                                const int rhs_id);
 
    void applydPhidTBlock(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                          const int temperature_id, const int phase_id,

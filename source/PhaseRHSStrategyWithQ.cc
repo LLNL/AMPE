@@ -271,8 +271,7 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
    if (d_free_energy_strategy) {
       d_free_energy_strategy->addDrivingForce(
           time, *patch, d_temperature_scratch_id, d_phase_scratch_id,
-          d_eta_scratch_id, d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
-          ydot_phase_id);
+          d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id, ydot_phase_id);
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS

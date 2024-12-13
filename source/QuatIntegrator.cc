@@ -2535,10 +2535,12 @@ void QuatIntegrator::evaluatePhaseRHS(
        d_free_energy_strategy) {
       assert(d_driving_force_visit_id >= 0);
       // recompute driving force just for visualization
-      d_free_energy_strategy->computeDrivingForce(
-          time, hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
-          d_eta_scratch_id, d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
-          d_driving_force_visit_id);
+      d_free_energy_strategy->computeDrivingForce(time, hierarchy,
+                                                  d_temperature_scratch_id,
+                                                  d_phase_scratch_id,
+                                                  d_conc_scratch_id, d_f_l_id,
+                                                  d_f_a_id, d_f_b_id,
+                                                  d_driving_force_visit_id);
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS

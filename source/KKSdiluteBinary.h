@@ -63,21 +63,15 @@ class KKSdiluteBinary : public FreeEnergyStrategy
 
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
-                                const int eta_id, const int conc_id,
-                                const int f_l_id, const int f_a_id,
-                                const int f_b_id, const int rhs_id);
+                                const int conc_id, const int f_l_id,
+                                const int f_a_id, const int f_b_id,
+                                const int rhs_id);
 
    void computeDrivingForce(const double time, hier::Patch& patch,
                             const int temperature_id, const int phase_id,
-                            const int eta_id, const int conc_id,
-                            const int f_l_id, const int f_a_id,
-                            const int f_b_id, const int rhs_id);
-
-   void addDrivingForceEta(const double time, hier::Patch& patch,
-                           const int temperature_id, const int phase_id,
-                           const int eta_id, const int conc_id,
-                           const int f_l_id, const int f_a_id, const int f_b_id,
-                           const int rhs_id);
+                            const int conc_id, const int f_l_id,
+                            const int f_a_id, const int f_b_id,
+                            const int rhs_id);
 
    virtual void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
@@ -181,15 +175,6 @@ class KKSdiluteBinary : public FreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const Thermo4PFM::PhaseIndex pi);
-
-   void addDrivingForceEtaOnPatch(
-       std::shared_ptr<pdat::CellData<double> > cd_rhs,
-       std::shared_ptr<pdat::CellData<double> > cd_temperature,
-       std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_f_l,
-       std::shared_ptr<pdat::CellData<double> > cd_f_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_l,
-       std::shared_ptr<pdat::CellData<double> > cd_c_a, const hier::Box& pbox);
 };
 
 #endif

@@ -331,11 +331,10 @@ void QuadraticFreeEnergyBinary::computeDerivFreeEnergy(
 
 void QuadraticFreeEnergyBinary::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
 {
    (void)time;
-   (void)eta_id;
    (void)f_b_id;
 
    assert(conc_id >= 0);
@@ -429,7 +428,7 @@ void QuadraticFreeEnergyBinary::addDrivingForceOnPatch(
    kp_temp = jp_temp * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);

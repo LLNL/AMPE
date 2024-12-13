@@ -48,9 +48,8 @@ void FreeEnergyStrategy::computeFreeEnergySolidA(
 
 void FreeEnergyStrategy::computeDrivingForce(
     const double time, const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id,
-    const int conc_id, const int f_l_id, const int f_a_id, const int f_b_id,
-    const int rhs_id)
+    const int temperature_id, const int phase_id, const int conc_id,
+    const int f_l_id, const int f_a_id, const int f_b_id, const int rhs_id)
 {
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
@@ -59,8 +58,8 @@ void FreeEnergyStrategy::computeDrivingForce(
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
          std::shared_ptr<hier::Patch> patch = *p;
-         computeDrivingForce(time, *patch, temperature_id, phase_id, eta_id,
-                             conc_id, f_l_id, f_a_id, f_b_id, rhs_id);
+         computeDrivingForce(time, *patch, temperature_id, phase_id, conc_id,
+                             f_l_id, f_a_id, f_b_id, rhs_id);
       }
    }
 }
