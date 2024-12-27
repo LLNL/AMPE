@@ -19,8 +19,11 @@ T_data_dir = sys.argv[6]
 
 #make symbolic link to T data
 T_data = "temperature.csv"
-if not os.path.exists(T_data):
-  src = T_data_dir+'/'+T_data
+src = T_data_dir+'/'+T_data
+try:
+  os.symlink(src, T_data)
+except FileExistsError:
+  os.remove(T_data)
   os.symlink(src, T_data)
 
 #run AMPE
