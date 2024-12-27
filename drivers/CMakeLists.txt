@@ -54,6 +54,14 @@ target_link_libraries(computeParabolic3PhasesEquilibrium
                       ${PROJECT_LINK_LIBS_SAMRAI}
                       ${THERMOLIB})
 
+add_executable(computeParabolic3PhasesKKS
+               computeParabolic3PhasesKKS.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
+target_link_libraries(computeParabolic3PhasesKKS
+                      ${PROJECT_LINK_LIBS_SAMRAI}
+                      ${THERMOLIB})
+
 add_executable(convertDatabase2JSON
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                convertDatabase2JSON.cc )
