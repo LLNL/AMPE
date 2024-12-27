@@ -21,7 +21,11 @@ thermdatadir = sys.argv[6]
 #make symbolic link to calphad database
 calphad_data = "calphadAuNi.dat"
 src = thermdatadir+'/'+calphad_data
-os.symlink(src, calphad_data)
+try:
+  os.symlink(src, calphad_data)
+except FileExistsError:
+  os.remove(calphad_data)
+  os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
