@@ -149,17 +149,23 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases::
             double t = ptr_temp[idx_temp];
 
             // solve KKS equations
+            assert(!std::isnan(ptr_c_l[idx_c_i]));
             double x[3] = {ptr_c_l[idx_c_i], ptr_c_a[idx_c_i],
                            ptr_c_b[idx_c_i]};
             int ret = computePhaseConcentrations(t, &c, hphi, x);
-            if (ret < 0) {
+            const double tol = 0.05;
+            if (ret < 0 || x[0] < -tol || x[1] < -tol || x[2] < -tol) {
                std::cerr << "EquilibriumPhaseConcentrationsBinaryMultiOrderThre"
                             "ePhases"
                          << std::endl;
                std::cerr << "computePhaseConcentrations failed for T=" << t
-                         << ", "
-                         << "hphi = " << hphi[0] << "," << hphi[1] << ","
-                         << hphi[2] << std::endl;
+                         << ", c = " << c << ", hphi (L,A,B) = " << hphi[0]
+                         << "," << hphi[1] << "," << hphi[2] << std::endl;
+               std::cerr << "x = " << x[0] << ", " << x[1] << ", " << x[2]
+                         << std::endl;
+               std::cerr << "ptr_c_l = " << ptr_c_l[idx_c_i] << std::endl;
+               std::cerr << "ptr_c_a = " << ptr_c_a[idx_c_i] << std::endl;
+               std::cerr << "ptr_c_b = " << ptr_c_b[idx_c_i] << std::endl;
                MPI_Abort(mpi.getCommunicator(), -1);
             }
             assert(!std::isnan(x[0]));
