@@ -28,11 +28,6 @@ int main(int argc, char* argv[])
       double phiB = atof(argv[5]);
       double c = atof(argv[6]);
 
-      Thermo4PFM::EnergyInterpolationType energy_interp_func_type =
-          Thermo4PFM::EnergyInterpolationType::PBG;
-      Thermo4PFM::ConcInterpolationType conc_interp_func_type =
-          Thermo4PFM::ConcInterpolationType::LINEAR;
-
       std::cout << "Temperature = " << temperature << std::endl;
 
       std::shared_ptr<tbox::MemoryDatabase> input_db(
@@ -76,7 +71,7 @@ int main(int argc, char* argv[])
 
       Thermo4PFM::ParabolicFreeEnergyFunctionsBinaryThreePhase
           parabolic_fenergy(Tref, coeffL, coeffA, coeffB,
-                            energy_interp_func_type,
+                            Thermo4PFM::EnergyInterpolationType::PBG,
                             Thermo4PFM::ConcInterpolationType::LINEAR);
 
       double phi[3] = {phiL, phiA, phiB};
