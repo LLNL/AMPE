@@ -731,19 +731,22 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    const double cLref = d_model_parameters.concL_ref();
    if (cLref >= 0.) {
       tbox::plog << "Set reference cL to " << cLref << std::endl;
-      cellops.setToScalar(d_conc_l_ref_id, cLref, false);
+      if (d_conc_l_ref_id >= 0)
+         cellops.setToScalar(d_conc_l_ref_id, cLref, false);
       cellops.setToScalar(d_conc_l_id, cLref, false);
    }
    const double cAref = d_model_parameters.concA_ref();
    if (cAref >= 0.) {
       tbox::plog << "Set reference ca to " << cAref << std::endl;
-      cellops.setToScalar(d_conc_a_ref_id, cAref, false);
+      if (d_conc_a_ref_id >= 0)
+         cellops.setToScalar(d_conc_a_ref_id, cAref, false);
       cellops.setToScalar(d_conc_a_id, cAref, false);
    }
    const double cBref = d_model_parameters.concB_ref();
    if (cBref >= 0.) {
       tbox::plog << "Set reference cb to " << cBref << std::endl;
-      cellops.setToScalar(d_conc_b_ref_id, cBref, false);
+      if (d_conc_b_ref_id >= 0)
+         cellops.setToScalar(d_conc_b_ref_id, cBref, false);
       cellops.setToScalar(d_conc_b_id, cBref, false);
    }
 }
@@ -1212,31 +1215,33 @@ void QuatModel::registerPhaseConcentrationVariables()
       assert(d_conc_b_var);
    }
 
-   d_conc_l_ref_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                                         "conc_l_ref",
-                                                         d_ncompositions));
-   assert(d_conc_l_ref_var);
-   d_conc_a_ref_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                                         "conc_a_ref",
-                                                         d_ncompositions));
-   assert(d_conc_a_ref_var);
-   d_conc_l_ref_id = variable_db->registerVariableAndContext(
-       d_conc_l_ref_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
-   d_conc_a_ref_id = variable_db->registerVariableAndContext(
-       d_conc_a_ref_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
-   assert(d_conc_l_ref_id >= 0);
-   assert(d_conc_a_ref_id >= 0);
-   if (d_model_parameters.withPhaseB()) {
-      d_conc_b_ref_var.reset(
-          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_b_ref",
+   if (d_model_parameters.isConcentrationModelCALPHAD()) {
+      d_conc_l_ref_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_l_ref",
                                          d_ncompositions));
-      assert(d_conc_b_ref_var);
-      d_conc_b_ref_id = variable_db->registerVariableAndContext(
-          d_conc_b_ref_var, current,
+      assert(d_conc_l_ref_var);
+      d_conc_a_ref_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_a_ref",
+                                         d_ncompositions));
+      assert(d_conc_a_ref_var);
+      d_conc_l_ref_id = variable_db->registerVariableAndContext(
+          d_conc_l_ref_var, current,
           hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
-      assert(d_conc_b_ref_id >= 0);
+      d_conc_a_ref_id = variable_db->registerVariableAndContext(
+          d_conc_a_ref_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
+      assert(d_conc_l_ref_id >= 0);
+      assert(d_conc_a_ref_id >= 0);
+      if (d_model_parameters.withPhaseB()) {
+         d_conc_b_ref_var.reset(
+             new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_b_ref",
+                                            d_ncompositions));
+         assert(d_conc_b_ref_var);
+         d_conc_b_ref_id = variable_db->registerVariableAndContext(
+             d_conc_b_ref_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
+         assert(d_conc_b_ref_id >= 0);
+      }
    }
 
    d_conc_l_id = variable_db->registerVariableAndContext(
@@ -3153,7 +3158,7 @@ void QuatModel::AllocateLocalPatchData(
       }
 
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-         if (d_model_parameters.isConcentrationModelCALPHAD())
+         if (d_conc_l_ref_id >= 0)
             if (!level->checkAllocated(d_conc_l_ref_id)) {
                AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_ref_id,
                                                             level, time,
@@ -3314,8 +3319,7 @@ void QuatModel::DeallocateIntermediateLocalPatchData(
 void QuatModel::DeallocateIntermediateLocalPatchData(
     const std::shared_ptr<hier::PatchLevel> level)
 {
-   if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-      assert(d_conc_l_ref_id >= 0);
+   if (d_conc_l_ref_id >= 0) {
       if (level->checkAllocated(d_conc_l_ref_id)) {
          level->deallocatePatchData(d_conc_l_ref_id);
          level->deallocatePatchData(d_conc_a_ref_id);
