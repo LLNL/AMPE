@@ -180,3 +180,19 @@ int checkSideDataForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
 #endif
    return 0;
 }
+
+void checkCellDataFieldValues(
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const int data_id)
+{
+   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+
+   tbox::plog << "--- Field check ---" << std::endl;
+   tbox::plog << "Data id: " << data_id << std::endl;
+   const double max = mathops.max(data_id);
+   tbox::plog << "Max. field value: " << max << std::endl;
+   const double min = mathops.min(data_id);
+   tbox::plog << "Min. field value: " << min << std::endl;
+
+   assert(!std::isnan(max));
+   assert(!std::isnan(min));
+}

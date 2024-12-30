@@ -35,3 +35,6 @@ int checkForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
                  const int data_id);
 int checkSideDataForNans(const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
                          const int data_id);
+
+void checkCellDataFieldValues(
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const int data_id);
