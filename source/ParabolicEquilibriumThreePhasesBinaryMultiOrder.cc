@@ -33,12 +33,12 @@ ParabolicEquilibriumThreePhasesBinaryMultiOrder::
 
    double coeffA[3][2];
    std::shared_ptr<tbox::Database> phasea_db = input_db->getDatabase("PhaseA");
-   coeffL[0][0] = phasea_db->getDouble("a0");
-   coeffL[0][1] = phasea_db->getDouble("a1");
-   coeffL[1][0] = phasea_db->getDouble("b0");
-   coeffL[1][1] = phasea_db->getDouble("b1");
-   coeffL[2][0] = phasea_db->getDouble("c0");
-   coeffL[2][1] = phasea_db->getDouble("c1");
+   coeffA[0][0] = phasea_db->getDouble("a0");
+   coeffA[0][1] = phasea_db->getDouble("a1");
+   coeffA[1][0] = phasea_db->getDouble("b0");
+   coeffA[1][1] = phasea_db->getDouble("b1");
+   coeffA[2][0] = phasea_db->getDouble("c0");
+   coeffA[2][1] = phasea_db->getDouble("c1");
 
    double coeffB[3][2];
    std::shared_ptr<tbox::Database> phaseb_db = input_db->getDatabase("PhaseB");
