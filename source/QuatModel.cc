@@ -732,19 +732,19 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    if (cLref >= 0.) {
       tbox::plog << "Set reference cL to " << cLref << std::endl;
       cellops.setToScalar(d_conc_l_ref_id, cLref, false);
-      cellops.setToScalar(d_conc_l_id, cLref);
+      cellops.setToScalar(d_conc_l_id, cLref, false);
    }
    const double cAref = d_model_parameters.concA_ref();
    if (cAref >= 0.) {
       tbox::plog << "Set reference ca to " << cAref << std::endl;
       cellops.setToScalar(d_conc_a_ref_id, cAref, false);
-      cellops.setToScalar(d_conc_a_id, cAref);
+      cellops.setToScalar(d_conc_a_id, cAref, false);
    }
    const double cBref = d_model_parameters.concB_ref();
    if (cBref >= 0.) {
       tbox::plog << "Set reference cb to " << cBref << std::endl;
       cellops.setToScalar(d_conc_b_ref_id, cBref, false);
-      cellops.setToScalar(d_conc_b_id, cBref);
+      cellops.setToScalar(d_conc_b_id, cBref, false);
    }
 }
 
