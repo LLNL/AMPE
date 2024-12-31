@@ -11,36 +11,33 @@
 #ifndef included_QuadraticEquilibriumPhaseConcentrationsBinary
 #define included_QuadraticEquilibriumPhaseConcentrationsBinary
 
-#include "PhaseConcentrationsStrategy.h"
-#include "QuatModelParameters.h"
+#include "EquilibriumPhaseConcentrationsBinary.h"
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 
 #include <string>
 
 class QuadraticEquilibriumPhaseConcentrationsBinary
-    : public PhaseConcentrationsStrategy
+    : public EquilibriumPhaseConcentrationsBinary
 {
  public:
    QuadraticEquilibriumPhaseConcentrationsBinary(
        const int conc_l_id, const int conc_a_id,
-       const QuatModelParameters& model_parameters,
+       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db);
 
    ~QuadraticEquilibriumPhaseConcentrationsBinary() {}
 
-   virtual int computePhaseConcentrationsOnPatch(
-       std::shared_ptr<pdat::CellData<double> > cd_temperature,
-       std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_concentration,
-       std::shared_ptr<pdat::CellData<double> > cd_c_l,
-       std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b,
-       std::shared_ptr<hier::Patch> patch);
-
  private:
-   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
-
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary> d_fenergy;
+
+   int computePhaseConcentrations(const double temperature, const double conc,
+                                  const double hphi, double* sol) override
+   {
+      double c = conc;
+      double phi = hphi;
+      return d_fenergy->computePhaseConcentrations(temperature, &c, &phi, sol);
+   }
 };
 
 #endif

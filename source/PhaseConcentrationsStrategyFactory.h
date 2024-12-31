@@ -193,8 +193,7 @@ class PhaseConcentrationsStrategyFactory
             tbox::plog << "Dilute..." << std::endl;
             phase_conc_strategy.reset(
                 new KKSdiluteEquilibriumPhaseConcentrationsStrategy(
-                    conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
-                    conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
+                    conc_l_scratch_id, conc_a_scratch_id,
                     model_parameters.energy_interp_func_type(),
                     model_parameters.conc_interp_func_type(), conc_db));
          } else {
@@ -221,7 +220,8 @@ class PhaseConcentrationsStrategyFactory
                   phase_conc_strategy.reset(
                       new QuadraticEquilibriumPhaseConcentrationsBinary(
                           conc_l_scratch_id, conc_a_scratch_id,
-                          model_parameters, conc_db));
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(), conc_db));
                }
             }
          }
