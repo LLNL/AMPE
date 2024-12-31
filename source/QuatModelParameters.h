@@ -35,6 +35,7 @@ class QuatModelParameters
    enum class ConcModel {
       CALPHAD,
       QUADRATIC,
+      PARABOLIC,
       CahnHilliard,
       WangSintering,
       LINEAR,
@@ -349,6 +350,13 @@ class QuatModelParameters
       assert(d_conc_model != ConcModel::UNDEFINED);
 
       return (d_conc_model == ConcModel::QUADRATIC);
+   }
+
+   bool isConcentrationModelParabolic() const
+   {
+      assert(d_conc_model != ConcModel::UNDEFINED);
+
+      return (d_conc_model == ConcModel::PARABOLIC);
    }
 
    bool isConcentrationModelKKSdilute() const

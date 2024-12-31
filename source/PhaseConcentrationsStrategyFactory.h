@@ -14,6 +14,7 @@
 #include "CALPHADequilibriumPhaseConcentrationsThreePhasesStochioB.h"
 #include "EquilibriumPhaseConcentrationsThreePhases.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
+#include "ParabolicEquilibriumPhaseConcentrationsBinary.h"
 #include "QuadraticEquilibriumPhaseConcentrationsBinary.h"
 #include "QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder.h"
 #include "QuadraticEquilibriumThreePhasesTernaryMultiOrder.h"
@@ -197,31 +198,43 @@ class PhaseConcentrationsStrategyFactory
                     model_parameters.energy_interp_func_type(),
                     model_parameters.conc_interp_func_type(), conc_db));
          } else {
-            if (model_parameters.isConcentrationModelQuadratic()) {
-               if (model_parameters.norderp() > 1) {
-                  tbox::plog << "Quadratic, MultiOrder..." << std::endl;
-                  if (conc_b_scratch_id >= 0) {
-                     tbox::plog << "Quadratic, MultiOrder, Three phases..."
-                                << std::endl;
-                     phase_conc_strategy.reset(
-                         new QuadraticEquilibriumThreePhasesTernaryMultiOrder(
-                             model_parameters.norderpA(), conc_l_scratch_id,
-                             conc_a_scratch_id, conc_b_scratch_id,
-                             model_parameters, conc_db));
+            if (model_parameters.isConcentrationModelParabolic()) {
+               tbox::plog << "Parabolic..." << std::endl;
+               assert(conc_b_scratch_id == -1);
+               phase_conc_strategy.reset(
+                   new QuadraticEquilibriumPhaseConcentrationsBinary(
+                       conc_l_scratch_id, conc_a_scratch_id,
+                       model_parameters.energy_interp_func_type(),
+                       model_parameters.conc_interp_func_type(), conc_db));
+
+            } else {
+               if (model_parameters.isConcentrationModelQuadratic()) {
+                  if (model_parameters.norderp() > 1) {
+                     tbox::plog << "Quadratic, MultiOrder..." << std::endl;
+                     if (conc_b_scratch_id >= 0) {
+                        tbox::plog << "Quadratic, MultiOrder, Three phases..."
+                                   << std::endl;
+                        phase_conc_strategy.reset(
+                            new QuadraticEquilibriumThreePhasesTernaryMultiOrder(
+                                model_parameters.norderpA(), conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters, conc_db));
+                     } else {
+                        phase_conc_strategy.reset(
+                            new QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder(
+                                conc_l_scratch_id, conc_a_scratch_id,
+                                model_parameters, conc_db));
+                     }
                   } else {
+                     tbox::plog << "Quadratic..." << std::endl;
+                     assert(conc_b_scratch_id == -1);
                      phase_conc_strategy.reset(
-                         new QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder(
+                         new QuadraticEquilibriumPhaseConcentrationsBinary(
                              conc_l_scratch_id, conc_a_scratch_id,
-                             model_parameters, conc_db));
+                             model_parameters.energy_interp_func_type(),
+                             model_parameters.conc_interp_func_type(),
+                             conc_db));
                   }
-               } else {
-                  tbox::plog << "Quadratic..." << std::endl;
-                  assert(conc_b_scratch_id == -1);
-                  phase_conc_strategy.reset(
-                      new QuadraticEquilibriumPhaseConcentrationsBinary(
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(), conc_db));
                }
             }
          }
