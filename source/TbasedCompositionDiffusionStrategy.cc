@@ -216,7 +216,6 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 {
    const char interp_func_type = interpChar();
 
-
    const hier::Box& pbox = patch->getBox();
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
@@ -234,6 +233,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
       assert(phi->getDepth() == d_norderp);
 
       {
+         //tbox::plog<<"d_with_phaseB, d_with3phases = "<<int(d_with3phases)<<std::endl;
          // Folch-Plapp three phases model assumes order phiL, phiA, phiB
          double* phiL = d_folchplapp_model ? phi->getPointer(0)
                                            : phi->getPointer(d_norderp - 1);
@@ -246,7 +246,6 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
          const int nphiA = d_norderpA;
          const int nphiB = d_norderpB;
 
-         // this call assumes the order phiA, phiB, phiL
          CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)

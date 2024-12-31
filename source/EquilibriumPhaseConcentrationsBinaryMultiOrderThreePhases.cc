@@ -153,12 +153,11 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases::
             double x[3] = {ptr_c_l[idx_c_i], ptr_c_a[idx_c_i],
                            ptr_c_b[idx_c_i]};
             int ret = computePhaseConcentrations(t, &c, hphi, x);
-            const double tol = 0.05;
-            if (ret < 0 || x[0] < -tol || x[1] < -tol || x[2] < -tol) {
+            if (ret < 0 ){
                std::cerr << "EquilibriumPhaseConcentrationsBinaryMultiOrderThre"
                             "ePhases"
                          << std::endl;
-               std::cerr << "computePhaseConcentrations failed for T=" << t
+               std::cerr << "computePhaseConcentrations failed for T = " << t
                          << ", c = " << c << ", hphi (L,A,B) = " << hphi[0]
                          << "," << hphi[1] << "," << hphi[2] << std::endl;
                std::cerr << "x = " << x[0] << ", " << x[1] << ", " << x[2]
