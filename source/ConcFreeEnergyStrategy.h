@@ -23,6 +23,7 @@ class ConcFreeEnergyStrategy : public FreeEnergyStrategy
       return false;
    };
 
+   // generic loop over levels and patches
    virtual void computeDerivFreeEnergyLiquid(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_l_id);
