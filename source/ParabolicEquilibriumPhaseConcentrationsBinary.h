@@ -35,8 +35,8 @@ class ParabolicEquilibriumPhaseConcentrationsBinary
                                   const double hphi, double* sol) override
    {
       double c = conc;
-      double phi = hphi;
-      return d_fenergy->computePhaseConcentrations(temperature, &c, &phi, sol);
+      double phi[2] = {hphi, 1. - hphi};
+      return d_fenergy->computePhaseConcentrations(temperature, &c, phi, sol);
    }
 };
 

@@ -17,6 +17,12 @@ target_link_libraries(computeEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${PROJECT_LINK_LIBS_HDF5}
                                                   ${THERMOLIB})
 
+add_executable(computeEquilibriumCompositionsParabolic
+               computeEquilibriumCompositionsParabolic.cc)
+target_link_libraries(computeEquilibriumCompositionsParabolic ${PROJECT_LINK_LIBS_SAMRAI}
+                                                  ${PROJECT_LINK_LIBS_HDF5}
+                                                  ${THERMOLIB})
+
 add_executable(computeEquilibriumCompositionsTernary
                computeEquilibriumCompositionsTernary.cc
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc

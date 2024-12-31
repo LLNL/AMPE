@@ -78,8 +78,7 @@ bool ParabolicFreeEnergyBinary::computeCeqT(const double temperature,
                                             const Thermo4PFM::PhaseIndex pi1,
                                             double* ceq)
 {
-   TBOX_ERROR("computeCeqT not implented for that class");
-   return false;
+   return d_parabolic_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
 }
 
 //=======================================================================
@@ -88,6 +87,8 @@ double ParabolicFreeEnergyBinary ::computeFreeEnergy(
     const double temperature, double* c_i, const Thermo4PFM::PhaseIndex pi,
     const bool gp)
 {
+   assert(d_mv_strategy != nullptr);
+
    double f = d_parabolic_fenergy->computeFreeEnergy(temperature, c_i, pi, gp);
    f *= d_mv_strategy->computeInvMolarVolume(temperature, c_i, pi);
    return f;

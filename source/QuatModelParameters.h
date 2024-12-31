@@ -333,6 +333,7 @@ class QuatModelParameters
    {
       return (d_conc_model == ConcModel::CALPHAD ||
               d_conc_model == ConcModel::QUADRATIC ||
+              d_conc_model == ConcModel::PARABOLIC ||
               d_conc_model == ConcModel::LINEAR ||
               d_conc_model == ConcModel::KKSdilute ||
               (d_conc_model == ConcModel::INDEPENDENT && d_with_concentration));

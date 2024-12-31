@@ -38,7 +38,6 @@ int EquilibriumPhaseConcentrationsBinary::computePhaseConcentrationsOnPatch(
    assert(cd_conc);
    assert(cd_cl);
    assert(cd_ca);
-   assert(d_fenergy != NULL);
    assert(cd_conc->getDepth() == cd_cl->getDepth());
    assert(cd_conc->getDepth() == cd_ca->getDepth());
    assert(cd_cl->getGhostCellWidth()[0] <= cd_te->getGhostCellWidth()[0]);
