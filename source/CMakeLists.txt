@@ -57,6 +57,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/MovingFrameRHS.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseRHSStrategyWithQ.cc
             ${CMAKE_SOURCE_DIR}/source/diagnostics.cc
+            ${CMAKE_SOURCE_DIR}/source/EquilibriumPhaseConcentrationsBinary.cc
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinary.cc
             ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.cc

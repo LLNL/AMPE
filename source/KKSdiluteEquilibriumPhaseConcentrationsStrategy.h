@@ -11,43 +11,34 @@
 #ifndef included_KKSdiluteEquilibriumPhaseConcentrationsStrategy
 #define included_KKSdiluteEquilibriumPhaseConcentrationsStrategy
 
-#include "PhaseConcentrationsStrategy.h"
+#include "EquilibriumPhaseConcentrationsBinary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 
 class KKSdiluteEquilibriumPhaseConcentrationsStrategy
-    : public PhaseConcentrationsStrategy
+    : public EquilibriumPhaseConcentrationsBinary
 {
  public:
    KKSdiluteEquilibriumPhaseConcentrationsStrategy(
-       const int conc_l_id, const int conc_a_id, const int conc_b_id,
-       const int conc_l_ref_id, const int conc_a_ref_id,
-       const int conc_b_ref_id,
+       const int conc_l_id, const int conc_a_id,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db);
 
-   ~KKSdiluteEquilibriumPhaseConcentrationsStrategy() { delete d_fenergy; }
-
-   virtual int computePhaseConcentrationsOnPatch(
-       std::shared_ptr<pdat::CellData<double> > cd_temperature,
-       std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_concentration,
-       std::shared_ptr<pdat::CellData<double> > cd_c_l,
-       std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b,
-       std::shared_ptr<hier::Patch> patch);
+   ~KKSdiluteEquilibriumPhaseConcentrationsStrategy() {}
 
  private:
-   int d_conc_l_ref_id;
-   int d_conc_a_ref_id;
-   int d_conc_b_ref_id;
+   std::shared_ptr<Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary> d_fenergy;
 
-   Thermo4PFM::KKSFreeEnergyFunctionDiluteBinary* d_fenergy;
-
-   const Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
+   int computePhaseConcentrations(const double temperature, const double conc,
+                                  const double hphi, double* sol) override
+   {
+      double c = conc;
+      double phi = hphi;
+      return d_fenergy->computePhaseConcentrations(temperature, &c, &phi, sol);
+   }
 };
 
 #endif
