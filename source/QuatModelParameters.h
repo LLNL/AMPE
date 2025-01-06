@@ -323,12 +323,6 @@ class QuatModelParameters
       return (d_conc_model == ConcModel::LINEAR);
    }
 
-   bool isConcentrationModelCALPHADorQuadratic() const
-   {
-      return (d_conc_model == ConcModel::CALPHAD ||
-              d_conc_model == ConcModel::QUADRATIC);
-   }
-
    bool concentrationModelNeedsPhaseConcentrations() const
    {
       return (d_conc_model == ConcModel::CALPHAD ||

@@ -78,6 +78,9 @@ bool ParabolicFreeEnergyBinary::computeCeqT(const double temperature,
                                             const Thermo4PFM::PhaseIndex pi1,
                                             double* ceq)
 {
+   (void)pi0;
+   (void)pi1;
+
    return d_parabolic_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
 }
 
