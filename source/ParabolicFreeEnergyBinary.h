@@ -66,9 +66,6 @@ class ParabolicFreeEnergyBinary : public FreeEnergyStrategyBinary
    std::shared_ptr<Thermo4PFM::ParabolicFreeEnergyFunctionsBinary>
        d_parabolic_fenergy;
 
-   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
-   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
-
    double computeMuA(const double t, const double c);
    double computeMuL(const double t, const double c);
    double computeMuB(const double t, const double c);

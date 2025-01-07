@@ -39,13 +39,8 @@ ParabolicFreeEnergyBinary::ParabolicFreeEnergyBinary(
 {
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
-   // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
+   // J/mol -> pJ/mum3: 1.e-6 / d_vm;
 
-   // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "ParabolicFreeEnergyBinary:" << std::endl;
-   // tbox::plog << "Molar volume L =" << vml << std::endl;
-   // tbox::plog << "Molar volume A =" << vma << std::endl;
-   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
    std::shared_ptr<tbox::Database> input_db = conc_db->getDatabase("Parabolic");
 
    double coeffL[3][2];
@@ -115,7 +110,7 @@ void ParabolicFreeEnergyBinary::computeDrivingForce(
     const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
     const int f_b_id, const int rhs_id)
 {
-   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type_saved(
+   Thermo4PFM::EnergyInterpolationType energy_interp_func_type_saved(
        d_energy_interp_func_type);
    // use linear interpolation function to get driving force
    // without polynomial of phi factor
@@ -125,7 +120,7 @@ void ParabolicFreeEnergyBinary::computeDrivingForce(
                                            phase_id, conc_id, f_l_id, f_a_id,
                                            f_b_id, rhs_id);
 
-   d_energy_interp_func_type = d_energy_interp_func_type_saved;
+   d_energy_interp_func_type = energy_interp_func_type_saved;
 };
 
 //=======================================================================
