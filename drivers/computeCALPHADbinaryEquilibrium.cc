@@ -21,8 +21,11 @@
 
 using namespace SAMRAI;
 #include "Database2JSON.h"
+
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 namespace pt = boost::property_tree;
-using namespace Thermo4PFM;
 
 
 int main(int argc, char *argv[])
@@ -54,9 +57,10 @@ int main(int argc, char *argv[])
       std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
-      EnergyInterpolationType energy_interp_func_type =
-          EnergyInterpolationType::PBG;
-      ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
+      Thermo4PFM::EnergyInterpolationType energy_interp_func_type =
+          Thermo4PFM::EnergyInterpolationType::PBG;
+      Thermo4PFM::ConcInterpolationType conc_interp_func_type =
+          Thermo4PFM::ConcInterpolationType::PBG;
 
       std::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
@@ -67,23 +71,28 @@ int main(int argc, char *argv[])
       std::shared_ptr<tbox::Database> dcalphad_db =
           conc_db->getDatabase("Calphad");
       std::string calphad_filename = dcalphad_db->getString("filename");
-      std::shared_ptr<tbox::MemoryDatabase> calphad_db(
-          new tbox::MemoryDatabase("calphad_db"));
-      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                       calphad_db);
-
-      std::shared_ptr<tbox::Database> newton_db;
-      if (conc_db->isDatabase("NewtonSolver"))
-         newton_db = conc_db->getDatabase("NewtonSolver");
-
       pt::ptree calphad_pt;
-      pt::ptree newton_pt;
-      copyDatabase(calphad_db, calphad_pt);
-      copyDatabase(newton_db, newton_pt);
+      if (calphad_filename.compare(calphad_filename.size() - 4, 4, "json") ==
+          0) {
+         boost::property_tree::read_json(calphad_filename, calphad_pt);
+      } else {
+         std::shared_ptr<tbox::MemoryDatabase> calphad_db(
+             new tbox::MemoryDatabase("calphad_db"));
+         tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                          calphad_db);
+         copyDatabase(calphad_db, calphad_pt);
+      }
 
-      CALPHADFreeEnergyFunctionsBinary cafe(calphad_pt, newton_pt,
-                                            energy_interp_func_type,
-                                            conc_interp_func_type);
+      pt::ptree newton_pt;
+      if (conc_db->isDatabase("NewtonSolver")) {
+         std::shared_ptr<tbox::Database> newton_db;
+         newton_db = conc_db->getDatabase("NewtonSolver");
+         copyDatabase(newton_db, newton_pt);
+      }
+
+      Thermo4PFM::CALPHADFreeEnergyFunctionsBinary cafe(calphad_pt, newton_pt,
+                                                        energy_interp_func_type,
+                                                        conc_interp_func_type);
 
       // initial guesses
       double init_guess[2];
@@ -110,11 +119,13 @@ int main(int argc, char *argv[])
 
       std::vector<double> d2fdc2(1, 0.);
       cafe.computeSecondDerivativeFreeEnergy(temperature, lceq,
-                                             PhaseIndex::phaseL, d2fdc2.data());
+                                             Thermo4PFM::PhaseIndex::phaseL,
+                                             d2fdc2.data());
       std::cout << "2nd derivative of fL [J/mol]: " << d2fdc2[0] << std::endl;
 
       cafe.computeSecondDerivativeFreeEnergy(temperature, lceq,
-                                             PhaseIndex::phaseA, d2fdc2.data());
+                                             Thermo4PFM::PhaseIndex::phaseA,
+                                             d2fdc2.data());
       std::cout << "2nd derivative of fS [J/mol]: " << d2fdc2[0] << std::endl;
 
       input_db.reset();
