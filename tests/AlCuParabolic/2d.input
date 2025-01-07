@@ -1,0 +1,116 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time = 2.e-3  // required
+max_timesteps = 1500  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 1.e-4
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   epsilon_anisotropy = 0.04 //delta
+
+   Interface {
+      sigma = 0.8  // pJ/um^2 = J/m^2
+      delta = 0.064 // um
+   }
+
+   phi_mobility = 10301.8
+
+   Temperature{
+      type = "scalar"
+      temperature = 1.0061 // 825./820.
+   }
+
+   ConcentrationModel {
+      model = "parabolic"
+      rhs_form = "ebs"
+      molar_volume = 1.e-8
+
+      diffusion_type = "temperature_dependent"
+      D_solid  =  3.e-1 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+      // Seiz, Kellner, Nestler, Acta Mat. 2023
+      Parabolic{
+        Tref = 0.
+        Liquid{
+          a0 = -35.6146853049832
+          a1 = 42.8854523788036
+          b0 = -55.5927326956316
+          b1 = 5.58798699957717
+          c0 = 28.0856353479783
+          c1 = -58.6556405819619
+        }
+        PhaseA{
+          a0 = -256.749681408602
+          a1 = 295.470638158008
+          b0 = -53.2059366769688
+          b1 = 3.50006291739807
+          c0 = 27.1989367309695
+          c1 = -57.8679252617542
+        }
+      }
+   }
+
+   phi_interp_func_type ="pbg"
+   conc_interp_func_type = "l"
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+InitialConditions {
+   filename = "160x160.nc"  // required
+   init_q   = 1., 0.
+}
+
+ScalarDiagnostics {
+   interval = 1.e-4
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 160, 160  // required
+   x_lo         = 0., 0. // lower end of computational domain.
+   x_up         = 10.0, 10.0 // upper end of computational domain.
+}
