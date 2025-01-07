@@ -21,6 +21,7 @@
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
+#include "ParabolicFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyMultiOrderTernaryThreePhase.h"
@@ -200,6 +201,14 @@ class FreeEnergyStrategyFactory
                 conc_db, model_parameters.energy_interp_func_type(),
                 model_parameters.conc_interp_func_type(), mvstrategy,
                 conc_l_scratch_id, conc_a_scratch_id));
+         } else if (model_parameters.isConcentrationModelParabolic()) {
+            tbox::plog << "Using Parabolic model for concentration"
+                       << std::endl;
+            tbox::plog << "ParabolicFreeEnergyBinary" << std::endl;
+            free_energy_strategy.reset(new ParabolicFreeEnergyBinary(
+                model_parameters.energy_interp_func_type(),
+                model_parameters.conc_interp_func_type(), mvstrategy,
+                conc_l_scratch_id, conc_a_scratch_id, conc_db));
          } else if (model_parameters.isConcentrationModelQuadratic()) {
             tbox::plog << "Using Quadratic model for concentration"
                        << std::endl;

@@ -38,7 +38,6 @@ int EquilibriumPhaseConcentrationsBinary::computePhaseConcentrationsOnPatch(
    assert(cd_conc);
    assert(cd_cl);
    assert(cd_ca);
-   assert(d_fenergy != NULL);
    assert(cd_conc->getDepth() == cd_cl->getDepth());
    assert(cd_conc->getDepth() == cd_ca->getDepth());
    assert(cd_cl->getGhostCellWidth()[0] <= cd_te->getGhostCellWidth()[0]);
@@ -101,11 +100,6 @@ int EquilibriumPhaseConcentrationsBinary::computePhaseConcentrationsOnPatch(
    imax[2] = ci_gbox.upper(2);
 #endif
 
-
-   double x[2];
-   for (short i = 0; i < 2; i++)
-      x[i] = tbox::IEEE::getSignalingNaN();
-
    int idx_pf = (imin[0] - imin_pf) + (imin[1] - jmin_pf) * inc_j_pf +
                 (imin[2] - kmin_pf) * inc_k_pf;
    int idx_te = (imin[0] - imin_te) + (imin[1] - jmin_te) * inc_j_te +
@@ -126,8 +120,8 @@ int EquilibriumPhaseConcentrationsBinary::computePhaseConcentrationsOnPatch(
             double c = cd_conc->getPointer(0)[idx_pf];
             TBOX_ASSERT(c == c);
 
-            x[0] = cd_cl->getPointer(0)[idx_ci];
-            x[1] = cd_ca->getPointer(0)[idx_ci];
+            double x[2] = {cd_cl->getPointer(0)[idx_ci],
+                           cd_ca->getPointer(0)[idx_ci]};
 
             // compute cL, cA
             nits += computePhaseConcentrations(temp, c, hphi, x);

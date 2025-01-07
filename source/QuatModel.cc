@@ -307,7 +307,8 @@ void QuatModel::initializeRHSandEnergyStrategies(
       d_conc_db = model_db->getDatabase("ConcentrationModel");
 
       if (d_model_parameters.isConcentrationModelCALPHAD() ||
-          d_model_parameters.isConcentrationModelKKSdilute()) {
+          d_model_parameters.isConcentrationModelKKSdilute() ||
+          d_model_parameters.isConcentrationModelParabolic()) {
          d_mvstrategy = new ConstantMolarVolumeStrategy(
              d_model_parameters.molar_volume_liquid(),
              d_model_parameters.molar_volume_solid_A(),
