@@ -22,6 +22,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 using namespace SAMRAI;
 
@@ -138,6 +139,7 @@ int main(int argc, char *argv[])
 
       {
          std::ofstream os("CvsT.csv");
+         os << std::setprecision(9);
          os << "T, ceqL, ceqS\n";
          {
             std::map<double, double>::iterator itl = cleq.begin();
