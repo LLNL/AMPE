@@ -143,8 +143,6 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeFreeEnergy(
    kmax = pbox.upper(2);
 #endif
 
-   const size_t coffset = c_i_gbox.size();
-
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {
          for (int ii = imin; ii <= imax; ii++) {
@@ -280,8 +278,6 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::addDrivingForceOnPatch(
    for (short i = 0; i < norderp; i++)
       ptr_phi[i] = cd_phi->getPointer(i);
 
-   // number of cells for each field
-   const size_t coffset = c_i_gbox.size();
    // tbox::plog<<"d_norderp_A = "<<d_norderp_A<<std::endl;
 
    for (int kk = kmin; kk <= kmax; kk++) {
