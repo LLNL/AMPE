@@ -4,7 +4,7 @@
 //
 model_type = "Quat"
 
-max_timesteps       = 500
+max_timesteps       = 600
 end_time            = 0.02
 
 Verbosity {  // optional, block

@@ -11,8 +11,6 @@
 #ifndef included_CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
 #define included_CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
 
-#include "PhaseConcentrationsStrategy.h"
-#include "QuatModelParameters.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "EquilibriumPhaseConcentrationsBinaryMultiOrder.h"
 
@@ -24,7 +22,6 @@ class CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
  public:
    CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder(
        const int conc_l_id, const int conc_a_id,
-       const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db,
        std::shared_ptr<tbox::Database> newton_db);
 

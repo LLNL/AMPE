@@ -19,7 +19,7 @@ QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder::
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
     : EquilibriumPhaseConcentrationsBinaryMultiOrder(conc_l_id, conc_a_id,
-                                                     model_parameters, conc_db)
+                                                     conc_db)
 {
    std::shared_ptr<tbox::Database> quad_db = conc_db->getDatabase("Quadratic");
 
