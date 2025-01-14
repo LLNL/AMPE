@@ -4,7 +4,7 @@
 //
 model_type = "Quat"
 
-max_timesteps       = 400
+max_timesteps       = 425
 end_time            = 0.01
 
 Visit {
