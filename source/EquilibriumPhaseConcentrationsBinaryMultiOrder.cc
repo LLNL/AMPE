@@ -17,10 +17,8 @@
 EquilibriumPhaseConcentrationsBinaryMultiOrder::
     EquilibriumPhaseConcentrationsBinaryMultiOrder(
         const int conc_l_id, const int conc_a_id,
-        const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
-    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1),
-      d_conc_interp_func_type(model_parameters.conc_interp_func_type())
+    : PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1)
 {
 }
 
@@ -48,6 +46,7 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    const int norderp = cd_phi->getDepth();
+   assert(norderp > 1);
 
    double* ptr_temp = cd_temperature->getPointer();
    double* ptr_conc = cd_concentration->getPointer();
@@ -99,8 +98,6 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
    kmin = c_i_gbox.lower(2);
    kmax = c_i_gbox.upper(2);
 #endif
-   const char interpf = concInterpChar(d_conc_interp_func_type);
-   const int norder = cd_phi->getDepth();
 
    std::vector<double*> ptr_phi(norderp);
    for (short i = 0; i < norderp; i++)
@@ -119,20 +116,28 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrder::
             const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
                                 (kk - kmin_c_i) * kp_c_i;
 
-            double phi = 0.;
             // last order parameter is assumed liquid
-            for (int i = 0; i < norder - 1; i++)
-               phi += ptr_phi[i][idx_pf];
+            double hphi[2] = {0., 0.};
+            hphi[0] =
+                ptr_phi[norderp - 1][idx_pf] * ptr_phi[norderp - 1][idx_pf];
+            for (short i = 0; i < norderp - 1; i++)
+               hphi[1] += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
+
+            const double sum2 = hphi[0] + hphi[1];
+            assert(sum2 > 0.);
+            const double sum2inv = 1. / sum2;
+            for (short i = 0; i < 2; i++)
+               hphi[i] *= sum2inv;
+
             double c = ptr_conc[idx_pf];
 
-            double hphi = INTERP_FUNC(phi, &interpf);
             double t = ptr_temp[idx_temp];
 
             double x[2];
-            int status = computePhaseConcentrations(t, &c, &hphi, x);
+            int status = computePhaseConcentrations(t, &c, hphi, x);
             if (status < 0) {
                std::cerr << "computePhaseConcentrations failed for T=" << t
-                         << ", " << norder << " phases, hphi=";
+                         << ", " << norderp << " phases, hphi=";
                std::cerr << hphi << ", ";
                std::cerr << ", c=" << c << std::endl;
                std::cerr << "x=" << x[0] << "," << x[1] << std::endl;

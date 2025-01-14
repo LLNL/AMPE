@@ -36,7 +36,7 @@ lines=output.split(b'\n')
 densities=[]
 
 end_reached = False
-end_time = 3.5e-7
+end_time = 400.
 for line in lines:
 
   if line.count(b'cycle'):
@@ -60,12 +60,12 @@ for d in densities:
   if d>maxd:
     maxd = d
 
-expected_value=0.921309
+expected_value=0.894
 if abs(maxd-expected_value)>0.001:
   print("Expected max density = {}, found {}".format(expected_value,maxd))
   sys.exit(1)
 
-expected_value=0.842
+expected_value=0.865
 if abs(mind-expected_value)>0.001:
   print("Expected min density = {}, found {}".format(expected_value,mind))
   sys.exit(1)

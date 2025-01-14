@@ -21,11 +21,10 @@ namespace pt = boost::property_tree;
 CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder::
     CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder(
         const int conc_l_id, const int conc_a_id,
-        const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db,
         std::shared_ptr<tbox::Database> newton_db)
     : EquilibriumPhaseConcentrationsBinaryMultiOrder(conc_l_id, conc_a_id,
-                                                     model_parameters, conc_db)
+                                                     conc_db)
 {
    std::shared_ptr<tbox::Database> conc_calphad_db =
        conc_db->getDatabase("Calphad");
@@ -47,6 +46,6 @@ CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder::
    if (newton_db) copyDatabase(newton_db, newton_pt);
 
    d_fenergy.reset(new Thermo4PFM::CALPHADFreeEnergyFunctionsBinary(
-       calphad_pt, newton_pt, model_parameters.energy_interp_func_type(),
-       model_parameters.conc_interp_func_type()));
+       calphad_pt, newton_pt, Thermo4PFM::EnergyInterpolationType::LINEAR,
+       Thermo4PFM::ConcInterpolationType::LINEAR));
 }

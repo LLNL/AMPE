@@ -33,7 +33,9 @@ class QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder
    virtual int computePhaseConcentrations(const double t, double* c,
                                           double* hphi, double* x)
    {
-      return d_fenergy->computePhaseConcentrations(t, c, hphi, x);
+      // Thermo4PFM uses solid fraction only for two phases
+      double phi = hphi[1];
+      return d_fenergy->computePhaseConcentrations(t, c, &phi, x);
    }
 
  private:

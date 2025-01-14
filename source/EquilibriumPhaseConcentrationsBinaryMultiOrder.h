@@ -12,7 +12,6 @@
 #define included_EquilibriumPhaseConcentrationsBinaryMultiOrder
 
 #include "PhaseConcentrationsStrategy.h"
-#include "QuatModelParameters.h"
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 
 #include <string>
@@ -23,7 +22,6 @@ class EquilibriumPhaseConcentrationsBinaryMultiOrder
  public:
    EquilibriumPhaseConcentrationsBinaryMultiOrder(
        const int conc_l_id, const int conc_a_id,
-       const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db);
 
    virtual ~EquilibriumPhaseConcentrationsBinaryMultiOrder() {}
@@ -41,7 +39,6 @@ class EquilibriumPhaseConcentrationsBinaryMultiOrder
                                           double* hphi, double* x) = 0;
 
  private:
-   Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 };
 
 #endif

@@ -36,7 +36,7 @@ lines=output.split(b'\n')
 volumes=[]
 
 end_reached = False
-target_sf = 0.19
+target_sf = 0.205
 for line in lines:
 
   if line.count(b'cycle'):

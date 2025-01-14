@@ -56,7 +56,7 @@ for line in lines:
       volume=eval(words[6])
 
 if end_reached:
-  expected_value=0.13
+  expected_value=0.147
   if abs(volume-expected_value)>0.001:
     print("Expected volume = {}, found {}".format(expected_value,volume))
     sys.exit(1)

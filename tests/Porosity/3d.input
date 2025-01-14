@@ -3,7 +3,7 @@
 //
 
 max_timesteps       = 160
-end_time            = 600.
+end_time            = 400.
 
 Verbosity {  // optional, block
    initial_energy_diagnostics = TRUE  // optional, default=FALSE

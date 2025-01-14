@@ -151,8 +151,8 @@ class PhaseConcentrationsStrategyFactory
                      tbox::plog << "Multi-order parameters..." << std::endl;
                      phase_conc_strategy.reset(
                          new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder(
-                             conc_l_scratch_id, conc_a_scratch_id,
-                             model_parameters, conc_db, newton_db));
+                             conc_l_scratch_id, conc_a_scratch_id, conc_db,
+                             newton_db));
                   } else {  // single order parameter
                      if (subl) {
                         phase_conc_strategy.reset(
