@@ -33,8 +33,7 @@ KKSdiluteBinary::KKSdiluteBinary(
     const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
     const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id)
-    : d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id),
+    : ConcFreeEnergyStrategy(conc_l_id, conc_a_id, -1),
       d_mv_strategy(mvstrategy),
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type)
@@ -66,102 +65,14 @@ void KKSdiluteBinary::setup(std::shared_ptr<tbox::Database> conc_db)
 
 //=======================================================================
 
-void KKSdiluteBinary::computeDerivFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfl_id)
-{
-   assert(temperature_id >= 0);
-   assert(dfl_id >= 0);
-
-   // tbox::pout<<"d_conc_l_id="<<d_conc_l_id<<std::endl;
-
-   computeDerivFreeEnergy(hierarchy, temperature_id, dfl_id,
-                          Thermo4PFM::PhaseIndex::phaseL);
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::computeDerivFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfs_id)
-{
-   assert(temperature_id >= 0.);
-   assert(dfs_id >= 0);
-   assert(d_conc_a_id >= 0);
-
-   // tbox::pout<<"d_conc_a_id="<<d_conc_a_id<<std::endl;
-
-   computeDerivFreeEnergy(hierarchy, temperature_id, dfs_id,
-                          Thermo4PFM::PhaseIndex::phaseA);
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::computeDerivFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfs_id)
-{
-   (void)hierarchy;
-   (void)temperature_id;
-   (void)dfs_id;
-}
-
-
-//=======================================================================
-
-void KKSdiluteBinary::computeFreeEnergyLiquid(hier::Patch& patch,
-                                              const int temperature_id,
-                                              const int fl_id, const bool gp)
-{
-   assert(temperature_id >= 0);
-   assert(fl_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fl_id,
-                     Thermo4PFM::PhaseIndex::phaseL, gp);
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::computeFreeEnergySolidA(hier::Patch& patch,
-                                              const int temperature_id,
-                                              const int fs_id, const bool gp)
-{
-   assert(temperature_id >= 0.);
-   assert(fs_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fs_id,
-                     Thermo4PFM::PhaseIndex::phaseA, gp);
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::computeFreeEnergySolidB(hier::Patch& patch,
-                                              const int temperature_id,
-                                              const int fs_id, const bool gp)
-{
-   (void)patch;
-   (void)temperature_id;
-   (void)fs_id;
-   (void)gp;
-}
-
-//=======================================================================
-
 void KKSdiluteBinary::computeFreeEnergy(hier::Patch& patch,
                                         const int temperature_id,
-                                        const int f_id,
+                                        const int f_id, const int conc_i_id,
                                         const Thermo4PFM::PhaseIndex pi,
                                         const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
-
-   int conc_i_id = -1;
-   if (pi == Thermo4PFM::PhaseIndex::phaseL)
-      conc_i_id = d_conc_l_id;
-   else if (pi == Thermo4PFM::PhaseIndex::phaseA)
-      conc_i_id = d_conc_a_id;
-   assert(conc_i_id >= 0);
 
    const hier::Box& pbox = patch.getBox();
 
@@ -185,17 +96,11 @@ void KKSdiluteBinary::computeFreeEnergy(hier::Patch& patch,
 void KKSdiluteBinary::computeDerivFreeEnergy(hier::Patch& patch,
                                              const int temperature_id,
                                              const int df_id,
+                                             const int conc_i_id,
                                              const Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
-
-   int conc_i_id = -1;
-   if (pi == Thermo4PFM::PhaseIndex::phaseL)
-      conc_i_id = d_conc_l_id;
-   else if (pi == Thermo4PFM::PhaseIndex::phaseA)
-      conc_i_id = d_conc_a_id;
-   assert(conc_i_id >= 0);
 
    const hier::Box& pbox = patch.getBox();
 
@@ -212,49 +117,6 @@ void KKSdiluteBinary::computeDerivFreeEnergy(hier::Patch& patch,
            patch.getPatchData(conc_i_id)));
 
    computeDerivFreeEnergy(pbox, temperature, df, c_i, pi);
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::computeFreeEnergy(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int f_id, const Thermo4PFM::PhaseIndex pi,
-    const bool gp)
-{
-   assert(temperature_id >= 0);
-   assert(f_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeFreeEnergy(*patch, temperature_id, f_id, pi, gp);
-      }
-   }
-}
-
-//=======================================================================
-
-void KKSdiluteBinary::computeDerivFreeEnergy(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int df_id, const Thermo4PFM::PhaseIndex pi)
-{
-   assert(temperature_id >= 0);
-   assert(df_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeDerivFreeEnergy(*patch, temperature_id, df_id, pi);
-      }
-   }
 }
 
 //=======================================================================

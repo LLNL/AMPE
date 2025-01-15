@@ -12,7 +12,7 @@
 #define included_KKSdiluteBinary
 
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
-#include "FreeEnergyStrategy.h"
+#include "ConcFreeEnergyStrategy.h"
 #include "InterpolationType.h"
 #include "Phases.h"
 #include "FuncFort.h"
@@ -26,7 +26,7 @@ class MolarVolumeStrategy;
 #include <string>
 #include <vector>
 
-class KKSdiluteBinary : public FreeEnergyStrategy
+class KKSdiluteBinary : public ConcFreeEnergyStrategy
 {
  public:
    KKSdiluteBinary(
@@ -39,27 +39,6 @@ class KKSdiluteBinary : public FreeEnergyStrategy
    ~KKSdiluteBinary(){};
 
    virtual void setup(std::shared_ptr<tbox::Database> calphad_db);
-
-   void computeDerivFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id);
-
-   void computeDerivFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id);
-
-   void computeDerivFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id);
-
-   void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id, const bool gp);
-
-   void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
-   void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
 
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
@@ -107,9 +86,6 @@ class KKSdiluteBinary : public FreeEnergyStrategy
    }
 
  private:
-   int d_conc_l_id;
-   int d_conc_a_id;
-
    double computeMuA(const double t, const double c);
 
    double computeMuL(const double t, const double c);
@@ -148,21 +124,13 @@ class KKSdiluteBinary : public FreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a, const hier::Box& pbox);
 
-   void computeFreeEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                          const int temperature_id, const int f_id,
+   void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
+                          const int f_id, const int c_i_id,
                           const Thermo4PFM::PhaseIndex pi, const bool gp);
 
-   void computeDerivFreeEnergy(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_id,
-       const Thermo4PFM::PhaseIndex pi);
-
-   void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
-                          const int f_id, const Thermo4PFM::PhaseIndex pi,
-                          const bool gp);
-
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
-                               const int f_id, const Thermo4PFM::PhaseIndex pi);
+                               const int f_id, const int c_i_id,
+                               const Thermo4PFM::PhaseIndex pi);
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
