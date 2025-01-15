@@ -12,7 +12,7 @@
 #define included_QuadraticFreeEnergyMultiOrderBinary
 
 #include "QuadraticFreeEnergyFunctionsBinary.h"
-#include "ConcFreeEnergyStrategy.h"
+#include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/pdat/CellData.h"

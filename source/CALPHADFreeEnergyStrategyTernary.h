@@ -39,24 +39,6 @@ class CALPHADFreeEnergyStrategyTernary : public ConcFreeEnergyStrategy
    virtual void setup(std::shared_ptr<tbox::Database> calphad_db,
                       std::shared_ptr<tbox::Database> newton_db);
 
-   void computeDerivFreeEnergyLiquid(hier::Patch& patch,
-                                     const int temperature_id, const int fl_id);
-
-   void computeDerivFreeEnergySolidA(hier::Patch& patch,
-                                     const int temperature_id, const int fs_id);
-
-   void computeDerivFreeEnergySolidB(hier::Patch& patch,
-                                     const int temperature_id, const int fs_id);
-
-   void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id, const bool gp);
-
-   void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
-   void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
                                 const int conc_id, const int f_l_id,
@@ -164,9 +146,6 @@ class CALPHADFreeEnergyStrategyTernary : public ConcFreeEnergyStrategy
 
    void computeMuL(const double t, const double c0, const double c1,
                    double* mu);
-
-   int d_conc_l_id;
-   int d_conc_a_id;
 
  private:
    void addDrivingForceOnPatch(

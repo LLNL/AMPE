@@ -36,7 +36,8 @@ CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
     const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
     const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
     MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id)
-    : d_mv_strategy(mvstrategy)
+    : ConcFreeEnergyStrategy(conc_l_id, conc_a_id, -1),
+      d_mv_strategy(mvstrategy)
 {
    assert(conc_l_id >= 0);
    assert(conc_a_id >= 0);
@@ -54,9 +55,6 @@ CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
    // tbox::plog << "Molar volume A =" << vma << std::endl;
    // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 
-   d_conc_l_id = conc_l_id;
-   d_conc_a_id = conc_a_id;
-
    setup(calphad_db, newton_db);
 }
 
@@ -73,83 +71,6 @@ void CALPHADFreeEnergyStrategyTernary::setup(
    d_calphad_fenergy = new Thermo4PFM::CALPHADFreeEnergyFunctionsTernary(
        calphad_pt, newton_pt, d_energy_interp_func_type,
        d_conc_interp_func_type);
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergyLiquid(
-    hier::Patch& patch, const int temperature_id, const int dfl_id)
-{
-   assert(temperature_id >= 0);
-   assert(dfl_id >= 0);
-
-   computeDerivFreeEnergy(patch, temperature_id, dfl_id, d_conc_l_id,
-                          Thermo4PFM::PhaseIndex::phaseL);
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergySolidA(
-    hier::Patch& patch, const int temperature_id, const int dfs_id)
-{
-   assert(temperature_id >= 0.);
-   assert(dfs_id >= 0);
-
-   computeDerivFreeEnergy(patch, temperature_id, dfs_id, d_conc_a_id,
-                          Thermo4PFM::PhaseIndex::phaseA);
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergySolidB(
-    hier::Patch& patch, const int temperature_id, const int dfs_id)
-{
-   (void)patch;
-   (void)temperature_id;
-   (void)dfs_id;
-   TBOX_ERROR(
-       "CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergySolidB() not "
-       "implemented!!!\n");
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::computeFreeEnergyLiquid(
-    hier::Patch& patch, const int temperature_id, const int fl_id,
-    const bool gp)
-{
-   assert(temperature_id >= 0);
-   assert(fl_id >= 0);
-
-   assert(d_conc_l_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     Thermo4PFM::PhaseIndex::phaseL, gp);
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::computeFreeEnergySolidA(
-    hier::Patch& patch, const int temperature_id, const int fs_id,
-    const bool gp)
-{
-   assert(temperature_id >= 0.);
-   assert(fs_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fs_id, d_conc_a_id,
-                     Thermo4PFM::PhaseIndex::phaseA, gp);
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyTernary::computeFreeEnergySolidB(
-    hier::Patch& patch, const int temperature_id, const int fs_id,
-    const bool gp)
-{
-   (void)patch;
-   (void)temperature_id;
-   (void)fs_id;
-   (void)gp;
 }
 
 //=======================================================================

@@ -27,7 +27,7 @@ class FreeEnergyStrategy
    FreeEnergyStrategy(){};
    virtual ~FreeEnergyStrategy(){};
 
-   // mesh functions
+   // hierarchy functions
    virtual void computeFreeEnergyLiquid(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_l_id, const bool gp);
