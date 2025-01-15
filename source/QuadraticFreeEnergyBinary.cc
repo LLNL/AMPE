@@ -33,10 +33,8 @@ QuadraticFreeEnergyBinary::QuadraticFreeEnergyBinary(
     const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
     const double vml, const double vma, const int conc_l_id,
     const int conc_a_id)
+    : ConcFreeEnergyStrategy(conc_l_id, conc_a_id, -1)
 {
-   assert(conc_l_id >= 0);
-   assert(conc_a_id >= 0);
-
    d_energy_interp_func_type = energy_interp_func_type;
 
    d_vm_L = vml;
@@ -70,53 +68,13 @@ QuadraticFreeEnergyBinary::QuadraticFreeEnergyBinary(
    // print database just read
    tbox::plog << "Quadratic database..." << std::endl;
    input_db->printClassData(tbox::plog);
-
-   d_conc_l_id = conc_l_id;
-   d_conc_a_id = conc_a_id;
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyBinary::computeFreeEnergyLiquid(
-    hier::Patch& patch, const int temperature_id, const int fl_id,
-    const bool gp)
-{
-   assert(fl_id >= 0);
-   assert(temperature_id >= 0.);
-   assert(d_conc_l_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     Thermo4PFM::PhaseIndex::phaseL, d_energy_conv_factor_L);
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyBinary::computeFreeEnergySolidA(
-    hier::Patch& patch, const int temperature_id, const int fs_id,
-    const bool gp)
-{
-   assert(fs_id >= 0);
-   assert(temperature_id >= 0.);
-   assert(d_conc_a_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fs_id, d_conc_a_id,
-                     Thermo4PFM::PhaseIndex::phaseA, d_energy_conv_factor_A);
-}
-
-//=======================================================================
-
-void QuadraticFreeEnergyBinary::computeFreeEnergySolidB(
-    hier::Patch& patch, const int temperature_id, const int fs_id,
-    const bool gp)
-{
-   assert(false);
 }
 
 //=======================================================================
 
 void QuadraticFreeEnergyBinary::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int f_id,
-    const int conc_i_id, Thermo4PFM::PhaseIndex pi, const double energy_factor)
+    const int conc_i_id, Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -136,6 +94,7 @@ void QuadraticFreeEnergyBinary::computeFreeEnergy(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
+   double energy_factor = energyFactor(pi);
    computeFreeEnergy(pbox, temperature, f, c_i, pi, energy_factor);
 }
 
@@ -143,7 +102,7 @@ void QuadraticFreeEnergyBinary::computeFreeEnergy(
 
 void QuadraticFreeEnergyBinary::computeDerivFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int df_id,
-    const int conc_i_id, Thermo4PFM::PhaseIndex pi, const double energy_factor)
+    const int conc_i_id, Thermo4PFM::PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -163,6 +122,7 @@ void QuadraticFreeEnergyBinary::computeDerivFreeEnergy(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
+   double energy_factor = energyFactor(pi);
    computeDerivFreeEnergy(pbox, temperature, df, c_i, pi, energy_factor);
 }
 

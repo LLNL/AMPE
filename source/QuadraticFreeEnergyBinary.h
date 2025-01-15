@@ -11,14 +11,14 @@
 #ifndef included_QuadraticFreeEnergyBinary
 #define included_QuadraticFreeEnergyBinary
 
-#include "FreeEnergyStrategy.h"
+#include "ConcFreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 
 #include <string>
 
-class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
+class QuadraticFreeEnergyBinary : public ConcFreeEnergyStrategy
 {
  public:
    QuadraticFreeEnergyBinary(
@@ -28,18 +28,6 @@ class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
        const int conc_a_id);
 
    ~QuadraticFreeEnergyBinary(){};
-
-   void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id,
-                                const bool gp = false) override;
-
-   void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id,
-                                const bool gp = false) override;
-
-   void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id,
-                                const bool gp = false) override;
 
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
@@ -55,12 +43,6 @@ class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
        std::vector<double>& d2fdc2,
        const bool use_internal_units = true) override;
 
-   double computeLiquidConcentration(const double temp, const double hphi,
-                                     const double c) const;
-
-   double computeSolidAConcentration(const double temp, const double hphi,
-                                     const double c) const;
-
    void preRunDiagnostics(const double temperature) override{};
 
  private:
@@ -73,13 +55,11 @@ class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
                           const int f_id, const int c_i_id,
-                          Thermo4PFM::PhaseIndex pi,
-                          const double energy_factor);
+                          Thermo4PFM::PhaseIndex pi, const bool gp);
 
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
                                const int f_id, const int c_i_id,
-                               Thermo4PFM::PhaseIndex pi,
-                               const double energy_factor);
+                               Thermo4PFM::PhaseIndex pi);
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
@@ -104,6 +84,14 @@ class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
 
    double computeMu(const double t, const double c);
 
+   double energyFactor(Thermo4PFM::PhaseIndex pi)
+   {
+      if (pi == Thermo4PFM::PhaseIndex::phaseL)
+         return d_energy_conv_factor_L;
+      else
+         return d_energy_conv_factor_A;
+   }
+
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinary>
        d_quadratic_fenergy;
 
@@ -111,14 +99,9 @@ class QuadraticFreeEnergyBinary : public FreeEnergyStrategy
 
    double d_vm_L;  // molar volume
    double d_vm_A;  // molar volume
-   // double d_vm; // molar volume
-   // double d_jpmol2pjpmumcube;
 
-   double d_energy_conv_factor_L;  // molar volume
-   double d_energy_conv_factor_A;  // molar volume
-
-   int d_conc_l_id;
-   int d_conc_a_id;
+   double d_energy_conv_factor_L;
+   double d_energy_conv_factor_A;
 };
 
 #endif
