@@ -40,24 +40,6 @@ class FreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 
    virtual ~FreeEnergyStrategyBinary(){};
 
-   void computeDerivFreeEnergyLiquid(hier::Patch& patch,
-                                     const int temperature_id, const int fl_id);
-
-   void computeDerivFreeEnergySolidA(hier::Patch& patch,
-                                     const int temperature_id, const int fs_id);
-
-   void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id, const bool gp);
-
-   void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
-   void computeDerivFreeEnergySolidB(hier::Patch& patch,
-                                     const int temperature_id, const int fs_id);
-
-   void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
                                 const int conc_id, const int f_l_id,
