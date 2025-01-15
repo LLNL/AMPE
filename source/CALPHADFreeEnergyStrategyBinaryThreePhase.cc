@@ -37,16 +37,14 @@ CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
-    : d_conc_l_id(conc_l_id),
-      d_conc_a_id(conc_a_id),
-      d_conc_b_id(conc_b_id),
-      d_mv_strategy(mvstrategy),
+    : ConcFreeEnergyStrategy(conc_l_id, conc_a_id, conc_b_id),
       d_energy_interp_func_type(energy_interp_func_type),
-      d_conc_interp_func_type(conc_interp_func_type)
+      d_conc_interp_func_type(conc_interp_func_type),
+      d_mv_strategy(mvstrategy)
 {
-   assert(d_conc_l_id >= 0);
-   assert(d_conc_a_id >= 0);
-   assert(d_conc_b_id >= 0);
+   assert(conc_l_id >= 0);
+   assert(conc_a_id >= 0);
+   assert(conc_b_id >= 0);
 
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
@@ -78,98 +76,6 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::setup(
    d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_pt, newton_pt,
                                                       d_energy_interp_func_type,
                                                       d_conc_interp_func_type));
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
-    computeDerivFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                 const int dfl_id)
-{
-   assert(temperature_id >= 0);
-   assert(dfl_id >= 0);
-
-   computeDerivFreeEnergy(patch, temperature_id, dfl_id, d_conc_l_id,
-                          Thermo4PFM::PhaseIndex::phaseL);
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
-    computeDerivFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                 const int dfa_id)
-{
-   assert(temperature_id >= 0.);
-   assert(dfa_id >= 0);
-
-   computeDerivFreeEnergy(patch, temperature_id, dfa_id, d_conc_a_id,
-                          Thermo4PFM::PhaseIndex::phaseA);
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
-    computeDerivFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                 const int dfb_id)
-{
-   assert(temperature_id >= 0.);
-   assert(dfb_id >= 0);
-
-   computeDerivFreeEnergy(patch, temperature_id, dfb_id, d_conc_b_id,
-                          Thermo4PFM::PhaseIndex::phaseB);
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType>::computeFreeEnergyLiquid(hier::Patch& patch,
-                                                     const int temperature_id,
-                                                     const int fl_id,
-                                                     const bool gp)
-{
-   assert(temperature_id >= 0);
-   assert(fl_id >= 0);
-
-   assert(d_conc_l_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
-                     Thermo4PFM::PhaseIndex::phaseL, gp);
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType>::computeFreeEnergySolidA(hier::Patch& patch,
-                                                     const int temperature_id,
-                                                     const int fa_id,
-                                                     const bool gp)
-{
-   assert(temperature_id >= 0.);
-   assert(fa_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fa_id, d_conc_a_id,
-                     Thermo4PFM::PhaseIndex::phaseA, gp);
-}
-
-//=======================================================================
-
-template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
-    FreeEnergyFunctionType>::computeFreeEnergySolidB(hier::Patch& patch,
-                                                     const int temperature_id,
-                                                     const int fb_id,
-                                                     const bool gp)
-{
-   assert(temperature_id >= 0.);
-   assert(fb_id >= 0);
-
-   computeFreeEnergy(patch, temperature_id, fb_id, d_conc_b_id,
-                     Thermo4PFM::PhaseIndex::phaseB, gp);
 }
 
 //=======================================================================

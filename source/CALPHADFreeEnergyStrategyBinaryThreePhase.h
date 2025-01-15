@@ -40,26 +40,6 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
    void setup(boost::property_tree::ptree calphad_db,
               std::shared_ptr<tbox::Database> newton_db);
 
-   // implement pure virtual functions of FreeEnergyStrategy
-   void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id, const bool gp);
-
-   void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
-   void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
-
-   // implement pure virtual functions of ConcFreeEnergyStrategy
-   void computeDerivFreeEnergyLiquid(hier::Patch& patch,
-                                     const int temperature_id, const int fl_id);
-
-   void computeDerivFreeEnergySolidA(hier::Patch& patch,
-                                     const int temperature_id, const int fs_id);
-
-   void computeDerivFreeEnergySolidB(hier::Patch& patch,
-                                     const int temperature_id, const int fs_id);
-
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
                         const int conc_id, const int f_l_id, const int f_a_id,
@@ -133,10 +113,6 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
    Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
 
  private:
-   int d_conc_l_id;
-   int d_conc_a_id;
-   int d_conc_b_id;
-
    std::shared_ptr<FreeEnergyFunctionType> d_calphad_fenergy;
 
    MolarVolumeStrategy* d_mv_strategy;
@@ -168,6 +144,7 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
        std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 
+   // implements pure virtual functions of base class ConcFreeEnergyStrategy
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
                           const int f_id, const int c_i_id,
                           const Thermo4PFM::PhaseIndex pi, const bool gp);
@@ -175,6 +152,7 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
                                const int f_id, const int c_i_id,
                                const Thermo4PFM::PhaseIndex pi);
+
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
