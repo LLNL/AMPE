@@ -223,9 +223,9 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
                                                       d_temperature_scratch_id,
                                                       d_f_a_id, false);
 
-      d_free_energy_strategy->computeFreeEnergySolidB(*patch,
-                                                      d_temperature_scratch_id,
-                                                      d_f_b_id, false);
+      if (d_f_b_id >= 0)
+         d_free_energy_strategy->computeFreeEnergySolidB(
+             *patch, d_temperature_scratch_id, d_f_b_id, false);
 
       // then add component from chemical energy
       d_free_energy_strategy->addDrivingForce(
