@@ -47,7 +47,6 @@ class QuadraticFreeEnergyBinary : public FreeEnergyStrategyBinary
    void preRunDiagnostics(const double temperature) override{};
 
  private:
-
    void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
