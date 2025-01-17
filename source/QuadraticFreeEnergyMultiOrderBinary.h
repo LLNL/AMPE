@@ -14,6 +14,7 @@
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 #include "FreeEnergyStrategyBinary.h"
 #include "InterpolationType.h"
+#include "MultiOrderBinaryDrivingForce.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/tbox/Database.h"
@@ -82,6 +83,8 @@ class QuadraticFreeEnergyMultiOrderBinary : public FreeEnergyStrategyBinary
 
    int d_conc_l_id;
    int d_conc_a_id;
+
+   std::shared_ptr<MultiOrderBinaryDrivingForce> d_multiorder_driving_force;
 
    double energyFactor(Thermo4PFM::PhaseIndex pi)
    {
