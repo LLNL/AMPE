@@ -79,6 +79,10 @@ class FreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
        std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 
+   virtual double computeMuA(const double t, const double c) = 0;
+   virtual double computeMuL(const double t, const double c) = 0;
+   // virtual double computeMuB(const double t, const double c) = 0;
+
  protected:
    Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
    Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;
@@ -94,10 +98,6 @@ class FreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
                                     const bool gp) = 0;
    virtual double computeDerivFreeEnergy(const double t, double* c,
                                          const Thermo4PFM::PhaseIndex pi) = 0;
-
-   virtual double computeMuA(const double t, const double c) = 0;
-   virtual double computeMuL(const double t, const double c) = 0;
-   // virtual double computeMuB(const double t, const double c) = 0;
 
    virtual void computeSecondDerivativeEnergyPhaseL(
        const double temp, const std::vector<double>& c_l,

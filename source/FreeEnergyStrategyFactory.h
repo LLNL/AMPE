@@ -234,6 +234,7 @@ class FreeEnergyStrategyFactory
                       new QuadraticFreeEnergyMultiOrderBinary(
                           conc_db->getDatabase("Quadratic"),
                           model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(),
                           model_parameters.molar_volume_liquid(),
                           model_parameters.molar_volume_solid_A(),
                           conc_l_scratch_id, conc_a_scratch_id));
