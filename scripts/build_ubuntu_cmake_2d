@@ -16,5 +16,6 @@ cmake \
         -DTHERMO4PFM_DIR=$HOME/Thermo4PFM \
         -DCMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu/hdf5/openmpi \
         -DHDF5_SHARED_LIBS=true \
+        -DAMPE_WITH_CLANG_FORMAT=ON \
         -DNDIM=2 \
         ..
