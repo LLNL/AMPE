@@ -97,7 +97,7 @@ class FreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 
    virtual double computeMuA(const double t, const double c) = 0;
    virtual double computeMuL(const double t, const double c) = 0;
-   virtual double computeMuB(const double t, const double c) = 0;
+   // virtual double computeMuB(const double t, const double c) = 0;
 
    virtual void computeSecondDerivativeEnergyPhaseL(
        const double temp, const std::vector<double>& c_l,
