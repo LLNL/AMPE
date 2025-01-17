@@ -11,19 +11,20 @@
 #ifndef included_QuadraticFreeEnergyBinary
 #define included_QuadraticFreeEnergyBinary
 
-#include "ConcFreeEnergyStrategy.h"
+#include "FreeEnergyStrategyBinary.h"
 #include "InterpolationType.h"
 
 #include "QuadraticFreeEnergyFunctionsBinary.h"
 
 #include <string>
 
-class QuadraticFreeEnergyBinary : public ConcFreeEnergyStrategy
+class QuadraticFreeEnergyBinary : public FreeEnergyStrategyBinary
 {
  public:
    QuadraticFreeEnergyBinary(
        std::shared_ptr<tbox::Database> input_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        const double vml, const double vma, const int conc_l_id,
        const int conc_a_id);
 
@@ -46,32 +47,6 @@ class QuadraticFreeEnergyBinary : public ConcFreeEnergyStrategy
    void preRunDiagnostics(const double temperature) override{};
 
  private:
-   double computeFreeEnergy(const double conc, const double A, const double Ceq,
-                            const double energy_factor,
-                            const bool gp = false) const;
-   double computeDerivFreeEnergy(const double conc, const double A,
-                                 const double Ceq,
-                                 const double energy_factor) const;
-
-   void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
-                          const int f_id, const int c_i_id,
-                          Thermo4PFM::PhaseIndex pi, const bool gp);
-
-   void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
-                               const int f_id, const int c_i_id,
-                               Thermo4PFM::PhaseIndex pi);
-
-   void computeFreeEnergy(
-       const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor);
-
-   void computeDerivFreeEnergy(
-       const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor);
 
    void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
@@ -82,7 +57,14 @@ class QuadraticFreeEnergyBinary : public ConcFreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a, const hier::Box& pbox);
 
-   double computeMu(const double t, const double c);
+   double computeMuL(const double t, const double c);
+   double computeMuA(const double t, const double c);
+
+   double computeFreeEnergy(const double temperature, double* c_i,
+                            const Thermo4PFM::PhaseIndex pi, const bool gp);
+
+   double computeDerivFreeEnergy(const double temperature, double* c_i,
+                                 const Thermo4PFM::PhaseIndex pi);
 
    double energyFactor(Thermo4PFM::PhaseIndex pi)
    {
