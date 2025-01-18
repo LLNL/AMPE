@@ -22,6 +22,7 @@
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
 #include "ParabolicFreeEnergyBinary.h"
+#include "ParabolicFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyMultiOrderTernaryThreePhase.h"
@@ -204,11 +205,20 @@ class FreeEnergyStrategyFactory
          } else if (model_parameters.isConcentrationModelParabolic()) {
             tbox::plog << "Using Parabolic model for concentration"
                        << std::endl;
-            tbox::plog << "ParabolicFreeEnergyBinary" << std::endl;
-            free_energy_strategy.reset(new ParabolicFreeEnergyBinary(
-                model_parameters.energy_interp_func_type(),
-                model_parameters.conc_interp_func_type(), mvstrategy,
-                conc_l_scratch_id, conc_a_scratch_id, conc_db));
+            if (model_parameters.norderp() > 1) {
+               tbox::plog << "ParabolicFreeEnergyMultiOrderBinary" << std::endl;
+               free_energy_strategy.reset(
+                   new ParabolicFreeEnergyMultiOrderBinary(
+                       model_parameters.energy_interp_func_type(),
+                       model_parameters.conc_interp_func_type(), mvstrategy,
+                       conc_l_scratch_id, conc_a_scratch_id, conc_db));
+            } else {
+               tbox::plog << "ParabolicFreeEnergyBinary" << std::endl;
+               free_energy_strategy.reset(new ParabolicFreeEnergyBinary(
+                   model_parameters.energy_interp_func_type(),
+                   model_parameters.conc_interp_func_type(), mvstrategy,
+                   conc_l_scratch_id, conc_a_scratch_id, conc_db));
+            }
          } else if (model_parameters.isConcentrationModelQuadratic()) {
             tbox::plog << "Using Quadratic model for concentration"
                        << std::endl;
@@ -276,7 +286,6 @@ class FreeEnergyStrategyFactory
                 model_parameters.free_energy_solid_A(),
                 model_parameters.molar_volume_solid_A(),
                 model_parameters.latent_heat(), Tref));
-
       } else {  // no composition, no heat equation
          if (model_parameters.free_energy_type()[0] == 's') {
             free_energy_strategy.reset(new PhaseFreeEnergyStrategy(

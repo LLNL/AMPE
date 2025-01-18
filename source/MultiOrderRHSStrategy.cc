@@ -21,9 +21,9 @@
 
 MultiOrderRHSStrategy::MultiOrderRHSStrategy(
     const QuatModelParameters& model_parameters, const int phase_scratch_id,
-    const int conc_scratch_id, const int temperature_scratch_id,
-    const int f_l_id, const int f_a_id, const int f_b_id,
-    const int phase_mobility_id, const int flux_id,
+    const int conc_scratch_id, const int quat_scratch_id,
+    const int temperature_scratch_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int phase_mobility_id, const int flux_id,
     CVODESolver* sundials_solver,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
@@ -32,6 +32,7 @@ MultiOrderRHSStrategy::MultiOrderRHSStrategy(
       d_gamma(model_parameters.gamma()),
       d_phase_scratch_id(phase_scratch_id),
       d_conc_scratch_id(conc_scratch_id),
+      d_quat_scratch_id(quat_scratch_id),
       d_temperature_scratch_id(temperature_scratch_id),
       d_f_l_id(f_l_id),
       d_f_a_id(f_a_id),
@@ -121,8 +122,8 @@ void MultiOrderRHSStrategy::evaluateRHS(
    for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
-      d_phase_flux_strategy->computeFluxes(level, d_phase_scratch_id, -1,
-                                           d_flux_id);
+      d_phase_flux_strategy->computeFluxes(level, d_phase_scratch_id,
+                                           d_quat_scratch_id, d_flux_id);
 
       // Coarsen flux data from next finer level so that
       // the computed flux becomes the composite grid flux.

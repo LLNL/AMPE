@@ -1627,6 +1627,8 @@ void QuatModel::registerPhaseVariables(void)
 
 void QuatModel::registerOrientationVariables(void)
 {
+   assert(d_qlen > 0);
+
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    std::shared_ptr<hier::VariableContext> current =
