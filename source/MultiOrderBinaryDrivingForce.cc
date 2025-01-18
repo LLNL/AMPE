@@ -33,7 +33,7 @@ void MultiOrderBinaryDrivingForce::addDrivingForce(
    std::shared_ptr<pdat::CellData<double> > temperature(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
-   assert(t);
+   assert(temperature);
 
    std::shared_ptr<pdat::CellData<double> > fl(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -61,8 +61,8 @@ void MultiOrderBinaryDrivingForce::addDrivingForce(
 
    assert(fl->getGhostCellWidth()[0] == fa->getGhostCellWidth()[0]);
    assert(cl->getGhostCellWidth()[0] == ca->getGhostCellWidth()[0]);
-   assert(phi->getDepth() > 1);
-   assert(phi->getDepth() == rhs->getDepth());
+   assert(phase->getDepth() > 1);
+   assert(phase->getDepth() == rhs->getDepth());
 
    const hier::Box& pbox(patch.getBox());
    const int norderp = phase->getDepth();
@@ -214,7 +214,7 @@ void MultiOrderBinaryDrivingForce::addDrivingForce(
             rhs_local[norderp - 1] = 2. * ptr_phi[norderp - 1][idx_pf] *
                                      (hphis * dfl - hphis * dfs) * sum2inv;
             for (short i = 0; i < norderp; i++)
-               assert(!std::isnan(rhs[i]));
+               assert(!std::isnan(rhs_local[i]));
 
             for (short i = 0; i < norderp; i++)
                ptr_rhs[i][idx_rhs] -= (rhs_local[i]);
