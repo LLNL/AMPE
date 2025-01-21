@@ -12,15 +12,16 @@
 #define included_QuadraticFreeEnergyMultiOrderBinaryThreePhase
 
 #include "QuadraticFreeEnergyFunctionsBinaryThreePhase.h"
-#include "FreeEnergyStrategyThreePhase.h"
+#include "FreeEnergyStrategyBinary.h"
 
 class QuadraticFreeEnergyMultiOrderBinaryThreePhase
-    : public FreeEnergyStrategyThreePhase
+    : public FreeEnergyStrategyBinary
 {
  public:
    QuadraticFreeEnergyMultiOrderBinaryThreePhase(
        std::shared_ptr<tbox::Database> input_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        const short norderp_A, const double vml, const double vma,
        const double vmb, const int conc_l_id, const int conc_a_id,
        const int conc_b_id);
@@ -33,22 +34,41 @@ class QuadraticFreeEnergyMultiOrderBinaryThreePhase
    //
    const short d_norderp_A;
 
+   double d_energy_conv_factor_L;
+   double d_energy_conv_factor_A;
+   double d_energy_conv_factor_B;
+
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinaryThreePhase>
        d_quadratic_fenergy;
 
    void computeSecondDerivativeEnergyPhaseL(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temp, const std::vector<double>& c,
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
    void computeSecondDerivativeEnergyPhaseA(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temp, const std::vector<double>& c,
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
    void computeSecondDerivativeEnergyPhaseB(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temp, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true);
 
-   void computeMuL(const double t, const double c0, double* mu);
-   void computeMuA(const double t, const double c0, double* mu);
-   void computeMuB(const double t, const double c0, double* mu);
+   double computeMuL(const double t, const double c0);
+   double computeMuA(const double t, const double c0);
+
+   double computeFreeEnergy(const double temperature, double* c_i,
+                            const Thermo4PFM::PhaseIndex pi, const bool gp);
+
+   double computeDerivFreeEnergy(const double temperature, double* c_i,
+                                 const Thermo4PFM::PhaseIndex pi);
+
+   double energyFactor(Thermo4PFM::PhaseIndex pi)
+   {
+      if (pi == Thermo4PFM::PhaseIndex::phaseL)
+         return d_energy_conv_factor_L;
+      else
+         return d_energy_conv_factor_A;
+   }
 
    void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
@@ -59,14 +79,7 @@ class QuadraticFreeEnergyMultiOrderBinaryThreePhase
        std::shared_ptr<pdat::CellData<double> > cd_f_b,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b,
-       const hier::Box& pbox) override;
-
-   void computeFreeEnergy(
-       const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor) override;
+       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 };
 
 #endif
