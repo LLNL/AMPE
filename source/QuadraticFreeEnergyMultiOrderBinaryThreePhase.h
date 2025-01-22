@@ -12,6 +12,7 @@
 #define included_QuadraticFreeEnergyMultiOrderBinaryThreePhase
 
 #include "QuadraticFreeEnergyFunctionsBinaryThreePhase.h"
+#include "MultiOrderBinaryThreePhasesDrivingForce.h"
 #include "FreeEnergyStrategyBinary.h"
 
 class QuadraticFreeEnergyMultiOrderBinaryThreePhase
@@ -41,6 +42,8 @@ class QuadraticFreeEnergyMultiOrderBinaryThreePhase
    std::shared_ptr<Thermo4PFM::QuadraticFreeEnergyFunctionsBinaryThreePhase>
        d_quadratic_fenergy;
 
+   std::shared_ptr<MultiOrderBinaryThreePhasesDrivingForce> d_driving_force;
+
    void computeSecondDerivativeEnergyPhaseL(
        const double temp, const std::vector<double>& c,
        std::vector<double>& d2fdc2,
@@ -57,10 +60,11 @@ class QuadraticFreeEnergyMultiOrderBinaryThreePhase
    double computeMuA(const double t, const double c0);
 
    double computeFreeEnergy(const double temperature, double* c_i,
-                            const Thermo4PFM::PhaseIndex pi, const bool gp);
+                            const Thermo4PFM::PhaseIndex pi,
+                            const bool gp) override;
 
    double computeDerivFreeEnergy(const double temperature, double* c_i,
-                                 const Thermo4PFM::PhaseIndex pi);
+                                 const Thermo4PFM::PhaseIndex pi) override;
 
    double energyFactor(Thermo4PFM::PhaseIndex pi)
    {
@@ -70,16 +74,10 @@ class QuadraticFreeEnergyMultiOrderBinaryThreePhase
          return d_energy_conv_factor_A;
    }
 
-   void addDrivingForceOnPatch(
-       std::shared_ptr<pdat::CellData<double> > cd_rhs,
-       std::shared_ptr<pdat::CellData<double> > cd_temperature,
-       std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_f_l,
-       std::shared_ptr<pdat::CellData<double> > cd_f_a,
-       std::shared_ptr<pdat::CellData<double> > cd_f_b,
-       std::shared_ptr<pdat::CellData<double> > cd_c_l,
-       std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int conc_id, const int f_l_id, const int f_a_id,
+                        const int f_b_id, const int rhs_id) override;
 };
 
 #endif
