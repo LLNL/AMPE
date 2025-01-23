@@ -3,14 +3,14 @@ import sys
 import subprocess
 import os
 
-print("Test AlCu parabolic multi-order...")
+print("Test AlCu calphad multi-order...")
 
 #prepare initial conditions file
 initfilename="160x160.nc"
 subprocess.call(["python3", "../../utils/make_nuclei.py",
   "--nx", "160", "--ny", "160", "--nz", "1", "-r", "15",
   "--center0", "0, 0, 0",
-  "--concentration-in", "0.03", "--concentration-out", "0.08",
+  "--concentration-in", "0.997", "--concentration-out", "0.98",
   initfilename])
 
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]

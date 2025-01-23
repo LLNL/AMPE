@@ -4,12 +4,13 @@
 //
 model_type = "KWCcomplex"
 
-end_time = 2.e-3  // required
+end_time = 2.e-2  // required
 max_timesteps = 1500  // optional, default is INT_MAX (alias: max_cycles)
 
 Visit {
-   interval = 1.e-4
-   interval_type = "time"
+   interval = 100
+   interval_type = "step"
+   extra_output          = TRUE
 }
 
 TimerManager {
@@ -21,11 +22,11 @@ ModelParameters {  // required block
 
    norderp = 2
 
-   epsilon_anisotropy = 0.04 //delta
+   epsilon_anisotropy = 0.03 //delta
 
    Interface {
-      sigma = 0.1  // pJ/um^2 = J/m^2
-      delta = 0.025 // um
+      sigma = 0.8  // pJ/um^2 = J/m^2
+      delta = 0.064 // um
    }
 
    phi_mobility = 10301.8
@@ -37,7 +38,7 @@ ModelParameters {  // required block
 
    ConcentrationModel {
       model = "calphad"
-      antitrapping = TRUE
+//      antitrapping = TRUE
       rhs_form = "ebs"
       Calphad {
 //         filename ="calphadAlCuLFcc.json"
@@ -92,6 +93,6 @@ Integrator {
 Geometry{
    periodic_dimension = 0, 0
    coarsest_level_resolution = 160, 160  // required
-   x_lo         = 0.,  0.  // lower end of computational domain.
-   x_up         = 4.0, 4.0 // upper end of computational domain.
+   x_lo         = 0., 0. // lower end of computational domain.
+   x_up         = 10.0, 10.0 // upper end of computational domain.
 }

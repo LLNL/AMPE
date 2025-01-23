@@ -107,9 +107,7 @@ class FreeEnergyStrategyFactory
                              calphad_pt, newton_db,
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
-                             mvstrategy,
-                             conc_l_scratch_id, conc_a_scratch_id
-                             ));
+                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id));
                   }
                } else {
                   // check if sublattice parameters are in CALPHAD database

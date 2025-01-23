@@ -101,14 +101,21 @@ class PhaseConcentrationsStrategyFactory
                                    conc_b_scratch_id, model_parameters, conc_db,
                                    newton_db));
                         } else {
-                           phase_conc_strategy.reset(
-                               new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
-                                   Thermo4PFM::
-                                       CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-                                   model_parameters.norderpA(),
-                                   conc_l_scratch_id, conc_a_scratch_id,
-                                   conc_b_scratch_id, model_parameters, conc_db,
-                                   newton_db));
+                           if (conc_b_scratch_id >= 0) {
+                              phase_conc_strategy.reset(
+                                  new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder(
+                                      conc_l_scratch_id, conc_a_scratch_id,
+                                      conc_db, newton_db));
+                           } else {
+                              phase_conc_strategy.reset(
+                                  new CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases<
+                                      Thermo4PFM::
+                                          CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                                      model_parameters.norderpA(),
+                                      conc_l_scratch_id, conc_a_scratch_id,
+                                      conc_b_scratch_id, model_parameters,
+                                      conc_db, newton_db));
+                           }
                         }
                      }
                   } else {

@@ -31,7 +31,8 @@ class CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder
    virtual int computePhaseConcentrations(const double t, double* c,
                                           double* hphi, double* x)
    {
-      return d_fenergy->computePhaseConcentrations(t, c, hphi, x);
+      double phi = hphi[1];
+      return d_fenergy->computePhaseConcentrations(t, c, &phi, x);
    }
 
  private:
