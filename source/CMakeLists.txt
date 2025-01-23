@@ -67,6 +67,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.cc
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategyBinary.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyBinaryMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyBinaryMultiOrderThreePhases.cc
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategyThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/ParabolicFreeEnergyBinary.cc

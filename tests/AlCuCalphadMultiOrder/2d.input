@@ -1,0 +1,97 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time = 2.e-3  // required
+max_timesteps = 1500  // optional, default is INT_MAX (alias: max_cycles)
+
+Visit {
+   interval = 1.e-4
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   norderp = 2
+
+   epsilon_anisotropy = 0.04 //delta
+
+   Interface {
+      sigma = 0.1  // pJ/um^2 = J/m^2
+      delta = 0.025 // um
+   }
+
+   phi_mobility = 10301.8
+
+   Temperature{
+      type = "scalar"
+      temperature = 915.
+   }
+
+   ConcentrationModel {
+      model = "calphad"
+      antitrapping = TRUE
+      rhs_form = "ebs"
+      Calphad {
+//         filename ="calphadAlCuLFcc.json"
+         filename = "calphadAlCuLFccTheta.json"
+      }
+      molar_volume = 1.095e-5
+
+      diffusion_type = "temperature_dependent"
+      D_solid  =  3.e-1 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+   }
+
+   phi_interp_func_type ="pbg"
+   conc_interp_func_type = "l"
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+InitialConditions {
+   filename = "160x160.nc"  // required
+   init_q   = 1., 0.
+}
+
+ScalarDiagnostics {
+   interval = 1.e-4
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 160, 160  // required
+   x_lo         = 0.,  0.  // lower end of computational domain.
+   x_up         = 4.0, 4.0 // upper end of computational domain.
+}
