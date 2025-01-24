@@ -43,12 +43,6 @@ class CALPHADFreeEnergyStrategyBinary : public FreeEnergyStrategyBinary
    virtual void setup(boost::property_tree::ptree calphad_db,
                       std::shared_ptr<tbox::Database> newton_db);
 
-   void computeDrivingForce(const double time, hier::Patch& patch,
-                            const int temperature_id, const int phase_id,
-                            const int conc_id, const int f_l_id,
-                            const int f_a_id, const int f_b_id,
-                            const int rhs_id);
-
    void preRunDiagnostics(const double temperature)
    {
       d_calphad_fenergy->preRunDiagnostics(temperature);

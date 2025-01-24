@@ -44,12 +44,6 @@ class ParabolicFreeEnergyBinary : public FreeEnergyStrategyBinary
           "ParabolicFreeEnergyBinary::preRunDiagnostics() not implemented!");
    }
 
-   void computeDrivingForce(const double time, hier::Patch& patch,
-                            const int temperature_id, const int phase_id,
-                            const int conc_id, const int f_l_id,
-                            const int f_a_id, const int f_b_id,
-                            const int rhs_id);
-
    bool computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
                     const Thermo4PFM::PhaseIndex pi1, double* ceq);
 

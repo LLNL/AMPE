@@ -15,10 +15,6 @@
 #include "Database2JSON.h"
 
 #include "SAMRAI/tbox/InputManager.h"
-#include "SAMRAI/pdat/CellData.h"
-#include "SAMRAI/pdat/SideData.h"
-#include "SAMRAI/hier/Index.h"
-#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 using namespace SAMRAI;
 namespace pt = boost::property_tree;
@@ -96,26 +92,6 @@ void CALPHADFreeEnergyBinaryMultiOrder::addDrivingForce(
                                                d_conc_l_id, d_conc_a_id, f_l_id,
                                                f_a_id, rhs_id);
 }
-
-//=======================================================================
-
-void CALPHADFreeEnergyBinaryMultiOrder::computeDrivingForce(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
-    const int f_b_id, const int rhs_id)
-{
-   Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type_saved(
-       d_energy_interp_func_type);
-   // use linear interpolation function to get driving force
-   // without polynomial of phi factor
-   d_energy_interp_func_type = Thermo4PFM::EnergyInterpolationType::LINEAR,
-
-   FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
-                                           phase_id, conc_id, f_l_id, f_a_id,
-                                           f_b_id, rhs_id);
-
-   d_energy_interp_func_type = d_energy_interp_func_type_saved;
-};
 
 //=======================================================================
 
