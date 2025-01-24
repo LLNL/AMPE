@@ -4,13 +4,12 @@
 //
 model_type = "KWCcomplex"
 
-end_time = 2.e-2  // required
-max_timesteps = 1500  // optional, default is INT_MAX (alias: max_cycles)
+end_time = 2.e-4  // required
+max_timesteps = 800  // optional, default is INT_MAX (alias: max_cycles)
 
 Visit {
-   interval = 100
-   interval_type = "step"
-   extra_output          = TRUE
+   interval = 2.e-5
+   interval_type = "time"
 }
 
 TimerManager {
@@ -22,32 +21,31 @@ ModelParameters {  // required block
 
    norderp = 2
 
-   epsilon_anisotropy = 0.03 //delta
+   epsilon_anisotropy = 0.04 //delta
 
    Interface {
-      sigma = 0.8  // pJ/um^2 = J/m^2
-      delta = 0.064 // um
+      sigma = 0.1  // pJ/um^2 = J/m^2
+      delta = 0.0125 // um
    }
 
    phi_mobility = 10301.8
 
    Temperature{
       type = "scalar"
-      temperature = 915.
+      temperature = 912.
    }
 
    ConcentrationModel {
       model = "calphad"
-//      antitrapping = TRUE
       rhs_form = "ebs"
+      antitrapping = TRUE
       Calphad {
-//         filename ="calphadAlCuLFcc.json"
          filename = "calphadAlCuLFccTheta.json"
       }
       molar_volume = 1.095e-5
 
       diffusion_type = "temperature_dependent"
-      D_solid  =  3.e-1 //um**2/s
+      D_solid  =  3. //um**2/s
       D_liquid  = 3.e3  //um**2/s
    }
 
@@ -77,12 +75,12 @@ ModelParameters {  // required block
 }
 
 InitialConditions {
-   filename = "160x160.nc"  // required
+   filename = "80x80.nc"  // required
    init_q   = 1., 0.
 }
 
 ScalarDiagnostics {
-   interval = 1.e-4
+   interval = 2.e-5
    interval_type = "time"
 }   
 
@@ -92,7 +90,7 @@ Integrator {
 
 Geometry{
    periodic_dimension = 0, 0
-   coarsest_level_resolution = 160, 160  // required
+   coarsest_level_resolution = 80, 80  // required
    x_lo         = 0., 0. // lower end of computational domain.
-   x_up         = 10.0, 10.0 // upper end of computational domain.
+   x_up         = 1.0, 1.0 // upper end of computational domain.
 }
