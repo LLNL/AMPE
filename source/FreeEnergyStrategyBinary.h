@@ -83,6 +83,12 @@ class FreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
    virtual double computeMuL(const double t, const double c) = 0;
    // virtual double computeMuB(const double t, const double c) = 0;
 
+   void computeDrivingForce(const double time, hier::Patch& patch,
+                            const int temperature_id, const int phase_id,
+                            const int conc_id, const int f_l_id,
+                            const int f_a_id, const int f_b_id,
+                            const int rhs_id);
+
  protected:
    Thermo4PFM::EnergyInterpolationType d_energy_interp_func_type;
    Thermo4PFM::ConcInterpolationType d_conc_interp_func_type;

@@ -1,0 +1,102 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time = 4.e-5  // required
+max_timesteps = 250  // optional, default is INT_MAX (alias: max_cycles)
+
+Visit {
+   interval = 1.e-5
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   norderp = 2
+
+   epsilon_anisotropy = 0.04 //delta
+
+   Interface {
+      sigma = 0.1  // pJ/um^2 = J/m^2
+      delta = 0.0125 // um
+   }
+
+   phi_mobility = 10301.8
+
+   Temperature{
+      type = "scalar"
+      temperature = 912.
+   }
+
+   ConcentrationModel {
+      model = "calphad"
+      rhs_form = "ebs"
+      antitrapping = TRUE
+      Calphad {
+         filename = "calphadAlCuLFccTheta.json"
+      }
+      molar_volume = 1.095e-5
+
+      diffusion_type = "temperature_dependent"
+      D_solid  =  3. //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+   }
+
+   phi_interp_func_type ="pbg"
+   conc_interp_func_type = "l"
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+InitialConditions {
+   filename = "40x40x40.nc"  // required
+   init_q   = 1., 0., 0., 0.
+}
+
+ScalarDiagnostics {
+   interval = 1.e-5
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 40, 40, 40  // required
+   x_lo         = 0.,  0.,  0.  // lower end of computational domain.
+   x_up         = 0.5, 0.5, 0.5 // upper end of computational domain.
+}

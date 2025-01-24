@@ -16,7 +16,7 @@
 #include "CALPHADFunctions.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
-#include "CALPHADFreeEnergyStrategyWithPenalty.h"
+#include "CALPHADFreeEnergyBinaryMultiOrder.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.h"
@@ -103,14 +103,11 @@ class FreeEnergyStrategyFactory
                      }
                   } else {
                      free_energy_strategy.reset(
-                         new CALPHADFreeEnergyBinaryMultiOrderThreePhases<
-                             Thermo4PFM::
-                                 CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+                         new CALPHADFreeEnergyBinaryMultiOrder(
                              calphad_pt, newton_db,
+                             model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
-                             model_parameters.norderpA(), mvstrategy,
-                             conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id));
+                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id));
                   }
                } else {
                   // check if sublattice parameters are in CALPHAD database

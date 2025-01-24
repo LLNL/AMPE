@@ -376,6 +376,13 @@ add_test(NAME AlCuParabolicMultiOrder
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/AlCuParabolicMultiOrder/${NDIM}d.input
          )
+add_test(NAME AlCuCalphadMultiOrder
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCuCalphadMultiOrder/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/AlCuCalphadMultiOrder/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
+         )
 add_test(NAME DiluteCuNi
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DiluteCuNi/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
@@ -512,7 +519,7 @@ add_test(NAME 3Ph2Sl
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/${NDIM}d.input
-         ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl
+         ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME 2Ph1Sl
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/test${NDIM}d.py
