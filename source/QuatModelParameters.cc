@@ -866,6 +866,10 @@ void QuatModelParameters::readModelParameters(
    tbox::plog << "norderp_B = " << d_norderp_B << std::endl;
    tbox::plog << "norderp = " << d_norderp << std::endl;
 
+   if (d_norderp > 1) {
+      readOrientations(model_db);
+   }
+
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
 
@@ -1255,4 +1259,18 @@ double QuatModelParameters::quatMobilityScaleFactor() const
    }
 
    return tbox::IEEE::getSignalingNaN();
+}
+
+void QuatModelParameters::readOrientations(
+    std::shared_ptr<tbox::Database> model_db)
+{
+   std::shared_ptr<tbox::Database> db(model_db->getDatabase("Orientations"));
+
+   for (int i = 0; i < d_norderp_A + d_norderp_B; i++) {
+      double quat[4];
+      std::string name = "quat" + std::to_string(i);
+      db->getDoubleArray(name, &quat[0], 4);
+      std::array<double, 4> qa{quat[0], quat[1], quat[2], quat[3]};
+      d_orientations.push_back(qa);
+   }
 }

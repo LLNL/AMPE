@@ -151,6 +151,92 @@ c
       end
       
 c***********************************************************************
+      subroutine anisotropic_flux(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   h, epsilon, nu, knumber,
+     &   phase, ngphase,
+     &   quat, qlen,
+     &   flux0, flux1, ngflux)
+
+      implicit none
+      integer ifirst0, ilast0, ifirst1, ilast1,
+     &     ngphase, ngq, qlen, ngflux, knumber
+      double precision
+     &     phase(CELL2d(ifirst,ilast,ngphase)),
+     &     quat(qlen),
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux)),
+     &     nu, h(2)
+
+c     local variables
+      integer i, j
+      double precision dxinv, dyinv, epsilon
+      double precision theta, phi
+      double precision pi, q
+      double precision epsilon2, dphidx, dphidy
+      double precision epstheta, depsdtheta
+c
+      pi = 4.d0*atan(1.d0)
+c
+      epsilon2 = epsilon * epsilon
+
+      dxinv = 1.d0 / h(1)
+      dyinv = 1.d0 / h(2)
+
+      q=quat(1)
+      if( qlen==4 )then
+         phi=2.d0*acos(q)
+      else
+         phi=acos(q)
+      endif
+
+c x faces
+      do j = ifirst1, ilast1
+         do i = ifirst0, ilast0+1
+            dphidx = (phase(i,j) - phase(i-1,j)) * dxinv
+            dphidy = 0.25d0*(phase(i-1,j+1) - phase(i-1,j-1)
+     &                   + phase(i  ,j+1) - phase(i  ,j-1))
+     &                   * dyinv
+            if( abs(dphidx)>1.e-12 )then
+               theta=atan(dphidy/dphidx)
+            else
+               theta=0.5d0*pi
+            endif
+
+            epstheta=epsilon*(1.d0+nu*cos(knumber*(theta-phi)))
+            depsdtheta=-knumber*epsilon*nu*sin(knumber*(theta-phi))
+
+            flux0(i,j) = epstheta*epstheta*dphidx
+     &                 - epstheta*depsdtheta*dphidy
+         enddo
+      enddo
+
+c y faces
+      do j = ifirst1, ilast1+1
+         do i = ifirst0, ilast0
+            dphidx = 0.25*(phase(i+1,j-1) - phase(i-1,j-1)
+     &                   + phase(i+1,j  ) - phase(i-1,j  ))
+     &                   * dxinv
+            dphidy = (phase(i,j) - phase(i,j-1)) * dyinv
+
+            if( abs(dphidx)>1.e-12 )then
+               theta=atan(dphidy/dphidx)
+            else
+               theta=0.5*pi
+            endif
+
+            epstheta=epsilon*(1.+nu*cos(knumber*(theta-phi)))
+            depsdtheta=-knumber*epsilon*nu*sin(knumber*(theta-phi))
+
+            flux1(i,j) = epstheta*epstheta*dphidy
+     &                 + epstheta*depsdtheta*dphidx
+         enddo
+      enddo
+
+      return
+      end
+
+c***********************************************************************
       subroutine anisotropic_gradient_flux(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   h, epsilon, nu, knumber,

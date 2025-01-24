@@ -4,6 +4,7 @@
 #include "PhaseFluxStrategyAnisotropy.h"
 #include "PhaseFluxStrategyIsotropic.h"
 #include "PhaseFluxStrategySimple.h"
+#include "PhaseFluxStrategyAnisotropyMultiOrder.h"
 
 class PhaseFluxStrategyFactory
 {
@@ -35,8 +36,15 @@ class PhaseFluxStrategyFactory
       if (epsilon_anisotropy >= 0.) {
          if (!model_parameters.with_orientation())
             TBOX_ERROR("Phase anisotropy requires quaternion orientation");
-         phase_flux_strategy.reset(
-             new PhaseFluxStrategyAnisotropy(epsilon, epsilon_anisotropy, 4));
+         if (model_parameters.norientations() > 0) {
+            phase_flux_strategy.reset(new PhaseFluxStrategyAnisotropyMultiOrder(
+                epsilon, epsilon_anisotropy, 4,
+                model_parameters.orientations()));
+         } else {
+            phase_flux_strategy.reset(
+                new PhaseFluxStrategyAnisotropy(epsilon, epsilon_anisotropy,
+                                                4));
+         }
       } else if (model_parameters.useIsotropicStencil()) {
          phase_flux_strategy.reset(new PhaseFluxStrategyIsotropic(epsilon));
       } else {
