@@ -24,7 +24,7 @@ MultiOrderRHSStrategy::MultiOrderRHSStrategy(
     const int conc_scratch_id, const int quat_scratch_id,
     const int temperature_scratch_id, const int f_l_id, const int f_a_id,
     const int f_b_id, const int phase_mobility_id, const int flux_id,
-    CVODESolver* sundials_solver,
+    const int phase_rhs_visit_id, CVODESolver* sundials_solver,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
@@ -39,6 +39,7 @@ MultiOrderRHSStrategy::MultiOrderRHSStrategy(
       d_f_b_id(f_b_id),
       d_phase_mobility_id(phase_mobility_id),
       d_flux_id(flux_id),
+      d_phase_rhs_visit_id(phase_rhs_visit_id),
       d_sundials_solver(sundials_solver),
       d_free_energy_strategy(free_energy_strategy),
       d_grid_geometry(grid_geom),
@@ -239,12 +240,19 @@ void MultiOrderRHSStrategy::evaluateRHS(const double time,
    assert(!std::isnan(l2rhs));
 #endif
 
+   if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
+      std::shared_ptr<pdat::CellData<double> > phase_rhs_visit(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(d_phase_rhs_visit_id)));
+      assert(phase_rhs_visit);
+      mathops.copyData(phase_rhs_visit, phase_rhs, pbox);
+   }
+
+   // multiply by mobility
    std::shared_ptr<pdat::CellData<double> > phase_mobility(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(d_phase_mobility_id)));
    assert(phase_mobility);
-
-   // multiply by mobility
    assert(phase_mobility->getDepth() == 1);
    const hier::IntVector src_shift(pbox.getDim(), 0);
    MultiplyOperation<double> multop;
