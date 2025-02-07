@@ -285,6 +285,7 @@ class FreeEnergyStrategyFactory
                 model_parameters.latent_heat(), Tref));
       } else {  // no composition, no heat equation
          if (model_parameters.free_energy_type()[0] == 's') {
+            tbox::plog << "PhaseFreeEnergyStrategy..." << std::endl;
             free_energy_strategy.reset(new PhaseFreeEnergyStrategy(
                 model_parameters.energy_interp_func_type(),
                 model_parameters.free_energy_liquid(),

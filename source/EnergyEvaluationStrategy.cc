@@ -15,14 +15,14 @@
 void EnergyEvaluationStrategy::evaluateEnergy(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
     double& total_energy, double& total_phase_e, double& total_orient_e,
-    double& total_qint_e, double& total_well_e, double& total_free_e,
+    double& total_qint_e, double& total_well_e, double& total_bulk_e,
     const bool gp)
 {
    total_energy = 0.;
    total_phase_e = 0.;
    total_orient_e = 0.;
    total_qint_e = 0.;
-   total_free_e = 0.;
+   total_bulk_e = 0.;
    total_well_e = 0.;
 
    const int maxln = hierarchy->getFinestLevelNumber();
@@ -37,7 +37,7 @@ void EnergyEvaluationStrategy::evaluateEnergy(
 
          evaluateEnergy(patch, time, total_energy, total_phase_e,
                         total_orient_e, total_qint_e, total_well_e,
-                        total_free_e, gp);
+                        total_bulk_e, gp);
       }
    }
 
@@ -46,7 +46,7 @@ void EnergyEvaluationStrategy::evaluateEnergy(
    total_orient_e = sumReduction(total_orient_e);
    total_qint_e = sumReduction(total_qint_e);
    total_well_e = sumReduction(total_well_e);
-   total_free_e = sumReduction(total_free_e);
+   total_bulk_e = sumReduction(total_bulk_e);
 
    math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
 

@@ -2208,24 +2208,23 @@ bool QuatModel::resetGrains(void)
    tbox::pout << "Old number of grains: " << old_number_of_grains << std::endl;
    tbox::pout << "New number of grains: " << d_number_of_grains << std::endl;
 
-   double total_energy, phase_energy;
+   double total_energy, interface_energy;
    double well_energy, free_energy, eta_energy;
    double original_orient_energy;
    double original_qint_energy;
 
-   evaluateEnergy(d_patch_hierarchy, d_time, total_energy, phase_energy,
+   evaluateEnergy(d_patch_hierarchy, d_time, total_energy, interface_energy,
                   eta_energy, original_orient_energy, original_qint_energy,
                   well_energy, free_energy);
 
    if (d_extra_energy_detail) {
       tbox::pout << std::setprecision(8);
-      tbox::pout << "  Total energy     = " << total_energy << std::endl;
-      tbox::pout << "    phi energy     = " << phase_energy << std::endl;
-      tbox::pout << "    orient energy  = " << original_orient_energy
+      tbox::pout << "  Total energy      = " << total_energy << std::endl;
+      tbox::pout << "  interface energy  = " << interface_energy << std::endl;
+      tbox::pout << "    orient energy   = " << original_orient_energy
                  << std::endl;
       tbox::pout << "    qint energy    = " << original_qint_energy
                  << std::endl;
-      tbox::pout << "    well energy    = " << well_energy << std::endl;
       tbox::pout << "    free energy    = " << free_energy << std::endl;
       if (d_model_parameters.with_third_phase()) {
          tbox::pout << "    eta energy     = " << eta_energy << std::endl;
@@ -2246,7 +2245,7 @@ bool QuatModel::resetGrains(void)
    double qint_energy = 10.e6;
    for (int it = 0; it < 10; it++) {
       smoothQuat(d_patch_hierarchy, d_time);
-      evaluateEnergy(d_patch_hierarchy, d_time, total_energy, phase_energy,
+      evaluateEnergy(d_patch_hierarchy, d_time, total_energy, interface_energy,
                      eta_energy, orient_energy, qint_energy, well_energy,
                      free_energy);
 
@@ -2276,7 +2275,7 @@ bool QuatModel::resetGrains(void)
 
       // diagnostics
       cellops.copyData(d_quat_id, d_quat_relax_id, false);
-      evaluateEnergy(d_patch_hierarchy, d_time, total_energy, phase_energy,
+      evaluateEnergy(d_patch_hierarchy, d_time, total_energy, interface_energy,
                      eta_energy, orient_energy, qint_energy, well_energy,
                      free_energy);
 
@@ -2293,7 +2292,7 @@ bool QuatModel::resetGrains(void)
                  << std::endl;
 
       const double tol = 0.1;
-      if (dqe < tol * phase_energy * dt &&
+      if (dqe < tol * interface_energy * dt &&
           qint_energy < original_qint_energy + tol) {
          tbox::pout << "Quaternions converged after " << it << " iterations..."
                     << std::endl;
@@ -2305,12 +2304,11 @@ bool QuatModel::resetGrains(void)
 
    if (d_extra_energy_detail) {
       tbox::pout << std::setprecision(8);
-      tbox::pout << "  Total energy     = " << total_energy << std::endl;
-      tbox::pout << "    phi energy     = " << phase_energy << std::endl;
-      tbox::pout << "    orient energy  = " << orient_energy << std::endl;
-      tbox::pout << "    qint energy    = " << qint_energy << std::endl;
-      tbox::pout << "    well energy    = " << well_energy << std::endl;
-      tbox::pout << "    free energy    = " << free_energy << std::endl;
+      tbox::pout << "  Total energy      = " << total_energy << std::endl;
+      tbox::pout << "  interface energy  = " << interface_energy << std::endl;
+      tbox::pout << "    orient energy   = " << orient_energy << std::endl;
+      tbox::pout << "    qint energy     = " << qint_energy << std::endl;
+      tbox::pout << "    free energy     = " << free_energy << std::endl;
       if (d_model_parameters.with_third_phase()) {
          tbox::pout << "    eta energy     = " << eta_energy << std::endl;
       }
@@ -2559,12 +2557,12 @@ void QuatModel::writeRestartFile(void) { PFModel::writeRestartFile(); }
 
 void QuatModel::printScalarDiagnostics(void)
 {
-   double total_energy, phase_energy, orient_energy, qint_energy;
-   double well_energy, free_energy, eta_energy;
+   double total_energy, interface_energy, orient_energy, qint_energy;
+   double well_energy, bulk_energy, eta_energy;
 
-   evaluateEnergy(d_patch_hierarchy, d_time, total_energy, phase_energy,
+   evaluateEnergy(d_patch_hierarchy, d_time, total_energy, interface_energy,
                   eta_energy, orient_energy, qint_energy, well_energy,
-                  free_energy, d_model_parameters.grand_potential());
+                  bulk_energy, d_model_parameters.grand_potential());
 
    if (d_model_parameters.with_heat_equation()) {
       double thermal_energy = computeThermalEnergy(d_patch_hierarchy);
@@ -2577,12 +2575,12 @@ void QuatModel::printScalarDiagnostics(void)
 
    if (d_extra_energy_detail) {
       tbox::pout << std::setprecision(8);
-      tbox::pout << "  Total energy [pJ]    = " << total_energy << std::endl;
-      tbox::pout << "    phi energy [pJ]    = " << phase_energy << std::endl;
-      tbox::pout << "    orient energy [pJ] = " << orient_energy << std::endl;
-      tbox::pout << "    qint energy [pJ]   = " << qint_energy << std::endl;
-      tbox::pout << "    well energy [pJ]   = " << well_energy << std::endl;
-      tbox::pout << "    free energy [pJ]   = " << free_energy << std::endl;
+      tbox::pout << "  Total energy [pJ]     = " << total_energy << std::endl;
+      tbox::pout << "  interface energy [pJ] = " << interface_energy
+                 << std::endl;
+      tbox::pout << "    orient energy [pJ]  = " << orient_energy << std::endl;
+      tbox::pout << "    qint energy [pJ]    = " << qint_energy << std::endl;
+      tbox::pout << "    bulk energy [pJ]    = " << bulk_energy << std::endl;
       if (d_model_parameters.grand_potential()) {
          tbox::pout << "  GP [pJ] = " << total_energy << std::endl;
       }
@@ -4901,20 +4899,20 @@ void QuatModel::zeroOutLowerLevelWeights(
 
 void QuatModel::evaluateEnergy(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
-    double& total_energy, double& total_phase_e, double& total_eta_e,
+    double& total_energy, double& total_interface_e, double& total_eta_e,
     double& total_orient_e, double& total_qint_e, double& total_well_e,
-    double& total_free_e, const bool gp)
+    double& total_bulk_e, const bool gp)
 {
    assert(d_weight_id != -1);
    if (d_model_parameters.with_visit_energy_output())
       assert(d_energy_diag_id != -1);
 
    total_energy = 0.;
-   total_phase_e = 0.;
+   total_interface_e = 0.;
    total_eta_e = 0.;
    total_orient_e = 0.;
    total_qint_e = 0.;
-   total_free_e = 0.;
+   total_bulk_e = 0.;
    total_well_e = 0.;
 
    copyCurrentToScratch(hierarchy, time, d_all_refine_patch_strategy);
@@ -4968,9 +4966,9 @@ void QuatModel::evaluateEnergy(
    if (!d_model_parameters.with_three_phases() &&
        d_model_parameters.with_phase())
       d_energy_eval_strategy->evaluateEnergy(hierarchy, time, total_energy,
-                                             total_phase_e, total_orient_e,
+                                             total_interface_e, total_orient_e,
                                              total_qint_e, total_well_e,
-                                             total_free_e, gp);
+                                             total_bulk_e, gp);
 
    if (d_model_parameters.withRBmotion()) {
       d_multiorderp_energy->evaluatePairEnergy(hierarchy);
