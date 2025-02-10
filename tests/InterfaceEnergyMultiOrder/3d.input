@@ -1,0 +1,70 @@
+end_time            = 0.6
+max_timesteps       = 200
+
+Visit {
+   interval = 10
+   interval_type = "step"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+
+   norderp = 2
+   
+   temperature        = 873. // [K]
+   
+   Interface{
+      sigma = 1.
+      delta = 0.05 // for good resolution of interface
+   }
+
+   PhaseMobility{
+      value = 1.
+   }
+
+   phi_interp_func_type ="pbg"
+   
+   FreeEnergyModel{
+      type = "scalar"
+      free_energy_liquid = 0.1
+      free_energy_solid  = 0.
+   }
+
+   molar_volume = 1.e-6
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 10
+   interval_type = "step"
+   extra_energy_detail = TRUE
+}   
+
+Integrator {
+   atol = 3.e-5
+}
+
+InitialConditions {
+   filename = "test.nc"
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 32, 32, 32
+   x_lo         = 0.0, 0.0, 0.0
+   x_up         = 1.6, 1.6, 1.6
+}
