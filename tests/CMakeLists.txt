@@ -316,6 +316,12 @@ add_test(NAME InterfaceEnergy
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceEnergy/${NDIM}d.input
          )
+add_test(NAME InterfaceEnergyMultiOrder
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceEnergyMultiOrder/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/InterfaceEnergyMultiOrder/${NDIM}d.input
+         )
 add_test(NAME ChenShen98MultiOrderP
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98MultiOrderP/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
