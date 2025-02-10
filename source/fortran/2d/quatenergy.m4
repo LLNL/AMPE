@@ -189,10 +189,9 @@ c
      &   phi_well_scale,
      &   weight,
      &   total_energy,
-     &   total_phi_e,
+     &   total_interface_e,
      &   total_orient_e,
      &   total_qint_e,
-     &   total_well_e,
      &   energy,
      &   eval_per_cell,
      &   phi_interp_type,
@@ -233,8 +232,8 @@ c
       double precision epsilon_phi, epsilon_q
       double precision epsilonq2
       double precision total_energy, e, o2
-      double precision total_phi_e, phi_e, total_orient_e
-      double precision total_qint_e, total_well_e
+      double precision total_interface_e, phi_e, total_orient_e
+      double precision total_qint_e
       double precision p_phi
       double precision dx(NDIM), dx2inv, dy2inv
 
@@ -268,7 +267,7 @@ c
      &      epsilon_phi, weight, phi_e, energy, eval_per_cell)
       endif
 
-      total_phi_e = total_phi_e + phi_e
+      total_interface_e = total_interface_e + phi_e
       total_energy = total_energy + phi_e
 
 c
@@ -375,7 +374,6 @@ c                 factor 0.25 because of cell average and double counting
 c
 c double well energy
 c
-      total_well_e = 0.d0
       do p = 1, nphases
          do j = lo1, hi1
             do i = lo0, hi0
@@ -390,7 +388,7 @@ c
                e = e * weight(i,j)
 
                total_energy = total_energy + e
-               total_well_e = total_well_e + e
+               total_interface_e = total_interface_e + e
             enddo
          enddo
       enddo
@@ -407,7 +405,7 @@ c
      &   fl, fa,
      &   weight,
      &   total_energy,
-     &   total_free_e,
+     &   bulk_energy,
      &   energy, eval_per_cell,
      &   phi_interp_type
      &   )
@@ -418,7 +416,7 @@ c
      &   lo0, hi0, lo1, hi1, pghosts
       integer eval_per_cell
       character*(*) phi_interp_type
-      double precision total_energy, total_free_e
+      double precision total_energy, bulk_energy
 
       double precision phi(CELL2d(lo,hi,pghosts))
 
@@ -431,8 +429,6 @@ c
       integer i, j
       double precision interp_func
 
-      total_free_e = 0.d0
-
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -441,8 +437,7 @@ c
 
             h_phi = interp_func( phi(i,j), phi_interp_type )
 
-            e =
-     &         ( 1.0d0 - h_phi ) * f_l + h_phi * f_a
+            e = ( 1.0d0 - h_phi ) * f_l + h_phi * f_a
 
             if ( eval_per_cell /= 0 ) then
                energy(i,j) = energy(i,j) + e
@@ -450,7 +445,7 @@ c
             e = e * weight(i,j)
 
             total_energy = total_energy + e
-            total_free_e = total_free_e + e
+            bulk_energy = bulk_energy + e
          enddo
       enddo
 

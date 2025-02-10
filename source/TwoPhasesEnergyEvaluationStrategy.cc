@@ -40,8 +40,8 @@ TwoPhasesEnergyEvaluationStrategy::TwoPhasesEnergyEvaluationStrategy(
 
 void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
     std::shared_ptr<hier::Patch> patch, const double time, double& total_energy,
-    double& total_phase_e, double& total_orient_e, double& total_qint_e,
-    double& total_well_e, double& total_free_e, const bool gp)
+    double& total_interface_e, double& total_orient_e, double& total_qint_e,
+    double& total_well_e, double& bulk_energy, const bool gp)
 {
    std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
@@ -158,8 +158,8 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
               2. * d_model_parameters.H_parameter(), temperature->getPointer(),
               temperature->getGhostCellWidth()[0],
               d_model_parameters.phase_well_scale(), weight->getPointer(),
-              total_energy, total_phase_e, total_orient_e, total_qint_e,
-              total_well_e, ptr_energy, per_cell, &interpf,
+              total_energy, total_interface_e, total_orient_e, total_qint_e,
+              ptr_energy, per_cell, &interpf,
               d_model_parameters.phase_well_func_type().c_str(),
               d_model_parameters.orient_interp_func_type1().c_str(),
               d_model_parameters.orient_interp_func_type2().c_str(),
@@ -173,5 +173,5 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
 #endif
               phase->getPointer(), phase->getGhostCellWidth()[0],
               fl->getPointer(), fa->getPointer(), weight->getPointer(),
-              total_energy, total_free_e, ptr_energy, per_cell, &interpf);
+              total_energy, bulk_energy, ptr_energy, per_cell, &interpf);
 }
