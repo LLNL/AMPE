@@ -7,6 +7,8 @@ rm cmake_install.cmake
 rm Makefile
 rm -f ../source/fortran/2d/*.f
 
+export PKG_CONFIG_PATH=/home/q8j/custom_pkgconfig
+
 cmake -DCMAKE_CXX_COMPILER=mpiCC \
       -DCMAKE_C_COMPILER=mpicc \
       -DCMAKE_Fortran_COMPILER=mpif77 \
@@ -22,5 +24,7 @@ cmake -DCMAKE_CXX_COMPILER=mpiCC \
       -DTHERMO4PFM_DIR=$HOME/Thermo4PFM \
       -DCMAKE_INSTALL_PREFIX=$HOME \
       -DUSE_PYTHON_ENV=$HOME/my_netcdf_env \
+      -DMPIEXEC_EXECUTABLE=/usr/bin/srun \
+      -DMPIEXEC_NUMPROC_FLAG="-n" \
       ..
 
