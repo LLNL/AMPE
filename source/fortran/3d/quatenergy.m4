@@ -300,12 +300,6 @@ c
       dy2inv = 1.d0 / dx(2)**2
       dz2inv = 1.d0 / dx(3)**2
 c
-      if ( floor_type(1:1) .eq. 's' )then
-         floor2 = gradient_floor*gradient_floor
-      else
-         floor2 = 0.d0
-      endif
-c
 c phi interface energy
 c
       if ( anisotropy .gt. 0.d0 )then
@@ -328,6 +322,11 @@ c
 c Orientational energy: average over 2 cell faces in each direction
 c
       if ( misorientation_factor .gt. 0.d0 ) then
+         if ( floor_type(1:1) .eq. 's' )then
+            floor2 = gradient_floor*gradient_floor
+         else
+            floor2 = 0.d0
+         endif
          total_orient_e = 0.d0
          do k = lo2, hi2
             do j = lo1, hi1
