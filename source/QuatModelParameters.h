@@ -24,6 +24,7 @@
 #include <string>
 #include <map>
 #include <cmath>
+#include <array>
 
 using namespace SAMRAI;
 
