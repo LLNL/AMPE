@@ -247,7 +247,7 @@ void MultiOrderBinaryThreePhasesDrivingForce::addDrivingForce(
                 2. * ptr_phi[norderp - 1][idx_pf] *
                 ((1. - hphil) * dfl - hphiA * dfa - hphiB * dfb) * sum2inv;
             for (short i = 0; i < norderp; i++)
-               assert(!std::isnan(rhs[i]));
+               assert(!std::isnan(rhs_local[i]));
 
             for (short i = 0; i < norderp; i++)
                ptr_rhs[i][idx_rhs] -= (rhs_local[i]);
