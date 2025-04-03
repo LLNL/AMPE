@@ -233,7 +233,8 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
       assert(phi->getDepth() == d_norderp);
 
       {
-         //tbox::plog<<"d_with_phaseB, d_with3phases = "<<int(d_with3phases)<<std::endl;
+         // tbox::plog<<"d_with_phaseB, d_with3phases =
+         // "<<int(d_with3phases)<<std::endl;
          // Folch-Plapp three phases model assumes order phiL, phiA, phiB
          double* phiL = d_folchplapp_model ? phi->getPointer(0)
                                            : phi->getPointer(d_norderp - 1);

@@ -218,15 +218,16 @@ class FreeEnergyStrategyFactory
                           model_parameters.molar_volume_solid_B(),
                           conc_l_scratch_id, conc_a_scratch_id,
                           conc_b_scratch_id));
-               }else{
-                  tbox::plog << "ParabolicFreeEnergyMultiOrderBinary" << std::endl;
+               } else {
+                  tbox::plog << "ParabolicFreeEnergyMultiOrderBinary"
+                             << std::endl;
                   free_energy_strategy.reset(
                       new ParabolicFreeEnergyMultiOrderBinary(
                           model_parameters.energy_interp_func_type(),
                           model_parameters.conc_interp_func_type(), mvstrategy,
                           conc_l_scratch_id, conc_a_scratch_id, conc_db));
                }
-            }else{
+            } else {
                tbox::plog << "ParabolicFreeEnergyBinary" << std::endl;
                free_energy_strategy.reset(new ParabolicFreeEnergyBinary(
                    model_parameters.energy_interp_func_type(),
