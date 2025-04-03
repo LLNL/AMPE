@@ -14,7 +14,11 @@ datadir = sys.argv[6]
 data = "sphere.csv"
 src = datadir+'/'+data
 print("Create symlink {}".format(src))
-os.symlink(src, data)
+try:
+  os.symlink(src, data)
+except FileExistsError:
+  os.remove(data)
+  os.symlink(src, data)
 
 #prepare initial conditions file
 initfilename="512x4x4.nc"
