@@ -27,19 +27,19 @@ using namespace SAMRAI;
 
 CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB::
     CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB(
-        const int norderp_A, boost::property_tree::ptree calphad_db,
+        const int norderp_A, boost::property_tree::ptree calphad_pt,
         std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
     : CALPHADFreeEnergyBinaryMultiOrderThreePhases<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-          calphad_db, newton_db, conc_interp_func_type, norderp_A, mvstrategy,
+          calphad_pt, newton_db, conc_interp_func_type, norderp_A, mvstrategy,
           conc_l_id, conc_a_id, conc_b_id)
 {
    tbox::plog << "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB..."
               << std::endl;
-   setup(calphad_db, newton_db);
+   setup(calphad_pt, newton_db);
 }
 
 //=======================================================================
