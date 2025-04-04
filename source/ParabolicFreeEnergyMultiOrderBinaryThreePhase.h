@@ -12,20 +12,29 @@
 #define included_ParabolicFreeEnergyMultiOrderBinaryThreePhase
 
 #include "ParabolicFreeEnergyFunctionsBinaryThreePhase.h"
-#include "FreeEnergyStrategyThreePhase.h"
+#include "FreeEnergyStrategyBinary.h"
+#include "MolarVolumeStrategy.h"
 
 class ParabolicFreeEnergyMultiOrderBinaryThreePhase
-    : public FreeEnergyStrategyThreePhase
+    : public FreeEnergyStrategyBinary
 {
  public:
    ParabolicFreeEnergyMultiOrderBinaryThreePhase(
-       std::shared_ptr<tbox::Database> input_db,
+       const short norderp_A,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-       const short norderp_A, const double vml, const double vma,
-       const double vmb, const int conc_l_id, const int conc_a_id,
-       const int conc_b_id);
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+       MolarVolumeStrategy* mvstrategy, const int conc_l_id,
+       const int conc_a_id, const int conc_b_id,
+       std::shared_ptr<tbox::Database> conc_db);
 
    ~ParabolicFreeEnergyMultiOrderBinaryThreePhase();
+
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int conc_id, const int f_l_id, const int f_a_id,
+                        const int f_b_id, const int rhs_id) override;
+
+   void preRunDiagnostics(const double temperature){};
 
  private:
    //
@@ -33,18 +42,26 @@ class ParabolicFreeEnergyMultiOrderBinaryThreePhase
    //
    const short d_norderp_A;
 
+   MolarVolumeStrategy* d_mv_strategy;
+
    std::shared_ptr<Thermo4PFM::ParabolicFreeEnergyFunctionsBinaryThreePhase>
        d_parabolic_fenergy;
 
    void computeSecondDerivativeEnergyPhaseL(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true);
    void computeSecondDerivativeEnergyPhaseA(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true);
    void computeSecondDerivativeEnergyPhaseB(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+
+   double computeFreeEnergy(const double temperature, double* c_i,
+                            const Thermo4PFM::PhaseIndex pi, const bool gp);
+
+   double computeDerivFreeEnergy(const double temperature, double* c_i,
+                                 const Thermo4PFM::PhaseIndex pi);
 
    double computeMuL(const double t, const double c);
    double computeMuA(const double t, const double c);
@@ -59,14 +76,13 @@ class ParabolicFreeEnergyMultiOrderBinaryThreePhase
        std::shared_ptr<pdat::CellData<double> > cd_f_b,
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b,
-       const hier::Box& pbox) override;
+       std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor) override;
+       Thermo4PFM::PhaseIndex pi, const double energy_factor);
 };
 
 #endif
