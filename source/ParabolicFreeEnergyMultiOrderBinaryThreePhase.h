@@ -12,61 +12,63 @@
 #define included_ParabolicFreeEnergyMultiOrderBinaryThreePhase
 
 #include "ParabolicFreeEnergyFunctionsBinaryThreePhase.h"
-#include "FreeEnergyStrategyThreePhase.h"
+#include "FreeEnergyStrategyBinary.h"
+#include "MolarVolumeStrategy.h"
+#include "MultiOrderBinaryThreePhasesDrivingForce.h"
 
 class ParabolicFreeEnergyMultiOrderBinaryThreePhase
-    : public FreeEnergyStrategyThreePhase
+    : public FreeEnergyStrategyBinary
 {
  public:
    ParabolicFreeEnergyMultiOrderBinaryThreePhase(
        std::shared_ptr<tbox::Database> input_db,
-       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-       const short norderp_A, const double vml, const double vma,
-       const double vmb, const int conc_l_id, const int conc_a_id,
-       const int conc_b_id);
+       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
+       const short norderp_A, MolarVolumeStrategy* mvstrategy,
+       const int conc_l_id, const int conc_a_id, const int conc_b_id);
 
    ~ParabolicFreeEnergyMultiOrderBinaryThreePhase();
 
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int conc_id, const int f_l_id, const int f_a_id,
+                        const int f_b_id, const int rhs_id) override;
+
+   void preRunDiagnostics(const double temperature){};
+
+   bool computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
+                    const Thermo4PFM::PhaseIndex pi1, double* ceq);
+
+ protected:
+   double computeFreeEnergy(const double temperature, double* c_i,
+                            const Thermo4PFM::PhaseIndex pi,
+                            const bool gp) override;
+
+   double computeDerivFreeEnergy(const double temperature, double* c_i,
+                                 const Thermo4PFM::PhaseIndex pi) override;
+
  private:
-   //
-   // number of order parameters associated with phase A
-   //
-   const short d_norderp_A;
+   MolarVolumeStrategy* d_mv_strategy;
 
    std::shared_ptr<Thermo4PFM::ParabolicFreeEnergyFunctionsBinaryThreePhase>
        d_parabolic_fenergy;
 
+   std::shared_ptr<MultiOrderBinaryThreePhasesDrivingForce>
+       d_multiorder_driving_force;
+
    void computeSecondDerivativeEnergyPhaseL(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temp, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units) override;
    void computeSecondDerivativeEnergyPhaseA(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
-   void computeSecondDerivativeEnergyPhaseB(
-       const std::vector<double>& c, std::vector<double>& d2fdc2,
-       const bool use_internal_units) override;
+       const double temp, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units) override;
+   void computeSecondDerivativeEnergyPhaseB(const double temp,
+                                            const std::vector<double>& c,
+                                            std::vector<double>& d2fdc2,
+                                            const bool use_internal_units);
 
    double computeMuL(const double t, const double c);
    double computeMuA(const double t, const double c);
    double computeMuB(const double t, const double c);
-
-   void addDrivingForceOnPatch(
-       std::shared_ptr<pdat::CellData<double> > cd_rhs,
-       std::shared_ptr<pdat::CellData<double> > cd_temperature,
-       std::shared_ptr<pdat::CellData<double> > cd_phi,
-       std::shared_ptr<pdat::CellData<double> > cd_f_l,
-       std::shared_ptr<pdat::CellData<double> > cd_f_a,
-       std::shared_ptr<pdat::CellData<double> > cd_f_b,
-       std::shared_ptr<pdat::CellData<double> > cd_c_l,
-       std::shared_ptr<pdat::CellData<double> > cd_c_a,
-       std::shared_ptr<pdat::CellData<double> > cd_c_b,
-       const hier::Box& pbox) override;
-
-   void computeFreeEnergy(
-       const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
-       Thermo4PFM::PhaseIndex pi, const double energy_factor) override;
 };
 
 #endif
