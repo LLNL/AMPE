@@ -23,20 +23,17 @@ using namespace SAMRAI;
 
 ParabolicFreeEnergyMultiOrderBinaryThreePhase::
     ParabolicFreeEnergyMultiOrderBinaryThreePhase(
-        const short norderp_A,
+        std::shared_ptr<tbox::Database> input_db,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
-        const int conc_a_id, const int conc_b_id,
-        std::shared_ptr<tbox::Database> conc_db)
-    : FreeEnergyStrategyBinary(energy_interp_func_type, conc_interp_func_type,
-                               conc_l_id, conc_a_id, conc_b_id, false),
-      d_norderp_A(norderp_A),
-      d_mv_strategy(mvstrategy)
+        const short norderp_A, const double vml, const double vma,
+        const double vmb, const int conc_l_id, const int conc_a_id,
+        const int conc_b_id)
+    : FreeEnergyStrategyThreePhase(input_db, vml, vma, vmb, conc_l_id,
+                                   conc_a_id, conc_b_id),
+      d_norderp_A(norderp_A)
 {
    tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhase..."
               << std::endl;
-   std::shared_ptr<tbox::Database> input_db = conc_db->getDatabase("Parabolic");
 
    double coeffL[3][2];
    std::shared_ptr<tbox::Database> liquid_db = input_db->getDatabase("Liquid");
@@ -85,26 +82,6 @@ ParabolicFreeEnergyMultiOrderBinaryThreePhase::
 
 ParabolicFreeEnergyMultiOrderBinaryThreePhase::
     ~ParabolicFreeEnergyMultiOrderBinaryThreePhase(){};
-
-//=======================================================================
-
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeFreeEnergy(
-    const double temperature, double* c_i, const Thermo4PFM::PhaseIndex pi,
-    const bool gp)
-{
-   double f = d_parabolic_fenergy->computeFreeEnergy(temperature, c_i, pi);
-   return f * d_mv_strategy->computeInvMolarVolume(temperature, c_i, pi);
-}
-
-//=======================================================================
-
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeDerivFreeEnergy(
-    const double temperature, double* c_i, const Thermo4PFM::PhaseIndex pi)
-{
-   double deriv;
-   d_parabolic_fenergy->computeDerivFreeEnergy(temperature, c_i, pi, &deriv);
-   return deriv * d_mv_strategy->computeInvMolarVolume(temperature, c_i, pi);
-}
 
 //=======================================================================
 
@@ -188,16 +165,6 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeFreeEnergy(
          }
       }
    }
-}
-
-//=======================================================================
-
-void ParabolicFreeEnergyMultiOrderBinaryThreePhase::addDrivingForce(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
-    const int f_b_id, const int rhs_id)
-{
-   ...
 }
 
 //=======================================================================
@@ -406,55 +373,49 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::addDrivingForceOnPatch(
 //=======================================================================
 
 double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuL(
-    const double t, const double cl)
+    const double t, const double c0)
 {
-   double conc = cl;
-   double deriv;
-   d_parabolic_fenergy->computeDerivFreeEnergy(t, &conc,
+   double c = c0;
+   double mu;
+   d_parabolic_fenergy->computeDerivFreeEnergy(t, &c,
                                                Thermo4PFM::PhaseIndex::phaseL,
-                                               &deriv);
-
-   return deriv *
-          d_mv_strategy->computeInvMolarVolume(t, &conc,
-                                               Thermo4PFM::PhaseIndex::phaseL);
+                                               &mu);
+   mu *= d_energy_conv_factor_L;
+   return mu;
 }
 
 //=======================================================================
 
 double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuA(
-    const double t, const double ca)
+    const double t, const double c0)
 {
-   double conc = ca;
-   double deriv;
-   d_parabolic_fenergy->computeDerivFreeEnergy(t, &conc,
+   double c = c0;
+   double mu;
+   d_parabolic_fenergy->computeDerivFreeEnergy(t, &c,
                                                Thermo4PFM::PhaseIndex::phaseA,
-                                               &deriv);
-   return deriv *
-          d_mv_strategy->computeInvMolarVolume(t, &conc,
-                                               Thermo4PFM::PhaseIndex::phaseA);
+                                               &mu);
+   mu *= d_energy_conv_factor_A;
+   return mu;
 }
 
 //=======================================================================
 
 double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuB(
-    const double t, const double cb)
+    const double t, const double c0)
 {
-   double conc = cb;
-   double deriv;
-   d_parabolic_fenergy->computeDerivFreeEnergy(t, &conc,
+   double c = c0;
+   double mu;
+   d_parabolic_fenergy->computeDerivFreeEnergy(t, &c,
                                                Thermo4PFM::PhaseIndex::phaseB,
-                                               &deriv);
-
-   return deriv *
-          d_mv_strategy->computeInvMolarVolume(t, &conc,
-                                               Thermo4PFM::PhaseIndex::phaseB);
+                                               &mu);
+   mu *= d_energy_conv_factor_B;
+   return mu;
 }
 
 //=======================================================================
 
 void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
-    computeSecondDerivativeEnergyPhaseL(const double temperature,
-                                        const std::vector<double>& c_l,
+    computeSecondDerivativeEnergyPhaseL(const std::vector<double>& c_l,
                                         std::vector<double>& d2fdc2,
                                         const bool use_internal_units)
 {
@@ -462,15 +423,13 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
        0., &c_l[0], Thermo4PFM::PhaseIndex::phaseL, &d2fdc2[0]);
    if (use_internal_units)
       for (short i = 0; i < 3; i++)
-         d2fdc2[i] *= d_mv_strategy->computeInvMolarVolume(
-             temperature, &c_l[0], Thermo4PFM::PhaseIndex::phaseL);
+         d2fdc2[i] *= d_energy_conv_factor_L;
 }
 
 //=======================================================================
 
 void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
-    computeSecondDerivativeEnergyPhaseA(const double temperature,
-                                        const std::vector<double>& c_a,
+    computeSecondDerivativeEnergyPhaseA(const std::vector<double>& c_a,
                                         std::vector<double>& d2fdc2,
                                         const bool use_internal_units)
 {
@@ -478,15 +437,13 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
        0., &c_a[0], Thermo4PFM::PhaseIndex::phaseA, &d2fdc2[0]);
    if (use_internal_units)
       for (short i = 0; i < 3; i++)
-         d2fdc2[i] *= d_mv_strategy->computeInvMolarVolume(
-             temperature, &c_a[0], Thermo4PFM::PhaseIndex::phaseA);
+         d2fdc2[i] *= d_energy_conv_factor_A;
 }
 
 //=======================================================================
 
 void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
-    computeSecondDerivativeEnergyPhaseB(const double temperature,
-                                        const std::vector<double>& c_b,
+    computeSecondDerivativeEnergyPhaseB(const std::vector<double>& c_b,
                                         std::vector<double>& d2fdc2,
                                         const bool use_internal_units)
 {
@@ -494,6 +451,5 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
        0., &c_b[0], Thermo4PFM::PhaseIndex::phaseB, &d2fdc2[0]);
    if (use_internal_units)
       for (short i = 0; i < 3; i++)
-         d2fdc2[i] *= d_mv_strategy->computeInvMolarVolume(
-             temperature, &c_b[0], Thermo4PFM::PhaseIndex::phaseB);
+         d2fdc2[i] *= d_energy_conv_factor_B;
 }

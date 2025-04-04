@@ -210,11 +210,14 @@ class FreeEnergyStrategyFactory
                              << std::endl;
                   free_energy_strategy.reset(
                       new ParabolicFreeEnergyMultiOrderBinaryThreePhase(
-                          model_parameters.norderpA(),
+                          conc_db->getDatabase("Parabolic"),
                           model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(), mvstrategy,
+                          model_parameters.norderpA(),
+                          model_parameters.molar_volume_liquid(),
+                          model_parameters.molar_volume_solid_A(),
+                          model_parameters.molar_volume_solid_B(),
                           conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id, conc_db));
+                          conc_b_scratch_id));
                } else {
                   tbox::plog << "ParabolicFreeEnergyMultiOrderBinary"
                              << std::endl;
