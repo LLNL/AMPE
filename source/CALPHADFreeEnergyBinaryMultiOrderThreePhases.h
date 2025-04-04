@@ -11,12 +11,13 @@
 #ifndef included_CALPHADFreeEnergyBinaryMultiOrderThreePhases
 #define included_CALPHADFreeEnergyBinaryMultiOrderThreePhases
 
-#include "CALPHADFreeEnergyStrategyBinary.h"
+#include "FreeEnergyStrategyBinary.h"
+#include "MultiOrderBinaryThreePhasesDrivingForce.h"
+#include "MolarVolumeStrategy.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/hier/Box.h"
-class MolarVolumeStrategy;
 
 #include <string>
 #include <vector>
@@ -24,32 +25,59 @@ class MolarVolumeStrategy;
 
 template <class FreeEnergyFunctionType>
 class CALPHADFreeEnergyBinaryMultiOrderThreePhases
-    : public CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>
+    : public FreeEnergyStrategyBinary
 {
  public:
    CALPHADFreeEnergyBinaryMultiOrderThreePhases(
-       boost::property_tree::ptree calphad_db,
+       boost::property_tree::ptree calphad_pt,
        std::shared_ptr<tbox::Database> newton_db,
        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
-       const short _norderp_A, MolarVolumeStrategy* mvstrategy,
+       const short norderp_A, MolarVolumeStrategy* mvstrategy,
        const int conc_l_id, const int conc_a_id, const int conc_b_id);
 
    ~CALPHADFreeEnergyBinaryMultiOrderThreePhases(){};
 
-   void addDrivingForce(std::shared_ptr<pdat::CellData<double> > cd_rhs,
-                        std::shared_ptr<pdat::CellData<double> > cd_temperature,
-                        std::shared_ptr<pdat::CellData<double> > cd_phi,
-                        std::shared_ptr<pdat::CellData<double> > cd_f_l,
-                        std::shared_ptr<pdat::CellData<double> > cd_f_a,
-                        std::shared_ptr<pdat::CellData<double> > cd_f_b,
-                        std::shared_ptr<pdat::CellData<double> > cd_c_l,
-                        std::shared_ptr<pdat::CellData<double> > cd_c_a,
-                        std::shared_ptr<pdat::CellData<double> > cd_c_b,
-                        const hier::Box& pbox) override;
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int conc_id, const int f_l_id, const int f_a_id,
+                        const int f_b_id, const int rhs_id) override;
+
+   void preRunDiagnostics(const double temperature)
+   {
+      d_calphad_fenergy->preRunDiagnostics(temperature);
+   }
+
+   bool computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
+                    const Thermo4PFM::PhaseIndex pi1, double* ceq);
+
+ protected:
+   void computeSecondDerivativeEnergyPhaseL(
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+   void computeSecondDerivativeEnergyPhaseA(
+       const double temperature, const std::vector<double>& c,
+       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+
+   double computeFreeEnergy(const double temperature, double* c_i,
+                            const Thermo4PFM::PhaseIndex pi,
+                            const bool gp) override;
+
+   double computeDerivFreeEnergy(const double temperature, double* c_i,
+                                 const Thermo4PFM::PhaseIndex pi) override;
+
+   double computeMuA(const double t, const double c);
+   double computeMuL(const double t, const double c);
 
  private:
-   // number of order parameters associated with phase A
-   const short d_norderp_A;
+   MolarVolumeStrategy* d_mv_strategy;
+
+   std::shared_ptr<FreeEnergyFunctionType> d_calphad_fenergy;
+
+   std::shared_ptr<MultiOrderBinaryThreePhasesDrivingForce>
+       d_multiorder_driving_force;
+
+   void setup(boost::property_tree::ptree calphad_db,
+              std::shared_ptr<tbox::Database> newton_db);
 };
 
 #endif
