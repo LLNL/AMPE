@@ -519,6 +519,12 @@ add_test(NAME FolchPlappCALPHAD
          ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD
          )
+add_test(NAME ParabolicMultiOrderThreePhases
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ParabolicMultiOrderThreePhases/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ParabolicMultiOrderThreePhases/test/${NDIM}d.input
+         )
 add_test(NAME FolchPlappDiffusion
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappDiffusion/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
