@@ -8,8 +8,7 @@ print("Test AlCu parabolic multi-order three phases...")
 #prepare initial conditions file
 initfilename="160x160.nc"
 subprocess.call(["python3", "../../tests/ThreePhasesCALPHAD/make_initial.py",
-  "--nx", "160", "--ny", "160", "--nz", "1", "-r", "15",
-  "--center0", "0, 0, 0",
+  "--nx", "160", "--ny", "160", "--nz", "1", "--solid-fraction", "0.5",
   "--concL", "0.18", "--concA", "0.02", "--concB", "0.33",
   initfilename])
 
