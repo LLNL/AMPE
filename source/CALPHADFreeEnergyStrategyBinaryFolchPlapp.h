@@ -8,8 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_CALPHADFreeEnergyStrategyBinaryThreePhase
-#define included_CALPHADFreeEnergyStrategyBinaryThreePhase
+#ifndef included_CALPHADFreeEnergyStrategyBinaryFolchPlapp
+#define included_CALPHADFreeEnergyStrategyBinaryFolchPlapp
 
 #include "ConcFreeEnergyStrategy.h"
 #include "InterpolationType.h"
@@ -24,10 +24,10 @@ class MolarVolumeStrategy;
 #include <boost/property_tree/ptree.hpp>
 
 template <class FreeEnergyFunctionType>
-class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
+class CALPHADFreeEnergyStrategyBinaryFolchPlapp : public ConcFreeEnergyStrategy
 {
  public:
-   CALPHADFreeEnergyStrategyBinaryThreePhase(
+   CALPHADFreeEnergyStrategyBinaryFolchPlapp(
        boost::property_tree::ptree calphad_db,
        std::shared_ptr<tbox::Database> newton_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
@@ -35,7 +35,7 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
        const int conc_a_id, const int conc_b_id);
 
-   virtual ~CALPHADFreeEnergyStrategyBinaryThreePhase(){};
+   virtual ~CALPHADFreeEnergyStrategyBinaryFolchPlapp(){};
 
    void setup(boost::property_tree::ptree calphad_db,
               std::shared_ptr<tbox::Database> newton_db);

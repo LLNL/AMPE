@@ -28,7 +28,7 @@ class PhaseFluxStrategyFactory
          // if multi order parameters, divide d_epsilon_phase by sqrt(2.)
          // to compensate for double counting
          if (model_parameters.norderp() > 1 &&
-             !model_parameters.with_three_phases())
+             !model_parameters.use_FolchPlapp())
             epsilon /= sqrt(2.);
       }
 

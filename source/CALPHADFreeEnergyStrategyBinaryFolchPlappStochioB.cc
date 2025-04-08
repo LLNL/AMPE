@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
+#include "CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include "Database2JSON.h"
@@ -25,15 +25,15 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::
-    CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB(
+CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB::
+    CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB(
         boost::property_tree::ptree calphad_db,
         std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
-    : CALPHADFreeEnergyStrategyBinaryThreePhase<
+    : CALPHADFreeEnergyStrategyBinaryFolchPlapp<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
           calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
           mvstrategy, conc_l_id, conc_a_id, conc_b_id)
@@ -43,7 +43,7 @@ CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::setup(
+void CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB::setup(
     pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db)
 {
    pt::ptree newton_pt;
@@ -56,11 +56,11 @@ void CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::setup(
 }
 
 
-bool CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::computeCeqT(
+bool CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB::computeCeqT(
     const double temperature, const Thermo4PFM::PhaseIndex pi0,
     const Thermo4PFM::PhaseIndex pi1, double* ceq)
 {
-   std::cout << "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB::"
+   std::cout << "CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB::"
                 "computeCeqT..."
              << std::endl;
    return d_ceq_fenergy->computeCeqT(temperature, &ceq[0], 50, true);

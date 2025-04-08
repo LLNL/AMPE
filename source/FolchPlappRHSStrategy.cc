@@ -7,7 +7,7 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 
-#include "ThreePhasesRHSStrategy.h"
+#include "FolchPlappRHSStrategy.h"
 #include "UniformNoise.h"
 #include "QuatFort.h"
 #include "ArrayOperation.h"
@@ -20,7 +20,7 @@
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/ArrayDataOperationUtilities.h"
 
-ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
+FolchPlappRHSStrategy::FolchPlappRHSStrategy(
     const QuatModelParameters& model_parameters, const int phase_scratch_id,
     const int conc_scratch_id, const int temperature_scratch_id,
     const int f_l_id, const int f_a_id, const int f_b_id,
@@ -62,10 +62,10 @@ ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_phase_rhs_timer =
-       tman->getTimer("AMPE::ThreePhasesRHSStrategy::evaluatePhaseRHS()");
+       tman->getTimer("AMPE::FolchPlappRHSStrategy::evaluatePhaseRHS()");
 }
 
-void ThreePhasesRHSStrategy::setup(
+void FolchPlappRHSStrategy::setup(
     std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    d_patch_hierarchy = hierarchy;
@@ -82,7 +82,7 @@ void ThreePhasesRHSStrategy::setup(
    }
 }
 
-void ThreePhasesRHSStrategy::evaluateRHS(
+void FolchPlappRHSStrategy::evaluateRHS(
     const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int ydot_phase_id, const bool eval_flag)
 {
@@ -143,10 +143,10 @@ void ThreePhasesRHSStrategy::evaluateRHS(
    t_phase_rhs_timer->stop();
 };
 
-void ThreePhasesRHSStrategy::evaluateRHS(const double time,
-                                         std::shared_ptr<hier::Patch> patch,
-                                         const int ydot_phase_id,
-                                         const bool eval_flag)
+void FolchPlappRHSStrategy::evaluateRHS(const double time,
+                                        std::shared_ptr<hier::Patch> patch,
+                                        const int ydot_phase_id,
+                                        const bool eval_flag)
 {
    math::PatchCellDataOpsReal<double> mathops;
 
@@ -261,8 +261,8 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
    }
 }
 
-void ThreePhasesRHSStrategy::projectPhases(const int phase_id,
-                                           const int corr_id, const int err_id)
+void FolchPlappRHSStrategy::projectPhases(const int phase_id, const int corr_id,
+                                          const int err_id)
 {
    std::shared_ptr<hier::PatchLevel> level =
        d_patch_hierarchy->getPatchLevel(0);

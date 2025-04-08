@@ -54,7 +54,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingMoelans2011.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/SimpleTemperatureRHSStrategy.cc
-            ${CMAKE_SOURCE_DIR}/source/ThreePhasesRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/FolchPlappRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/MultiOrderRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/MovingFrameRHS.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseRHSStrategyWithQ.cc
@@ -87,8 +87,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/QuadraticEquilibriumPhaseConcentrationsBinary.cc
             ${CMAKE_SOURCE_DIR}/source/ParabolicEquilibriumPhaseConcentrationsBinary.cc
             ${CMAKE_SOURCE_DIR}/source/ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder.cc
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhase.cc
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryFolchPlapp.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.cc
             ${CMAKE_SOURCE_DIR}/source/tools.cc

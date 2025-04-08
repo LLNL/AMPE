@@ -6,7 +6,7 @@ import os
 print("Test Binary3Ph2Sl...")
 
 #prepare initial conditions file
-subprocess.call(["python3", "../../tests/ThreePhasesCALPHAD/make_initial.py", "-d", "2",
+subprocess.call(["python3", "../../tests/FolchPlappCALPHAD/make_initial.py", "-d", "2",
   "-x", "32", "-y", "32", "-z", "8", "--solid-fraction", "0.5",
   "--concL", "0.82", "--concA", "0.97", "--concB", "0.68",
   "test.nc"])

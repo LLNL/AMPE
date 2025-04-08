@@ -6,7 +6,7 @@ import os
 print("Test Restart...")
 
 #prepare initial conditions file
-subprocess.call(["python3", "../../tests/ThreePhases/make_initial.py", "-d", "2",
+subprocess.call(["python3", "../../tests/FolchPlapp/make_initial.py", "-d", "2",
   "-x", "32", "-y", "32", "-z", "1", "--solid-fraction", "0.5",
   "test.nc"])
 

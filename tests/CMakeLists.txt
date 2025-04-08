@@ -506,25 +506,25 @@ add_test(NAME FeNbNiOrder4
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
-add_test(NAME ThreePhases
-         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
+add_test(NAME FolchPlapp
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlapp/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlapp/${NDIM}d.input
          )
-add_test(NAME ThreePhasesCALPHAD
-         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
+add_test(NAME FolchPlappCALPHAD
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
+         ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD
          )
-add_test(NAME ThreePhasesDiffusion
-         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/test${NDIM}d.py
+add_test(NAME FolchPlappDiffusion
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappDiffusion/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/${NDIM}d.input
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
+         ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappDiffusion/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD
          )
 add_test(NAME 3Ph2Sl
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py
@@ -551,7 +551,7 @@ add_test(NAME RestartConc
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/${NDIM}d.input
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
+         ${CMAKE_CURRENT_SOURCE_DIR}/FolchPlappCALPHAD
          )
 add_test(NAME DumpNetCDF
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py

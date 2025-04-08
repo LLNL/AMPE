@@ -88,7 +88,7 @@ class QuatModelParameters
    bool withPhaseB() const { return (d_norderp_B > 0); }
    bool withMultipleOrderP() const
    {
-      return ((d_norderp > 1) and !d_with_three_phases);
+      return ((d_norderp > 1) and !d_FolchPlapp);
    }
 
    double H_parameter() const { return d_H_parameter; }
@@ -254,7 +254,7 @@ class QuatModelParameters
    bool with_phase() const { return d_with_phase; }
    bool with_concentration() const { return d_with_concentration; }
    bool with_third_phase() const { return d_with_third_phase; }
-   bool with_three_phases() const { return d_with_three_phases; }
+   bool use_FolchPlapp() const { return d_FolchPlapp; }
    bool with_heat_equation() const { return d_with_heat_equation; }
    bool with_unsteady_heat_equation() const
    {
@@ -724,7 +724,7 @@ class QuatModelParameters
    bool d_with_phase;
    bool d_with_concentration;
    bool d_with_third_phase;
-   bool d_with_three_phases;
+   bool d_FolchPlapp;
    bool d_with_heat_equation;
    bool d_with_steady_temperature;
    bool d_with_gradT;

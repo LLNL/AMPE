@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
+#include "CALPHADFreeEnergyStrategyBinaryFolchPlapp.h"
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "MolarVolumeStrategy.h"
@@ -30,8 +30,8 @@ using namespace SAMRAI;
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
-    CALPHADFreeEnergyStrategyBinaryThreePhase(
+CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
+    CALPHADFreeEnergyStrategyBinaryFolchPlapp(
         pt::ptree calphad_db, std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
@@ -51,7 +51,7 @@ CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "CALPHADFreeEnergyStrategyBinaryThreePhase:" << std::endl;
+   // tbox::plog << "CALPHADFreeEnergyStrategyBinaryFolchPlapp:" << std::endl;
    // tbox::plog << "Molar volume L =" << vml << std::endl;
    // tbox::plog << "Molar volume A =" << vma << std::endl;
    // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
@@ -62,10 +62,10 @@ CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::setup(
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::setup(
     pt::ptree calphad_pt, std::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::pout << "CALPHADFreeEnergyStrategyBinaryThreePhase<"
+   tbox::pout << "CALPHADFreeEnergyStrategyBinaryFolchPlapp<"
                  "FreeEnergyFunctionType>::setup()"
               << std::endl;
    // newton_db->printClassData(std::cout);
@@ -81,7 +81,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::setup(
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     FreeEnergyFunctionType>::computeFreeEnergy(hier::Patch& patch,
                                                const int temperature_id,
                                                const int f_id,
@@ -113,7 +113,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
                            const int df_id, const int conc_i_id,
                            const Thermo4PFM::PhaseIndex pi)
@@ -142,7 +142,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     computeFreeEnergy(const hier::Box& pbox,
                       std::shared_ptr<pdat::CellData<double> > cd_temp,
                       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -224,7 +224,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     computeDerivFreeEnergy(
         const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
         std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -306,7 +306,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     FreeEnergyFunctionType>::addDrivingForce(const double time,
                                              hier::Patch& patch,
                                              const int temperature_id,
@@ -385,7 +385,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     addDrivingForceOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_rhs,
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -563,7 +563,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-double CALPHADFreeEnergyStrategyBinaryThreePhase<
+double CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     FreeEnergyFunctionType>::computeMuA(const double t, const double c)
 {
    double mu;
@@ -579,7 +579,7 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-double CALPHADFreeEnergyStrategyBinaryThreePhase<
+double CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     FreeEnergyFunctionType>::computeMuL(const double t, const double c)
 {
    double mu;
@@ -595,7 +595,7 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-double CALPHADFreeEnergyStrategyBinaryThreePhase<
+double CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     FreeEnergyFunctionType>::computeMuB(const double t, const double c)
 {
    double mu;
@@ -611,7 +611,7 @@ double CALPHADFreeEnergyStrategyBinaryThreePhase<
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseL(const double temp,
                                                const std::vector<double>& c_l,
                                                std::vector<double>& d2fdc2,
@@ -629,7 +629,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 //=======================================================================
 
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseA(const double temp,
                                                const std::vector<double>& c_a,
                                                std::vector<double>& d2fdc2,
@@ -646,7 +646,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 
 //=======================================================================
 template <class FreeEnergyFunctionType>
-void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
+void CALPHADFreeEnergyStrategyBinaryFolchPlapp<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
                                                const std::vector<double>& c_b,
                                                std::vector<double>& d2fdc2,
@@ -661,7 +661,7 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
                                                Thermo4PFM::PhaseIndex::phaseB);
 }
 
-template class CALPHADFreeEnergyStrategyBinaryThreePhase<
+template class CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>;
-template class CALPHADFreeEnergyStrategyBinaryThreePhase<
+template class CALPHADFreeEnergyStrategyBinaryFolchPlapp<
     Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;

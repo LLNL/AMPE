@@ -3,27 +3,16 @@ import sys
 import subprocess
 import os
 
-print("Test ThreePhases...")
+print("Test FolchPlapp...")
 
 #prepare initial conditions file
-subprocess.call(["python3", "../../tests/ThreePhasesCALPHAD/make_initial.py", "-d", "2",
-  "-x", "32", "-y", "32", "-z", "16", "--solid-fraction", "0.5",
-  "--concL", "0.5309", "--concA", "0.7686", "--concB", "0.2314",
+subprocess.call(["python3", "../../tests/FolchPlapp/make_initial.py", "-d", "2",
+  "-x", "32", "-y", "32", "-z", "32", "--solid-fraction", "0.5",
   "test.nc"])
 
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe = sys.argv[4]
 inp = sys.argv[5]
-thermdatadir = sys.argv[6]
-
-#make symbolic link to calphad database
-calphad_data = "calphad3phases.json"
-src = thermdatadir+'/'+calphad_data
-try:
-  os.symlink(src, calphad_data)
-except FileExistsError:
-  os.remove(calphad_data)
-  os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
@@ -33,7 +22,7 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 os.remove("test.nc")
-os.unlink(calphad_data)
+mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 
 time = 0.
 f0=0.
@@ -60,18 +49,17 @@ for line in lines:
 
 #check phase fractions
 tol=0.01
-if abs(f0-0.51)>tol:
+if abs(f0-0.64)>tol:
   print("Final f0 = {} is incorrect".format(f0))
   sys.exit(1)
-if abs(f1-0.24)>tol:
+if abs(f1-0.18)>tol:
   print("Final f1 = {} is incorrect".format(f1))
   sys.exit(1)
-if abs(f2-0.24)>tol:
+if abs(f2-0.18)>tol:
   print("Final f2 = {} is incorrect".format(f2))
   sys.exit(1)
 
-#check target time is reached
-if time<140.:
+if time<240.:
   print("Final time not reached")
   sys.exit(1)
 

@@ -17,10 +17,10 @@
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyBinaryMultiOrder.h"
-#include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
+#include "CALPHADFreeEnergyStrategyBinaryFolchPlapp.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.h"
-#include "CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB.h"
+#include "CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB.h"
 #include "ParabolicFreeEnergyBinary.h"
 #include "ParabolicFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyBinary.h"
@@ -119,7 +119,7 @@ class FreeEnergyStrategyFactory
                                       "."
                                    << std::endl;
                         free_energy_strategy.reset(
-                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                            new CALPHADFreeEnergyStrategyBinaryFolchPlapp<
                                 Thermo4PFM::
                                     CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
                                 calphad_pt, newton_db,
@@ -134,7 +134,7 @@ class FreeEnergyStrategyFactory
                         if (model_parameters.getStochioB()) {
                            tbox::plog << "Stochio..." << std::endl;
                            free_energy_strategy.reset(
-                               new CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB(
+                               new CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB(
                                    calphad_pt, newton_db,
                                    model_parameters.energy_interp_func_type(),
                                    model_parameters.conc_interp_func_type(),
@@ -142,7 +142,7 @@ class FreeEnergyStrategyFactory
                                    conc_a_scratch_id, conc_b_scratch_id));
                         } else {
                            free_energy_strategy.reset(
-                               new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                               new CALPHADFreeEnergyStrategyBinaryFolchPlapp<
                                    Thermo4PFM::
                                        CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                                    calphad_pt, newton_db,

@@ -7,7 +7,7 @@ print("Test RestartConc...")
 
 #prepare initial conditions file
 initfilename = "test.nc"
-subprocess.call(["python3", "../../tests/ThreePhasesCALPHAD/make_initial.py", "-d", "2",
+subprocess.call(["python3", "../../tests/FolchPlappCALPHAD/make_initial.py", "-d", "2",
   "-x", "32", "-y", "32", "-z", "16", "--solid-fraction", "0.5",
   "--concL", "0.5309", "--concA", "0.7686", "--concB", "0.2314",
   initfilename])
