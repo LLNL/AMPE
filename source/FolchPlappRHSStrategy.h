@@ -7,8 +7,8 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-#ifndef included_ThreePhasesRHSStrategy
-#define included_ThreePhasesRHSStrategy
+#ifndef included_FolchPlappRHSStrategy
+#define included_FolchPlappRHSStrategy
 
 #include "PhaseRHSStrategy.h"
 #include "PhaseFluxStrategy.h"
@@ -24,10 +24,10 @@
 
 #include <string>
 
-class ThreePhasesRHSStrategy : public PhaseRHSStrategy
+class FolchPlappRHSStrategy : public PhaseRHSStrategy
 {
  public:
-   ThreePhasesRHSStrategy(
+   FolchPlappRHSStrategy(
        const QuatModelParameters& _model_parameters, const int phase_scratch_id,
        const int conc_scratch_id, const int temperature_scratch_id,
        const int f_l_id, const int f_a_id, const int f_b_id,

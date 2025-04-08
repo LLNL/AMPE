@@ -8,10 +8,10 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB
-#define included_CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB
+#ifndef included_CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB
+#define included_CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB
 
-#include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
+#include "CALPHADFreeEnergyStrategyBinaryFolchPlapp.h"
 #include "InterpolationType.h"
 
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
@@ -26,12 +26,12 @@ class MolarVolumeStrategy;
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 
-class CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB
-    : public CALPHADFreeEnergyStrategyBinaryThreePhase<
+class CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB
+    : public CALPHADFreeEnergyStrategyBinaryFolchPlapp<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinary3Ph2Sl>
 {
  public:
-   CALPHADFreeEnergyStrategyBinaryThreePhaseStochioB(
+   CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB(
        boost::property_tree::ptree calphad_db,
        std::shared_ptr<tbox::Database> newton_db,
        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,

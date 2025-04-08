@@ -51,12 +51,12 @@ class CompositionDiffusionStrategyFactory
          tbox::plog << "Uses temperature based composition diffusion"
                     << std::endl;
 
-         const bool three_phases_model = model_parameters.with_three_phases();
+         const bool folchplapp_model = model_parameters.use_FolchPlapp();
          const short norderpA = model_parameters.norderpA();
          const short norderpB = model_parameters.norderpB();
 
          strategy.reset(new TbasedCompositionDiffusionStrategy(
-             model_parameters.norderp(), norderpA, norderpB, three_phases_model,
+             model_parameters.norderp(), norderpA, norderpB, folchplapp_model,
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
              conc_pfm_diffusion_b_id, model_parameters.D_liquid(),
              model_parameters.Q0_liquid(), model_parameters.D_solid_A(),
@@ -89,12 +89,12 @@ class CompositionDiffusionStrategyFactory
       } else {
          tbox::plog << "Uses temperature based composition for scalar diffusion"
                     << std::endl;
-         const bool three_phases_model = model_parameters.with_three_phases();
+         const bool folchplapp_model = model_parameters.use_FolchPlapp();
          const short norderpA = model_parameters.norderpA();
          const short norderpB = model_parameters.norderpB();
 
          strategy.reset(new ScalarCompositionDiffusionStrategy(
-             model_parameters.norderp(), norderpA, norderpB, three_phases_model,
+             model_parameters.norderp(), norderpA, norderpB, folchplapp_model,
              conc_pfm_diffusion_id[0], model_parameters.D_liquid(),
              model_parameters.D_solid_A(), model_parameters.D_solid_B(),
              model_parameters.D0_LA(), model_parameters.D0_LB(),

@@ -615,7 +615,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
           d_model_parameters.isTemperatureConstant() ? d_temperature_id : -1;
       int qlen = (d_model_parameters.H_parameter() >= 0.) ? d_qlen : 0;
       int norderp_to_read =
-          d_model_parameters.with_three_phases()
+          d_model_parameters.use_FolchPlapp()
               ? 3
               : d_model_parameters.norderpA() + d_model_parameters.norderpB();
       initializer.registerFieldsIds(d_phase_id, d_eta_id, temperature_id,
@@ -831,7 +831,7 @@ void QuatModel::InitializeIntegrator(void)
           MobilityFactory::create(this, d_model_parameters, d_conc_l_id,
                                   d_conc_a_id, d_conc_b_id,
                                   d_temperature_scratch_id, d_ncompositions,
-                                  d_model_parameters.with_three_phases(),
+                                  d_model_parameters.use_FolchPlapp(),
                                   d_conc_db);
       d_integrator->setPhaseFluxStrategy(d_phase_flux_strategy);
    }
@@ -4963,8 +4963,7 @@ void QuatModel::evaluateEnergy(
       }
    }
 
-   if (!d_model_parameters.with_three_phases() &&
-       d_model_parameters.with_phase())
+   if (!d_model_parameters.use_FolchPlapp() && d_model_parameters.with_phase())
       d_energy_eval_strategy->evaluateEnergy(hierarchy, time, total_energy,
                                              total_interface_e, total_orient_e,
                                              total_qint_e, total_well_e,

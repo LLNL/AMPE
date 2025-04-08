@@ -3,10 +3,10 @@ import sys
 import subprocess
 import os
 
-print("Test ThreePhasesDiffusion...")
+print("Test FolchPlappDiffusion...")
 
 #prepare initial conditions file
-subprocess.call(["python3", "../../tests/ThreePhasesDiffusion/make_initial.py", "-d", "2",
+subprocess.call(["python3", "../../tests/FolchPlappDiffusion/make_initial.py", "-d", "2",
   "-x", "32", "-y", "32", "-z", "1",
   "--concB", "0.8",
   "test.nc"])

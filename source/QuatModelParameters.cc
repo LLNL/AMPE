@@ -124,7 +124,7 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
 
    d_with_phase = true;
    d_with_third_phase = false;
-   d_with_three_phases = false;
+   d_FolchPlapp = false;
    d_with_heat_equation = false;
    d_with_steady_temperature = false;
    d_with_gradT = false;
@@ -845,9 +845,9 @@ void QuatModelParameters::initializeEta(
 void QuatModelParameters::readModelParameters(
     std::shared_ptr<tbox::Database> model_db)
 {
-   d_with_three_phases = model_db->getBoolWithDefault("three_phases", false);
+   d_FolchPlapp = model_db->getBoolWithDefault("three_phases", false);
 
-   if (d_with_three_phases) {
+   if (d_FolchPlapp) {
       d_norderp_A = 1;
       d_norderp_B = 1;
       d_norderp = 3;
@@ -1230,7 +1230,7 @@ void QuatModelParameters::readFreeEnergies(
    if (d_free_energy_type[0] == 's') {
       d_free_energy_liquid = db->getDouble("free_energy_liquid");
 
-      if (!with_three_phases()) {
+      if (!d_FolchPlapp) {
          d_free_energy_solid_A = db->getDouble("free_energy_solid");
       } else {
          d_free_energy_solid_A = db->getDouble("free_energy_solid_A");

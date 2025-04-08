@@ -90,7 +90,7 @@ void FieldsWriter::writeInitialConditionsFile(
 
          NcFile* f;
          NcVar* nc_phase;
-         if (d_model_parameters.with_three_phases())
+         if (d_model_parameters.use_FolchPlapp())
             nc_phase = new NcVar[3];
          else
             nc_phase = new NcVar[1];
@@ -129,7 +129,7 @@ void FieldsWriter::writeInitialConditionsFile(
             NcDim* nc_nz = f->add_dim("z", nz_prob);
             f->add_dim("qlen", d_qlen);
 
-            if (d_model_parameters.with_three_phases()) {
+            if (d_model_parameters.use_FolchPlapp()) {
                nc_phase[0] = f->add_var("phase0", ncFloat, nc_nz, nc_ny, nc_nx);
                nc_phase[1] = f->add_var("phase1", ncFloat, nc_nz, nc_ny, nc_nx);
                nc_phase[2] = f->add_var("phase2", ncFloat, nc_nz, nc_ny, nc_nx);
@@ -173,7 +173,7 @@ void FieldsWriter::writeInitialConditionsFile(
             dims.push_back(nc_nz);
             dims.push_back(nc_ny);
             dims.push_back(nc_nx);
-            if (d_model_parameters.with_three_phases()) {
+            if (d_model_parameters.use_FolchPlapp()) {
                nc_phase[0] = f->addVar("phase0", ncFloat, dims);
                nc_phase[1] = f->addVar("phase1", ncFloat, dims);
                nc_phase[2] = f->addVar("phase2", ncFloat, dims);
@@ -251,7 +251,7 @@ void FieldsWriter::writeInitialConditionsFile(
 #endif
 #ifdef HAVE_NETCDF4
             // clog<<"add variables from PE >0..."<<endl;
-            if (d_model_parameters.with_three_phases()) {
+            if (d_model_parameters.use_FolchPlapp()) {
                nc_phase[0] = f->getVar("phase0");
                nc_phase[1] = f->getVar("phase1");
                nc_phase[2] = f->getVar("phase2");
@@ -397,7 +397,7 @@ void FieldsWriter::writeInitialConditionsFile(
             // std::cout<<"nx="<<countp[0]<<", ny="<<countp[1]<<",
             // nz="<<countp[2]<<endl;
             nc_phase[0].putVar(startp, countp, phase_data->getPointer(0));
-            if (d_model_parameters.with_three_phases()) {
+            if (d_model_parameters.use_FolchPlapp()) {
                nc_phase[1].putVar(startp, countp, phase_data->getPointer(1));
                nc_phase[2].putVar(startp, countp, phase_data->getPointer(2));
             }
