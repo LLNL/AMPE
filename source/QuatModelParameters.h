@@ -230,11 +230,23 @@ class QuatModelParameters
    double m_moelans2011() const { return 8. * d_phase_well_scale; }
 
    double molar_volume_liquid() const { return d_molar_volume_liquid; }
-   double molar_volume_solid_A() const { return d_molar_volume_solid_A; }
-   double molar_volume_solid_B() const { return d_molar_volume_solid_B; }
+   double molar_volume_solid_A() const
+   {
+      assert(d_molar_volume_solid_A > 0.);
+      return d_molar_volume_solid_A;
+   }
+   double molar_volume_solid_B() const
+   {
+      assert(d_molar_volume_solid_B > 0.);
+      return d_molar_volume_solid_B;
+   }
    double D_liquid() const { return d_D_liquid; }
    double D_solid_A() const { return d_D_solid_A; }
-   double D_solid_B() const { return d_D_solid_B; }
+   double D_solid_B() const
+   {
+      assert(!std::isnan(d_D_solid_B));
+      return d_D_solid_B;
+   }
    double D0_AA() const { return d_D0_AA; }
    double D0_AB() const { return d_D0_AB; }
    double D0_BB() const { return d_D0_BB; }

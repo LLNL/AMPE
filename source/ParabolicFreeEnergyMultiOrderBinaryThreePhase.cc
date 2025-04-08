@@ -35,6 +35,9 @@ ParabolicFreeEnergyMultiOrderBinaryThreePhase::
    tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhase..."
               << std::endl;
 
+   assert(norderp_A > 0);
+   assert(conc_b_id >= 0);
+
    double coeffL[3][2];
    std::shared_ptr<tbox::Database> liquid_db = input_db->getDatabase("Liquid");
    coeffL[0][0] = liquid_db->getDouble("a0");

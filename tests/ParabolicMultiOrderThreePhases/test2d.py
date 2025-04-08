@@ -3,13 +3,13 @@ import sys
 import subprocess
 import os
 
-print("Test AlCu parabolic multi-order three phases...")
+print("Test parabolic multi-order three phases...")
 
 #prepare initial conditions file
 initfilename="160x160.nc"
-subprocess.call(["python3", "../../tests/ThreePhasesCALPHAD/make_initial.py",
-  "--nx", "160", "--ny", "160", "--nz", "1", "--solid-fraction", "0.5",
-  "--concL", "0.18", "--concA", "0.02", "--concB", "0.33",
+subprocess.call(["python3", "../../tests/ParabolicMultiOrderThreePhases/make_initial.py",
+  "--nx", "160", "--ny", "160", "--nz", "1",
+  "--concL", "0.5", "--concB", "0.75", "--concA", "0.25",
   initfilename])
 
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]

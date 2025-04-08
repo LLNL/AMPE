@@ -290,6 +290,7 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       d_Q0_liquid = conc_db->getDoubleWithDefault("Q0_liquid", 0.);
 
       if (!withPhaseB()) {
+         tbox::plog << "No phase B to read..." << std::endl;
          if (conc_db->keyExists("D_solid_A"))
             d_D_solid_A = conc_db->getDouble("D_solid_A");
          else
@@ -299,6 +300,7 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
          else
             d_Q0_solid_A = conc_db->getDoubleWithDefault("Q0_solid", 0.);
       } else {
+         tbox::plog << "Read phases A and B coefficients..." << std::endl;
          d_D_solid_A = conc_db->getDouble("D_solid_A");
          d_D_solid_B = conc_db->getDouble("D_solid_B");
          // optional diffusion values

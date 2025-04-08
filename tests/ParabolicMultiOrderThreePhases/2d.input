@@ -5,15 +5,17 @@
 model_type = "KWCcomplex"
 
 end_time = 2.e-3  // required
-max_timesteps = 1500  // optional, default is INT_MAX (alias: max_cycles)
+max_timesteps = 15  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
    level = 1  // optional, default=1
 }
 
 Visit {
-   interval = 1.e-4
-   interval_type = "time"
+   interval = 1
+   interval_type = "step"
+   rhs_output = TRUE
+   extra_output = TRUE
 }
 
 TimerManager {
@@ -23,7 +25,8 @@ TimerManager {
 
 ModelParameters {  // required block
 
-   norderp = 2
+   norderp = 3
+   norderp_A = 1
 
    epsilon_anisotropy = 0.04 //delta
 
@@ -45,36 +48,35 @@ ModelParameters {  // required block
       molar_volume = 1.e-8
 
       diffusion_type = "temperature_dependent"
-      D_solid  =  3.e-1 //um**2/s
+      D_solid_A =  3.e-1 //um**2/s
+      D_solid_B =  3.e-1 //um**2/s
       D_liquid  = 3.e3  //um**2/s
-      Q0_solid  = 0.    // [J/mol]
-      Q0_liquid = 0.    // [J/mol]
       // Seiz, Kellner, Nestler, Acta Mat. 2023
       Parabolic{
         Tref = 0.
         Liquid{
-          a0 = -35.6146853049832
-          a1 = 42.8854523788036
-          b0 = -55.5927326956316
-          b1 = 5.58798699957717
-          c0 = 28.0856353479783
-          c1 = -58.6556405819619
-        }
-        PhaseA{
-          a0 = -256.749681408602
-          a1 = 295.470638158008
-          b0 = -53.2059366769688
-          b1 = 3.50006291739807
-          c0 = 27.1989367309695
-          c1 = -57.8679252617542
+          a0 = 1.
+          a1 = 0.
+          b0 = -1.
+          b1 = 0.
+          c0 = 0.25
+          c1 = 0.
         }
         PhaseB{
-          a0 = -508.59302709202
-          a1 = 588.235874656554
-          b0 = 96.9967951717378
-          b1 = -170.966734990672
-          c0 = 2.26062704892835
-          c1 = -28.9302389000246
+          a0 = 1.
+          a1 = 0.
+          b0 = -1.5
+          b1 = 0.
+          c0 = 0.5625
+          c1 = 0.
+        }
+        PhaseA{
+          a0 = 1.
+          a1 = 0.
+          b0 = -0.5
+          b1 = 0.
+          c0 = 0.0625
+          c1 = 0.
         }
       }
    }
@@ -110,8 +112,8 @@ InitialConditions {
 }
 
 ScalarDiagnostics {
-   interval = 1.e-4
-   interval_type = "time"
+   interval = 10
+   interval_type = "step"
 }   
 
 Integrator {
