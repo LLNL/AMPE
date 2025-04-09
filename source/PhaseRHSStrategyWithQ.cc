@@ -213,11 +213,11 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
       ptr_quat_grad_modulus = qgm->getPointer();
    }
 
-   int three_phase = 0;
+   int with_third_phase = 0;
    double* ptr_eta = nullptr;
    int ngeta = 0;
    if (d_eta_scratch_id >= 0) {
-      three_phase = 1;
+      with_third_phase = 1;
       std::shared_ptr<pdat::CellData<double> > eta(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_eta_scratch_id)));
@@ -260,7 +260,8 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
                  ptr_quat_grad_modulus, 0, phase_rhs->getPointer(), 0,
                  &well_func_type, &well_func_type, &interpf,
                  d_orient_interp_func_type1.c_str(),
-                 d_orient_interp_func_type2.c_str(), with_orient, three_phase);
+                 d_orient_interp_func_type2.c_str(), with_orient,
+                 with_third_phase);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2rhs = opc.L2Norm(phase_rhs, pbox);
