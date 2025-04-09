@@ -17,49 +17,45 @@
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 
 TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
-    const short norderp, const short norderpA, const short norderpB,
-    const bool with3phases, const int pfm_diffusion_l_id,
-    const int pfm_diffusion_a_id, const int pfm_diffusion_b_id,
-    const double D0_liquid, const double Q0_liquid, const double D0_solidA,
-    const double Q0_solidA, const double D0_solidB, const double Q0_solidB,
-    const double D0_LA, const double Q0_LA, const double D0_LB,
-    const double Q0_LB, const double D0_AA, const double Q0_AA,
-    const double D0_AB, const double Q0_AB, const double D0_BB,
-    const double Q0_BB, const DiffusionInterpolationType interp_func_type,
+    QuatModelParameters& model_parameters, const short norderp,
+    const short norderpA, const short norderpB, const bool folchplapp_model,
+    const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
+    const int pfm_diffusion_b_id,
+    const DiffusionInterpolationType interp_func_type,
     const std::string& avg_func_type)
     : CompositionDiffusionStrategy(interp_func_type),
       d_norderp(norderp),
       d_norderpA(norderpA),
       d_norderpB(norderpB),
-      d_with3phases(with3phases),
+      d_folchplapp_model(folchplapp_model),
       d_pfm_diffusion_l_id(pfm_diffusion_l_id),
       d_pfm_diffusion_a_id(pfm_diffusion_a_id),
       d_pfm_diffusion_b_id(pfm_diffusion_b_id),
-      d_D0_liquid(D0_liquid),
-      d_Q0_liquid(Q0_liquid),
-      d_D0_solidA(D0_solidA),
-      d_Q0_solidA(Q0_solidA),
-      d_D0_solidB(D0_solidB),
-      d_Q0_solidB(Q0_solidB),
-      d_d0_LA(D0_LA),
-      d_q0_LA(Q0_LA),
-      d_d0_LB(D0_LB),
-      d_q0_LB(Q0_LB),
-      d_d0_AA(D0_AA),
-      d_q0_AA(Q0_AA),
-      d_d0_AB(D0_AB),
-      d_q0_AB(Q0_AB),
-      d_d0_BB(D0_BB),
-      d_q0_BB(Q0_BB),
+      d_D0_liquid(model_parameters.D_liquid()),
+      d_Q0_liquid(model_parameters.Q0_liquid()),
+      d_D0_solidA(model_parameters.D_solid_A()),
+      d_Q0_solidA(model_parameters.Q0_solid_A()),
+      d_D0_solidB(model_parameters.D_solid_B()),
+      d_Q0_solidB(model_parameters.Q0_solid_B()),
+      d_d0_LA(model_parameters.D0_LA()),
+      d_q0_LA(model_parameters.Q0_LA()),
+      d_d0_LB(model_parameters.D0_LB()),
+      d_q0_LB(model_parameters.Q0_LB()),
+      d_d0_AA(model_parameters.D0_AA()),
+      d_q0_AA(model_parameters.Q0_AA()),
+      d_d0_AB(model_parameters.D0_AB()),
+      d_q0_AB(model_parameters.Q0_AB()),
+      d_d0_BB(model_parameters.D0_BB()),
+      d_q0_BB(model_parameters.Q0_BB()),
       d_avg_func_type(avg_func_type),
       d_with_phaseB(d_pfm_diffusion_b_id >= 0)
 {
-   assert(D0_liquid >= 0.);
-   assert(Q0_liquid >= 0.);
-   assert(Q0_solidA >= 0.);
-   assert(D0_solidA >= 0.);
+   assert(d_D0_liquid >= 0.);
+   assert(d_Q0_liquid >= 0.);
+   assert(d_Q0_solidA >= 0.);
+   assert(d_D0_solidA >= 0.);
 
-   tbox::plog << "TbasedCompositionDiffusionStrategy: D0_AB = " << D0_AB
+   tbox::plog << "TbasedCompositionDiffusionStrategy: D0_AB = " << d_d0_AB
               << std::endl;
 }
 
@@ -129,18 +125,19 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
 
    const short nphases = d_with_phaseB ? 3 : 2;
    // std::cout << "nphases = " << nphases << std::endl;
-   // if (d_with3phases) std::cout << "with 3 phases..." << std::endl;
+   // if (d_folchplapp_model) std::cout << "with 3 phases..." << std::endl;
    // std::cout << "d_norderpA = " << d_norderpA << std::endl;
 
    // distinguish 3 phases and multiple phases conventions
    const double* const phiL =
-       d_with3phases ? phi->getPointer(0) : phi->getPointer(d_norderp - 1);
+       d_folchplapp_model ? phi->getPointer(0) : phi->getPointer(d_norderp - 1);
 
    const double* const phiA =
-       d_with3phases ? phi->getPointer(1) : phi->getPointer(0);
+       d_folchplapp_model ? phi->getPointer(1) : phi->getPointer(0);
    const double* phiB = nullptr;
    if (d_with_phaseB) {
-      phiB = d_with3phases ? phi->getPointer(2) : phi->getPointer(d_norderpA);
+      phiB =
+          d_folchplapp_model ? phi->getPointer(2) : phi->getPointer(d_norderpA);
    }
 
    // create arrays of pointers and parameters to facilitate loop
@@ -238,11 +235,12 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 
       {
          // Folch-Plapp three phases model assumes order phiL, phiA, phiB
-         double* phiL = d_with3phases ? phi->getPointer(0)
-                                      : phi->getPointer(d_norderp - 1);
-         double* phiA = d_with3phases ? phi->getPointer(1) : phi->getPointer(0);
-         double* phiB =
-             d_with3phases ? phi->getPointer(2) : phi->getPointer(d_norderpA);
+         double* phiL = d_folchplapp_model ? phi->getPointer(0)
+                                           : phi->getPointer(d_norderp - 1);
+         double* phiA =
+             d_folchplapp_model ? phi->getPointer(1) : phi->getPointer(0);
+         double* phiB = d_folchplapp_model ? phi->getPointer(2)
+                                           : phi->getPointer(d_norderpA);
 
          const int nphiL = 1;
          const int nphiA = d_norderpA;

@@ -12,6 +12,7 @@
 #define TbasedCompositionDiffusionStrategy_H
 
 #include "CompositionDiffusionStrategy.h"
+#include "QuatModelParameters.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -22,15 +23,11 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 {
  public:
    TbasedCompositionDiffusionStrategy(
-       const short norderp, const short norderpA, const short norderpB,
-       const bool with3phases, const int pfm_diffusion_l_id,
-       const int pfm_diffusion_a_id, const int pfm_diffusion_b_id,
-       const double D_liquid, const double Q0_liquid, const double D_solid_A,
-       const double Q0_solid_A, const double D_solid_B, const double Q0_solid_B,
-       const double D0_LA, const double Q0_LA, const double D0_LB,
-       const double Q0_LB, const double D0_AA, const double Q0_AA,
-       const double D0_AB, const double Q0_AB, const double D0_BB,
-       const double Q0_BB, DiffusionInterpolationType interp_func_type,
+       QuatModelParameters& model_parameters, const short norderp,
+       const short norderpA, const short norderpB, const bool folchplapp_model,
+       const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
+       const int pfm_diffusion_b_id,
+       DiffusionInterpolationType interp_func_type,
        const std::string& avg_func_type);
 
 
@@ -48,7 +45,7 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
    const short d_norderpB;
 
    // distinguish 3 phases implementation (Folch-Plapp)
-   const bool d_with3phases;
+   const bool d_folchplapp_model;
 
    /*!
     * holds data for diffusion coefficients in composition equation

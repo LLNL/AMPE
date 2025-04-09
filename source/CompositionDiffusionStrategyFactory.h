@@ -56,17 +56,9 @@ class CompositionDiffusionStrategyFactory
          const short norderpB = model_parameters.norderpB();
 
          strategy.reset(new TbasedCompositionDiffusionStrategy(
-             model_parameters.norderp(), norderpA, norderpB, folchplapp_model,
-             conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
-             conc_pfm_diffusion_b_id, model_parameters.D_liquid(),
-             model_parameters.Q0_liquid(), model_parameters.D_solid_A(),
-             model_parameters.Q0_solid_A(), model_parameters.D_solid_B(),
-             model_parameters.Q0_solid_B(), model_parameters.D0_LA(),
-             model_parameters.Q0_LA(), model_parameters.D0_LB(),
-             model_parameters.Q0_LB(), model_parameters.D0_AA(),
-             model_parameters.Q0_AA(), model_parameters.D0_AB(),
-             model_parameters.Q0_AB(), model_parameters.D0_BB(),
-             model_parameters.Q0_BB(),
+             model_parameters, model_parameters.norderp(), norderpA, norderpB,
+             folchplapp_model, conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
+             conc_pfm_diffusion_b_id,
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
       } else if (model_parameters.isTemperatureDependentWangSintering()) {
