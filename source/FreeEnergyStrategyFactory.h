@@ -26,6 +26,7 @@
 #include "QuadraticFreeEnergyBinary.h"
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyMultiOrderTernaryThreePhase.h"
+#include "ParabolicFreeEnergyMultiOrderBinaryThreePhase.h"
 #include "KKSdiluteBinary.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
@@ -203,12 +204,26 @@ class FreeEnergyStrategyFactory
             tbox::plog << "Using Parabolic model for concentration"
                        << std::endl;
             if (model_parameters.norderp() > 1) {
-               tbox::plog << "ParabolicFreeEnergyMultiOrderBinary" << std::endl;
-               free_energy_strategy.reset(
-                   new ParabolicFreeEnergyMultiOrderBinary(
-                       model_parameters.energy_interp_func_type(),
-                       model_parameters.conc_interp_func_type(), mvstrategy,
-                       conc_l_scratch_id, conc_a_scratch_id, conc_db));
+               if (conc_b_scratch_id > -1) {
+                  tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhase."
+                                ".."
+                             << std::endl;
+                  free_energy_strategy.reset(
+                      new ParabolicFreeEnergyMultiOrderBinaryThreePhase(
+                          conc_db->getDatabase("Parabolic"),
+                          model_parameters.conc_interp_func_type(),
+                          model_parameters.norderpA(), mvstrategy,
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id));
+               } else {
+                  tbox::plog << "ParabolicFreeEnergyMultiOrderBinary"
+                             << std::endl;
+                  free_energy_strategy.reset(
+                      new ParabolicFreeEnergyMultiOrderBinary(
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(), mvstrategy,
+                          conc_l_scratch_id, conc_a_scratch_id, conc_db));
+               }
             } else {
                tbox::plog << "ParabolicFreeEnergyBinary" << std::endl;
                free_energy_strategy.reset(new ParabolicFreeEnergyBinary(

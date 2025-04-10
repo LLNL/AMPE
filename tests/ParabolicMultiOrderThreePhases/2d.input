@@ -1,0 +1,125 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time = 3.e-3  // required
+max_timesteps = 400  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 1.e-4
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   norderp = 3
+   norderp_A = 1
+
+   epsilon_anisotropy = 0.04 //delta
+
+   Interface {
+      sigma = 0.8  // pJ/um^2 = J/m^2
+      delta = 0.064 // um
+   }
+
+   phi_mobility = 10301.8
+
+   Temperature{
+      type = "scalar"
+      temperature = 1.
+   }
+
+   ConcentrationModel {
+      model = "parabolic"
+      rhs_form = "ebs"
+      molar_volume = 1.e-8
+
+      diffusion_type = "temperature_dependent"
+      D_solid_A =  3.e-1 //um**2/s
+      D_solid_B =  3.e-1 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+      Parabolic{
+        Tref = 0.
+        Liquid{
+          a0 = 2.
+          a1 = 0.
+          b0 = -1.
+          b1 = 0.
+          c0 = 0.26
+          c1 = 0.
+        }
+        PhaseB{
+          a0 = 2.
+          a1 = 0.
+          b0 = -1.5
+          b1 = 0.
+          c0 = 0.5625
+          c1 = 0.
+        }
+        PhaseA{
+          a0 = 2.
+          a1 = 0.
+          b0 = -0.5
+          b1 = 0.
+          c0 = 0.0625
+          c1 = 0.
+        }
+      }
+   }
+
+   phi_interp_func_type ="l"
+   conc_interp_func_type = "l"
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+InitialConditions {
+   filename = "160x120.nc"  // required
+   init_q   = 1., 0.
+}
+
+ScalarDiagnostics {
+   interval = 25
+   interval_type = "step"
+}   
+
+Integrator {
+   atol = 1.e-5
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 160, 120  // required
+   x_lo         = 0., 0. // lower end of computational domain.
+   x_up         = 10.0, 7.5 // upper end of computational domain.
+}

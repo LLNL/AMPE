@@ -35,7 +35,6 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
       d_Q0_liquid(model_parameters.Q0_liquid()),
       d_D0_solidA(model_parameters.D_solid_A()),
       d_Q0_solidA(model_parameters.Q0_solid_A()),
-      d_D0_solidB(model_parameters.D_solid_B()),
       d_Q0_solidB(model_parameters.Q0_solid_B()),
       d_d0_LA(model_parameters.D0_LA()),
       d_q0_LA(model_parameters.Q0_LA()),
@@ -54,6 +53,12 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
    assert(d_Q0_liquid >= 0.);
    assert(d_Q0_solidA >= 0.);
    assert(d_D0_solidA >= 0.);
+
+   if (d_with_phaseB) {
+      tbox::plog << "TbasedCompositionDiffusionStrategy with phaseB"
+                 << std::endl;
+      d_D0_solidB = model_parameters.D_solid_B();
+   }
 
    tbox::plog << "TbasedCompositionDiffusionStrategy: D0_AB = " << d_d0_AB
               << std::endl;
@@ -125,7 +130,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusionInterfaces(
 
    const short nphases = d_with_phaseB ? 3 : 2;
    // std::cout << "nphases = " << nphases << std::endl;
-   // if (d_folchplapp_model) std::cout << "with 3 phases..." << std::endl;
+   // if (d_folchplapp_model) std::cout << "Folch-Plapp model..." << std::endl;
    // std::cout << "d_norderpA = " << d_norderpA << std::endl;
 
    // distinguish 3 phases and multiple phases conventions
@@ -216,7 +221,6 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 {
    const char interp_func_type = interpChar();
 
-
    const hier::Box& pbox = patch->getBox();
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
@@ -234,6 +238,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
       assert(phi->getDepth() == d_norderp);
 
       {
+         // tbox::plog<<"d_with_phaseB"<<std::endl;
          // Folch-Plapp three phases model assumes order phiL, phiA, phiB
          double* phiL = d_folchplapp_model ? phi->getPointer(0)
                                            : phi->getPointer(d_norderp - 1);
@@ -246,7 +251,6 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
          const int nphiA = d_norderpA;
          const int nphiB = d_norderpB;
 
-         // this call assumes the order phiA, phiB, phiL
          CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
