@@ -2,9 +2,7 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "KWCcomplex"
-
-end_time = 3.e-3  // required
+end_time = 1.e-3  // required
 max_timesteps = 400  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
@@ -12,7 +10,7 @@ Verbosity {  // optional, block
 }
 
 Visit {
-   interval = 1.e-4
+   interval = 2.e-4
    interval_type = "time"
 }
 
@@ -87,25 +85,31 @@ ModelParameters {  // required block
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
          boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
       }
       Conc{
          boundary_0 = "slope", "0"
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
          boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
       }
       Quat{
          boundary_0 = "slope", "0"
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
          boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
       }
    }
 }
 
 InitialConditions {
-   filename = "160x120.nc"  // required
-   init_q   = 1., 0.
+   filename = "40x40x40.nc"  // required
+   init_q   = 1., 0., 0., 0.
 }
 
 ScalarDiagnostics {
@@ -118,8 +122,8 @@ Integrator {
 }
 
 Geometry{
-   periodic_dimension = 0, 0
-   coarsest_level_resolution = 160, 120  // required
-   x_lo         = 0., 0. // lower end of computational domain.
-   x_up         = 10.0, 7.5 // upper end of computational domain.
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 40, 40, 40  // required
+   x_lo         = 0., 0., 0. // lower end of computational domain.
+   x_up         = 2.5, 2.5, 2.5 // upper end of computational domain.
 }

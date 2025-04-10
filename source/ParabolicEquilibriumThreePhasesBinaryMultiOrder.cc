@@ -10,7 +10,7 @@
 //
 #include "ParabolicEquilibriumThreePhasesBinaryMultiOrder.h"
 #include "FuncFort.h"
-
+#include "ParabolicTools.h"
 
 ParabolicEquilibriumThreePhasesBinaryMultiOrder::
     ParabolicEquilibriumThreePhasesBinaryMultiOrder(
@@ -23,31 +23,13 @@ ParabolicEquilibriumThreePhasesBinaryMultiOrder::
    std::shared_ptr<tbox::Database> input_db = conc_db->getDatabase("Parabolic");
 
    double coeffL[3][2];
-   std::shared_ptr<tbox::Database> liquid_db = input_db->getDatabase("Liquid");
-   coeffL[0][0] = liquid_db->getDouble("a0");
-   coeffL[0][1] = liquid_db->getDouble("a1");
-   coeffL[1][0] = liquid_db->getDouble("b0");
-   coeffL[1][1] = liquid_db->getDouble("b1");
-   coeffL[2][0] = liquid_db->getDouble("c0");
-   coeffL[2][1] = liquid_db->getDouble("c1");
+   readParabolicData(input_db, "Liquid", coeffL);
 
    double coeffA[3][2];
-   std::shared_ptr<tbox::Database> phasea_db = input_db->getDatabase("PhaseA");
-   coeffA[0][0] = phasea_db->getDouble("a0");
-   coeffA[0][1] = phasea_db->getDouble("a1");
-   coeffA[1][0] = phasea_db->getDouble("b0");
-   coeffA[1][1] = phasea_db->getDouble("b1");
-   coeffA[2][0] = phasea_db->getDouble("c0");
-   coeffA[2][1] = phasea_db->getDouble("c1");
+   readParabolicData(input_db, "PhaseA", coeffA);
 
    double coeffB[3][2];
-   std::shared_ptr<tbox::Database> phaseb_db = input_db->getDatabase("PhaseB");
-   coeffB[0][0] = phaseb_db->getDouble("a0");
-   coeffB[0][1] = phaseb_db->getDouble("a1");
-   coeffB[1][0] = phaseb_db->getDouble("b0");
-   coeffB[1][1] = phaseb_db->getDouble("b1");
-   coeffB[2][0] = phaseb_db->getDouble("c0");
-   coeffB[2][1] = phaseb_db->getDouble("c1");
+   readParabolicData(input_db, "PhaseB", coeffB);
 
    double Tref = input_db->getDouble("Tref");
 
