@@ -6,9 +6,9 @@ import os
 print("Test parabolic multi-order three phases...")
 
 #prepare initial conditions file
-initfilename="160x160.nc"
+initfilename="160x120.nc"
 subprocess.call(["python3", "../../tests/ParabolicMultiOrderThreePhases/make_initial.py",
-  "--nx", "160", "--ny", "160", "--nz", "1",
+  "--nx", "160", "--ny", "120", "--nz", "1",
   "--concL", "0.5", "--concB", "0.75", "--concA", "0.25",
   initfilename])
 
@@ -24,9 +24,9 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 end_reached = False
-end_time = 2.e-3
-final_sfraction = 0.193
-sfraction_checked = False
+end_time = 3.e-3
+final_lfraction = 0.645
+lfraction_checked = False
 
 first_concentration=-1.
 for line in lines:
@@ -49,20 +49,35 @@ for line in lines:
         print("Wrong dt: too small")
         sys.exit(1)
 
-  if line.count(b'fraction of phase 0'):
+  if line.count(b'fraction of phase 2'):
     print(line)
     if end_reached:
-      sfraction_checked = True
+      lfraction_checked = True
       words=line.split()
-      sfraction=eval(words[6])
-      print("Final solid fraction: {}".format(sfraction))
-      if abs(sfraction-final_sfraction)>1.e-3:
-        print("Wrong solid fraction")
+      lfraction=eval(words[6])
+      print("Final liquid fraction: {}".format(lfraction))
+      if abs(lfraction-final_lfraction)>1.e-3:
+        print("Wrong liquid fraction")
         sys.exit(1)
+
+  if line.count(b'fraction of phase 0'):
+    print(line)
+    fraction0=eval(words[6])
+  if line.count(b'fraction of phase 1'):
+    print(line)
+    fraction1=eval(words[6])
+
+if abs(fraction0-fraction1)>1.e-3:
+  print("fraction0 = {}".format(fraction0))
+  print("fraction1 = {}".format(fraction1))
+  print("Phase 0 and 1 should have the same fraction of the domain")
+  sys.exit(1)
+
+
 
 os.remove(initfilename)
 
-if end_reached and sfraction_checked:
+if end_reached and lfraction_checked:
   sys.exit(0)
 else:
   print("End time not reached...")

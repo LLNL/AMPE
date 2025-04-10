@@ -98,13 +98,13 @@ for j in range( nn[1] ) :
       d0 = (xx-0.5)
       if( d1<0. and abs(d0)>0.2):
         if d0<0.:
-          phase[1,index[2],index[1],index[0]] = 1.
+          phase[0,index[2],index[1],index[0]] = 1.
           conc[index[2],index[1],index[0]] = ca
         else:
-          phase[2,index[2],index[1],index[0]] = 1.
+          phase[1,index[2],index[1],index[0]] = 1.
           conc[index[2],index[1],index[0]] = cb
       else:
-        phase[0,index[2],index[1],index[0]] = 1.
+        phase[2,index[2],index[1],index[0]] = 1.
         conc[index[2],index[1],index[0]] = cl
 
 #-----------------------------------------------------------------------

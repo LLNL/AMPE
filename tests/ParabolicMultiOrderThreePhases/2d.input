@@ -4,18 +4,18 @@
 //
 model_type = "KWCcomplex"
 
-end_time = 2.e-3  // required
-max_timesteps = 15  // optional, default is INT_MAX (alias: max_cycles)
+end_time = 3.e-3  // required
+max_timesteps = 800  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
    level = 1  // optional, default=1
 }
 
 Visit {
-   interval = 1
-   interval_type = "step"
-   rhs_output = TRUE
-   extra_output = TRUE
+   interval = 1.e-4
+   interval_type = "time"
+   //rhs_output = TRUE
+   //extra_output = TRUE
 }
 
 TimerManager {
@@ -51,19 +51,18 @@ ModelParameters {  // required block
       D_solid_A =  3.e-1 //um**2/s
       D_solid_B =  3.e-1 //um**2/s
       D_liquid  = 3.e3  //um**2/s
-      // Seiz, Kellner, Nestler, Acta Mat. 2023
       Parabolic{
         Tref = 0.
         Liquid{
-          a0 = 1.
+          a0 = 2.
           a1 = 0.
           b0 = -1.
           b1 = 0.
-          c0 = 0.25
+          c0 = 0.26
           c1 = 0.
         }
         PhaseB{
-          a0 = 1.
+          a0 = 2.
           a1 = 0.
           b0 = -1.5
           b1 = 0.
@@ -71,7 +70,7 @@ ModelParameters {  // required block
           c1 = 0.
         }
         PhaseA{
-          a0 = 1.
+          a0 = 2.
           a1 = 0.
           b0 = -0.5
           b1 = 0.
@@ -107,12 +106,12 @@ ModelParameters {  // required block
 }
 
 InitialConditions {
-   filename = "160x160.nc"  // required
+   filename = "160x120.nc"  // required
    init_q   = 1., 0.
 }
 
 ScalarDiagnostics {
-   interval = 10
+   interval = 25
    interval_type = "step"
 }   
 
@@ -122,7 +121,7 @@ Integrator {
 
 Geometry{
    periodic_dimension = 0, 0
-   coarsest_level_resolution = 160, 160  // required
+   coarsest_level_resolution = 160, 120  // required
    x_lo         = 0., 0. // lower end of computational domain.
-   x_up         = 10.0, 10.0 // upper end of computational domain.
+   x_up         = 10.0, 7.5 // upper end of computational domain.
 }
