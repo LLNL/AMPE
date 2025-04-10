@@ -10,6 +10,7 @@ target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI}
                                         ${THERMOLIB})
 
 add_executable(plotEnergyVsCompositionParabolicThreePhase
+               ${CMAKE_SOURCE_DIR}/source/ParabolicTools.cc
                ${CMAKE_SOURCE_DIR}/drivers/plotEnergyVsCompositionParabolicThreePhase.cc )
 target_link_libraries(plotEnergyVsCompositionParabolicThreePhase ${PROJECT_LINK_LIBS_SAMRAI}
                                         ${THERMOLIB})
@@ -23,6 +24,7 @@ target_link_libraries(computeEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${THERMOLIB})
 
 add_executable(computeEquilibriumCompositionsParabolic
+               ${CMAKE_SOURCE_DIR}/source/ParabolicTools.cc
                computeEquilibriumCompositionsParabolic.cc)
 target_link_libraries(computeEquilibriumCompositionsParabolic ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${PROJECT_LINK_LIBS_HDF5}
@@ -49,6 +51,7 @@ target_link_libraries(computeCALPHADbinaryEquilibrium
 add_executable(computeParabolic3PhasesEquilibrium
                computeParabolic3PhasesEquilibrium.cc
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
+               ${CMAKE_SOURCE_DIR}/source/ParabolicTools.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(computeParabolic3PhasesEquilibrium
                       ${PROJECT_LINK_LIBS_SAMRAI}
@@ -57,6 +60,7 @@ target_link_libraries(computeParabolic3PhasesEquilibrium
 add_executable(computeParabolic3PhasesKKS
                computeParabolic3PhasesKKS.cc
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
+               ${CMAKE_SOURCE_DIR}/source/ParabolicTools.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(computeParabolic3PhasesKKS
                       ${PROJECT_LINK_LIBS_SAMRAI}
