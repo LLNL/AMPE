@@ -40,6 +40,9 @@ CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB::
    tbox::plog << "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB..."
               << std::endl;
    setup(calphad_pt, newton_db);
+
+   d_multiorder_driving_force.reset(
+       new MultiOrderBinaryThreePhasesDrivingForceStochioB(this, norderp_A));
 }
 
 //=======================================================================

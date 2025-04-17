@@ -13,6 +13,7 @@
 
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "InterpolationType.h"
+#include "MultiOrderBinaryThreePhasesDrivingForceStochioB.h"
 
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
@@ -46,6 +47,10 @@ class CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB
               std::shared_ptr<tbox::Database> newton_db);
 
    std::shared_ptr<Thermo4PFM::CALPHADFreeEnergyFunctionsBinary> d_ceq_fenergy;
+
+
+   std::shared_ptr<MultiOrderBinaryThreePhasesDrivingForceStochioB>
+       d_multiorder_driving_force;
 };
 
 #endif

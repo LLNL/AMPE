@@ -547,6 +547,8 @@ class QuatModelParameters
 
    double ceq_liquid(const double temperature) const
    {
+      assert(!std::isnan(d_ceq0_liquid[0]));
+
       const double dT = temperature - d_Tref;
       return d_ceq0_liquid[0] + d_ceq0_liquid[1] * dT +
              d_ceq0_liquid[2] * dT * dT;
@@ -554,6 +556,8 @@ class QuatModelParameters
 
    double ceq_solidA(const double temperature) const
    {
+      assert(!std::isnan(d_ceq0_solidA[0]));
+
       const double dT = temperature - d_Tref;
       return d_ceq0_solidA[0] + d_ceq0_solidA[1] * dT +
              d_ceq0_solidA[2] * dT * dT;
