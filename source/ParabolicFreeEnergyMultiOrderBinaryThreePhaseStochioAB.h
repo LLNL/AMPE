@@ -8,24 +8,24 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_ParabolicFreeEnergyMultiOrderBinaryThreePhase
-#define included_ParabolicFreeEnergyMultiOrderBinaryThreePhase
+#ifndef included_ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB
+#define included_ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB
 
 #include "ParabolicFreeEnergyFunctionsBinaryThreePhase.h"
 #include "FreeEnergyStrategyBinary.h"
 #include "MolarVolumeStrategy.h"
-#include "MultiOrderBinaryThreePhasesDrivingForce.h"
+#include "MultiOrderBinaryThreePhasesDrivingForceStochioAB.h"
 
-class ParabolicFreeEnergyMultiOrderBinaryThreePhase
+class ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB
     : public FreeEnergyStrategyBinary
 {
  public:
-   ParabolicFreeEnergyMultiOrderBinaryThreePhase(
-       std::shared_ptr<tbox::Database> input_db, const short norderp_A,
+   ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB(
+       std::shared_ptr<SAMRAI::tbox::Database> input_db, const short norderp_A,
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
        const int conc_a_id, const int conc_b_id);
 
-   ~ParabolicFreeEnergyMultiOrderBinaryThreePhase();
+   ~ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB();
 
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
@@ -51,7 +51,7 @@ class ParabolicFreeEnergyMultiOrderBinaryThreePhase
    std::shared_ptr<Thermo4PFM::ParabolicFreeEnergyFunctionsBinaryThreePhase>
        d_parabolic_fenergy;
 
-   std::shared_ptr<MultiOrderBinaryThreePhasesDrivingForce>
+   std::shared_ptr<MultiOrderBinaryThreePhasesDrivingForceStochioAB>
        d_multiorder_driving_force;
 
    void computeSecondDerivativeEnergyPhaseL(

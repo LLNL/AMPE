@@ -24,8 +24,6 @@ class ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder
  public:
    ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder(
        const int conc_l_id, const int conc_a_id,
-       const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-       const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db);
 
    ~ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder() {}

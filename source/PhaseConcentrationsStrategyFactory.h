@@ -20,6 +20,7 @@
 #include "QuadraticEquilibriumPhaseConcentrationsBinaryMultiOrder.h"
 #include "QuadraticEquilibriumThreePhasesTernaryMultiOrder.h"
 #include "ParabolicEquilibriumThreePhasesBinaryMultiOrder.h"
+#include "ParabolicEquilibriumThreePhasesBinaryMultiOrderStochioAB.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "Database2JSON.h"
@@ -29,13 +30,11 @@
 #include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrder.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategyMultiOrderThreePhases.h"
 #include "CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioB.h"
+#include "CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioAB.h"
 #include "CALPHADFunctions.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
 
 class PhaseConcentrationsStrategyFactory
 {
@@ -68,6 +67,11 @@ class PhaseConcentrationsStrategyFactory
 
       std::shared_ptr<PhaseConcentrationsStrategy> phase_conc_strategy;
 
+      const double cA = model_parameters.getStochioA();
+      const double cB = model_parameters.getStochioB();
+      tbox::plog << "cA = " << cA << std::endl;
+      tbox::plog << "cB = " << cB << std::endl;
+
       if (model_parameters.kks_phase_concentration()) {
          tbox::plog << "Phase concentration determined by KKS" << std::endl;
          if (model_parameters.isConcentrationModelCALPHAD()) {
@@ -75,16 +79,21 @@ class PhaseConcentrationsStrategyFactory
             if (ncompositions == 1) {
                tbox::plog << "Binary alloy..." << std::endl;
                const bool subl = Thermo4PFM::checkSublattice(calphad_pt);
-               const double cB = model_parameters.getStochioB();
-               tbox::plog << "cB = " << cB << std::endl;
                if (conc_b_scratch_id >= 0) {
                   tbox::plog << "Three phases..." << std::endl;
                   // three phases
                   if (model_parameters.withMultipleOrderP()) {
                      // multi-order parameters model
                      tbox::plog << "Multi-order parameters..." << std::endl;
-                     if (cB >= 0.) {
-                        tbox::plog << "Stochiometric case..." << std::endl;
+                     if (cB >= 0. && cA >= 0.) {
+                        tbox::plog << "AB stochiometric case..." << std::endl;
+                        phase_conc_strategy.reset(
+                            new CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioAB(
+                                model_parameters.norderpA(), conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters, conc_db));
+                     } else if (cB >= 0.) {
+                        tbox::plog << "B stochiometric case..." << std::endl;
                         phase_conc_strategy.reset(
                             new CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioB(
                                 model_parameters.norderpA(), conc_l_scratch_id,
@@ -213,18 +222,23 @@ class PhaseConcentrationsStrategyFactory
                   if (conc_b_scratch_id >= 0) {
                      tbox::plog << "Parabolic MultiOrder, Three phases..."
                                 << std::endl;
-                     phase_conc_strategy.reset(
-                         new ParabolicEquilibriumThreePhasesBinaryMultiOrder(
-                             model_parameters.norderpA(), conc_l_scratch_id,
-                             conc_a_scratch_id, conc_b_scratch_id,
-                             model_parameters, conc_db));
+                     if (cB >= 0. && cA >= 0.) {
+                        phase_conc_strategy.reset(
+                            new ParabolicEquilibriumThreePhasesBinaryMultiOrderStochioAB(
+                                model_parameters.norderpA(), conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters, conc_db));
+                     } else {
+                        phase_conc_strategy.reset(
+                            new ParabolicEquilibriumThreePhasesBinaryMultiOrder(
+                                model_parameters.norderpA(), conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                model_parameters, conc_db));
+                     }
                   } else {
                      phase_conc_strategy.reset(
                          new ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder(
-                             conc_l_scratch_id, conc_a_scratch_id,
-                             model_parameters.energy_interp_func_type(),
-                             model_parameters.conc_interp_func_type(),
-                             conc_db));
+                             conc_l_scratch_id, conc_a_scratch_id, conc_db));
                   }
                } else {
                   phase_conc_strategy.reset(

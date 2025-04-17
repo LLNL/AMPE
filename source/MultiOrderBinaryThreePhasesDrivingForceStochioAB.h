@@ -8,26 +8,31 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef MultiOrderBinaryThreePhasesDrivingForce_H
-#define MultiOrderBinaryThreePhasesDrivingForce_H
+#ifndef MultiOrderBinaryThreePhasesDrivingForceStochioAB_H
+#define MultiOrderBinaryThreePhasesDrivingForceStochioAB_H
 
 #include "FreeEnergyStrategyBinary.h"
 
 #include "SAMRAI/hier/Patch.h"
 
-class MultiOrderBinaryThreePhasesDrivingForce
+using namespace SAMRAI;
+
+class MultiOrderBinaryThreePhasesDrivingForceStochioAB
 {
  public:
-   MultiOrderBinaryThreePhasesDrivingForce(
+   MultiOrderBinaryThreePhasesDrivingForceStochioAB(
        FreeEnergyStrategyBinary* fenergy_strategy, const int norderp_A);
 
-   void addDrivingForce(SAMRAI::hier::Patch& patch, const int temperature_id,
+   void addDrivingForce(hier::Patch& patch, const int temperature_id,
                         const int phase_id, const int conc_l_id,
                         const int conc_a_id, const int conc_b_id,
                         const int f_l_id, const int f_a_id, const int f_b_id,
                         const int rhs_id);
 
  private:
+   /*!
+    * Class to evaluate chemical potential in liquid phase
+    */
    FreeEnergyStrategyBinary* d_fenergy_strategy;
 
    int d_norderp_A;

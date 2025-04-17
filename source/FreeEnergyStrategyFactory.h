@@ -20,6 +20,7 @@
 #include "CALPHADFreeEnergyStrategyBinaryFolchPlapp.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhases.h"
 #include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB.h"
+#include "CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB.h"
 #include "CALPHADFreeEnergyStrategyBinaryFolchPlappStochioB.h"
 #include "ParabolicFreeEnergyBinary.h"
 #include "ParabolicFreeEnergyMultiOrderBinary.h"
@@ -27,6 +28,7 @@
 #include "QuadraticFreeEnergyMultiOrderBinary.h"
 #include "QuadraticFreeEnergyMultiOrderTernaryThreePhase.h"
 #include "ParabolicFreeEnergyMultiOrderBinaryThreePhase.h"
+#include "ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB.h"
 #include "KKSdiluteBinary.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
@@ -51,6 +53,8 @@ class FreeEnergyStrategyFactory
       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy;
 
       if (model_parameters.with_concentration()) {
+         const double cB = model_parameters.getStochioB();
+         const double cA = model_parameters.getStochioA();
 
          if (model_parameters.isConcentrationModelCALPHAD()) {
             std::shared_ptr<tbox::MemoryDatabase> calphad_db;
@@ -82,7 +86,16 @@ class FreeEnergyStrategyFactory
                if (model_parameters.withMultipleOrderP()) {
                   tbox::plog << "MultiOrder..." << std::endl;
                   if (conc_b_scratch_id >= 0) {
-                     if (model_parameters.getStochioB() >= 0.) {
+                     if (cA >= 0. && cB >= 0.) {
+                        tbox::plog << "StochioAB..." << std::endl;
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB(
+                                model_parameters.norderpA(), calphad_pt,
+                                newton_db,
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
+                     } else if (model_parameters.getStochioB() >= 0.) {
                         tbox::plog << "StochioB..." << std::endl;
                         free_energy_strategy.reset(
                             new CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioB(
@@ -208,13 +221,22 @@ class FreeEnergyStrategyFactory
                   tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhase."
                                 ".."
                              << std::endl;
-                  free_energy_strategy.reset(
-                      new ParabolicFreeEnergyMultiOrderBinaryThreePhase(
-                          conc_db->getDatabase("Parabolic"),
-                          model_parameters.conc_interp_func_type(),
-                          model_parameters.norderpA(), mvstrategy,
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id));
+                  if (cA > 0. && cB > 0.) {
+                     free_energy_strategy.reset(
+                         new ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB(
+                             conc_db->getDatabase("Parabolic"),
+                             model_parameters.norderpA(), mvstrategy,
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id));
+
+                  } else {
+                     free_energy_strategy.reset(
+                         new ParabolicFreeEnergyMultiOrderBinaryThreePhase(
+                             conc_db->getDatabase("Parabolic"),
+                             model_parameters.norderpA(), mvstrategy,
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id));
+                  }
                } else {
                   tbox::plog << "ParabolicFreeEnergyMultiOrderBinary"
                              << std::endl;

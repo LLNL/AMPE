@@ -8,7 +8,7 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "ParabolicFreeEnergyMultiOrderBinaryThreePhase.h"
+#include "ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB.h"
 #include "ParabolicTools.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -22,8 +22,8 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-ParabolicFreeEnergyMultiOrderBinaryThreePhase::
-    ParabolicFreeEnergyMultiOrderBinaryThreePhase(
+ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
+    ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB(
         std::shared_ptr<tbox::Database> input_db, const short norderp_A,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
         const int conc_a_id, const int conc_b_id)
@@ -32,7 +32,7 @@ ParabolicFreeEnergyMultiOrderBinaryThreePhase::
                                conc_l_id, conc_a_id, conc_b_id, false),
       d_mv_strategy(mvstrategy)
 {
-   tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhase..."
+   tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB..."
               << std::endl;
 
    assert(norderp_A > 0);
@@ -56,28 +56,29 @@ ParabolicFreeEnergyMultiOrderBinaryThreePhase::
            Thermo4PFM::ConcInterpolationType::LINEAR));
 
    d_multiorder_driving_force.reset(
-       new MultiOrderBinaryThreePhasesDrivingForce(this, norderp_A));
+       new MultiOrderBinaryThreePhasesDrivingForceStochioAB(this, norderp_A));
 
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhase:" <<
+   // tbox::plog << "ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB:" <<
    // std::endl; tbox::plog << "Molar volume L =" << vml << std::endl;
    // tbox::plog << "Molar volume A =" << vma << std::endl;
    // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 }
 
-ParabolicFreeEnergyMultiOrderBinaryThreePhase::
-    ~ParabolicFreeEnergyMultiOrderBinaryThreePhase(){};
+ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
+    ~ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB(){};
 
-bool ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeCeqT(
+bool ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::computeCeqT(
     const double temperature, const Thermo4PFM::PhaseIndex pi0,
     const Thermo4PFM::PhaseIndex pi1, double* ceq)
 {
    TBOX_ERROR(
-       "ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeCeqT() not "
+       "ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::computeCeqT() "
+       "not "
        "implemented");
    return false;
 }
@@ -85,9 +86,9 @@ bool ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeCeqT(
 
 //=======================================================================
 
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeFreeEnergy(
-    const double temperature, double* c_i, const Thermo4PFM::PhaseIndex pi,
-    const bool gp)
+double ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
+    computeFreeEnergy(const double temperature, double* c_i,
+                      const Thermo4PFM::PhaseIndex pi, const bool gp)
 {
    assert(d_mv_strategy != nullptr);
 
@@ -98,8 +99,9 @@ double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeFreeEnergy(
 
 //=======================================================================
 
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeDerivFreeEnergy(
-    const double temperature, double* c_i, const Thermo4PFM::PhaseIndex pi)
+double ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
+    computeDerivFreeEnergy(const double temperature, double* c_i,
+                           const Thermo4PFM::PhaseIndex pi)
 {
    double deriv;
    d_parabolic_fenergy->computeDerivFreeEnergy(temperature, c_i, pi, &deriv);
@@ -108,7 +110,7 @@ double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeDerivFreeEnergy(
 }
 
 
-void ParabolicFreeEnergyMultiOrderBinaryThreePhase::addDrivingForce(
+void ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
     const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
     const int f_b_id, const int rhs_id)
@@ -124,7 +126,7 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::addDrivingForce(
 
 //=======================================================================
 
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuL(
+double ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::computeMuL(
     const double t, const double c0)
 {
    double c = c0;
@@ -139,7 +141,7 @@ double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuL(
 
 //=======================================================================
 
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuA(
+double ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::computeMuA(
     const double t, const double c0)
 {
    double c = c0;
@@ -154,7 +156,7 @@ double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuA(
 
 //=======================================================================
 
-double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuB(
+double ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::computeMuB(
     const double t, const double c0)
 {
    double c = c0;
@@ -169,7 +171,7 @@ double ParabolicFreeEnergyMultiOrderBinaryThreePhase::computeMuB(
 
 //=======================================================================
 
-void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
+void ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
     computeSecondDerivativeEnergyPhaseL(const double temp,
                                         const std::vector<double>& c_l,
                                         std::vector<double>& d2fdc2,
@@ -185,7 +187,7 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
 
 //=======================================================================
 
-void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
+void ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
     computeSecondDerivativeEnergyPhaseA(const double temp,
                                         const std::vector<double>& c_a,
                                         std::vector<double>& d2fdc2,
@@ -201,7 +203,7 @@ void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
 
 //=======================================================================
 
-void ParabolicFreeEnergyMultiOrderBinaryThreePhase::
+void ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
     computeSecondDerivativeEnergyPhaseB(const double temp,
                                         const std::vector<double>& c_b,
                                         std::vector<double>& d2fdc2,
