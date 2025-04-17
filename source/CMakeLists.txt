@@ -29,6 +29,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/ParabolicTools.cc
             ${CMAKE_SOURCE_DIR}/source/MultiOrderBinaryDrivingForce.cc
             ${CMAKE_SOURCE_DIR}/source/MultiOrderBinaryThreePhasesDrivingForce.cc
+	    ${CMAKE_SOURCE_DIR}/source/MultiOrderBinaryThreePhasesDrivingForceStochioB.cc
             ${CMAKE_SOURCE_DIR}/source/CahnHilliardDoubleWell.cc
             ${CMAKE_SOURCE_DIR}/source/SinteringUWangRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/WangSinteringCompositionRHSStrategy.cc

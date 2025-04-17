@@ -87,12 +87,15 @@ int CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioB ::
                    << ", hphi=";
          for (short i = 0; i < 3; i++)
             std::cerr << hphi[i] << ", ";
-         std::cerr << ", c=" << c[0] << ", " << c[1] << ", " << c[2]
-                   << std::endl;
+         std::cerr << ", c=" << c[0] << std::endl;
          std::cerr << "x = " << x[0] << ", " << x[1] << std::endl;
          std::cerr << "xkks = " << xkks[0] << ", " << xkks[1] << std::endl;
+         std::cerr << "conc[0] - hphi2 * cB_ = "
+                   << c[0] - hphi[2] * d_model_parameters.getStochioB()
+                   << std::endl;
+         std::cerr << "cB = " << d_model_parameters.getStochioB() << std::endl;
          const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-         MPI_Abort(mpi.getCommunicator(), -1);
+         MPI_Abort(mpi.getCommunicator(), EXIT_FAILURE);
       }
 #endif
    }

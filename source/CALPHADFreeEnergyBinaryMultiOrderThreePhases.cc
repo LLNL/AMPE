@@ -111,7 +111,6 @@ void CALPHADFreeEnergyBinaryMultiOrderThreePhases<
                                              const int f_b_id, const int rhs_id)
 {
    (void)time;
-   (void)f_b_id;
 
    d_multiorder_driving_force->addDrivingForce(patch, temperature_id, phase_id,
                                                d_conc_l_id, d_conc_a_id,
