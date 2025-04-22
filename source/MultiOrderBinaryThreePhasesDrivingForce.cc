@@ -209,17 +209,21 @@ void MultiOrderBinaryThreePhasesDrivingForce::addDrivingForce(
 
             // interpolation polynomials
             double hphiA = 0.;
-            for (short i = 0; i < d_norderp_A; i++)
-               hphiA += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
+            for (short i = 0; i < d_norderp_A; i++) {
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphiA += phi * phi;
+            }
             assert(!std::isnan(hphiA));
 
             double hphiB = 0.;
-            for (short i = d_norderp_A; i < norderp - 1; i++)
-               hphiB += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
+            for (short i = d_norderp_A; i < norderp - 1; i++) {
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphiB += phi * phi;
+            }
             assert(!std::isnan(hphiB));
 
-            double hphil =
-                ptr_phi[norderp - 1][idx_pf] * ptr_phi[norderp - 1][idx_pf];
+            const double phiL = std::max(0., ptr_phi[norderp - 1][idx_pf]);
+            double hphil = phiL * phiL;
 
             const double sum2 = hphil + hphiA + hphiB;
             assert(sum2 > 0.);
@@ -234,17 +238,17 @@ void MultiOrderBinaryThreePhasesDrivingForce::addDrivingForce(
 
             // solid phase A order parameters
             for (short i = 0; i < d_norderp_A; i++)
-               rhs_local[i] = 2. * ptr_phi[i][idx_pf] *
+               rhs_local[i] = 2. * std::max(0., ptr_phi[i][idx_pf]) *
                               ((1. - hphiA) * dfa - hphil * dfl - hphiB * dfb) *
                               sum2inv;
             // solid phase B order parameters
             for (short i = d_norderp_A; i < norderp - 1; i++)
-               rhs_local[i] = 2. * ptr_phi[i][idx_pf] *
+               rhs_local[i] = 2. * std::max(0., ptr_phi[i][idx_pf]) *
                               ((1. - hphiB) * dfb - hphil * dfl - hphiA * dfa) *
                               sum2inv;
             // liquid phase order parameter
             rhs_local[norderp - 1] =
-                2. * ptr_phi[norderp - 1][idx_pf] *
+                2. * std::max(0., ptr_phi[norderp - 1][idx_pf]) *
                 ((1. - hphil) * dfl - hphiA * dfa - hphiB * dfb) * sum2inv;
             for (short i = 0; i < norderp; i++)
                assert(!std::isnan(rhs_local[i]));

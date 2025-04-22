@@ -122,18 +122,22 @@ int EquilibriumPhaseConcentrationsBinaryMultiOrderThreePhases::
             // 3 phases, last order parameter is assumed liquid
             double hphi[3] = {0., 0., 0.};
 
-            hphi[0] =
-                ptr_phi[norderp - 1][idx_pf] * ptr_phi[norderp - 1][idx_pf];
-            for (short i = 0; i < d_norderp_A; i++)
-               hphi[1] += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
-            for (short i = d_norderp_A; i < norderp - 1; i++)
-               hphi[2] += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
+            const double phiL = std::max(0., ptr_phi[norderp - 1][idx_pf]);
+            hphi[0] = phiL * phiL;
+
+            for (short i = 0; i < d_norderp_A; i++) {
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphi[1] += phi * phi;
+            }
+            for (short i = d_norderp_A; i < norderp - 1; i++) {
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphi[2] += phi * phi;
+            }
 
             const double sum2 = hphi[0] + hphi[1] + hphi[2];
             // std::cout << "norderp = "<<norderp<<std::endl;
             // std::cout << "hphi = " << hphi[0] << "," << hphi[1] << ","
             //          << hphi[2] << std::endl;
-            // std::cout << "sum2=" << sum2 << std::endl;
             assert(sum2 > 0.);
             const double sum2inv = 1. / sum2;
             for (short i = 0; i < 3; i++)

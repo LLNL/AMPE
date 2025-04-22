@@ -189,12 +189,14 @@ void MultiOrderBinaryDrivingForce::addDrivingForce(
 
             // interpolation polynomials
             double hphis = 0.;
-            for (short i = 0; i < norderp - 1; i++)
-               hphis += ptr_phi[i][idx_pf] * ptr_phi[i][idx_pf];
+            for (short i = 0; i < norderp - 1; i++) {
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphis += phi * phi;
+            }
             assert(!std::isnan(hphis));
 
-            double hphil =
-                ptr_phi[norderp - 1][idx_pf] * ptr_phi[norderp - 1][idx_pf];
+            const double phi = std::max(0., ptr_phi[norderp - 1][idx_pf]);
+            double hphil = phi * phi;
 
             const double sum2 = hphil + hphis;
             assert(sum2 > 0.);
@@ -208,11 +210,12 @@ void MultiOrderBinaryDrivingForce::addDrivingForce(
 
             // solid phase order parameters
             for (short i = 0; i < norderp - 1; i++)
-               rhs_local[i] = 2. * ptr_phi[i][idx_pf] *
+               rhs_local[i] = 2. * std::max(0., ptr_phi[i][idx_pf]) *
                               (hphil * dfs - hphil * dfl) * sum2inv;
             // liquid phase order parameter
-            rhs_local[norderp - 1] = 2. * ptr_phi[norderp - 1][idx_pf] *
-                                     (hphis * dfl - hphis * dfs) * sum2inv;
+            rhs_local[norderp - 1] =
+                2. * std::max(0., ptr_phi[norderp - 1][idx_pf]) *
+                (hphis * dfl - hphis * dfs) * sum2inv;
             for (short i = 0; i < norderp; i++)
                assert(!std::isnan(rhs_local[i]));
 
