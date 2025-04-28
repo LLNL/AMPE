@@ -145,18 +145,17 @@ void WangSinteringDiffusion::setDiffusion(
    // to calculate diffusion in ghost cells
    assert(phi->getGhostCellWidth()[0] >= diffusion->getGhostCellWidth()[0]);
 
-   CONCENTRATION_PFMDIFFUSION_SCALAR(
-       ifirst(0), ilast(0), ifirst(1), ilast(1),
+   PFMDIFFUSION_SCALAR(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-       ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-       conc->getPointer(), conc->getGhostCellWidth()[0],
-       diffusion->getPointer(0, 0), diffusion->getPointer(1, 0),
+                       conc->getPointer(), conc->getGhostCellWidth()[0],
+                       diffusion->getPointer(0, 0), diffusion->getPointer(1, 0),
 #if (NDIM == 3)
-       diffusion->getPointer(2, 0),
+                       diffusion->getPointer(2, 0),
 #endif
-       diffusion->getGhostCellWidth()[0], d_D0_liquid, d_D0_solidA,
-       &interp_func_type, d_avg_func_type.c_str());
+                       diffusion->getGhostCellWidth()[0], d_D0_liquid,
+                       d_D0_solidA, &interp_func_type, d_avg_func_type.c_str());
 
    setDiffusionInterfaces(patch, phi, conc, diffusion);
 

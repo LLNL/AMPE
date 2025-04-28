@@ -251,7 +251,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
          const int nphiA = d_norderpA;
          const int nphiB = d_norderpB;
 
-         CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
+         PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER_THREEPHASES(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
@@ -281,7 +281,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 
    } else if (phi->getDepth() > 1) {
 
-      CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_MULTIPHASES(
+      PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER(
           ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
           ifirst(2), ilast(2),
@@ -304,7 +304,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
                              pfm_diffusionA, pfm_diffusionB);
 
    } else {
-      CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
+      PFMDIFFUSION_OF_TEMPERATURE(
           ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
           ifirst(2), ilast(2),

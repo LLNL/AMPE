@@ -189,7 +189,7 @@ void ScalarCompositionDiffusionStrategy::setDiffusion(
          const int nphiB = d_norderpB;
 
          // this call assumes the order phiA, phiB, phiL
-         CONCENTRATION_PFMDIFFUSION_SCALAR_3PHASES(
+         PFMDIFFUSION_SCALAR_MULTIORDER_3PHASES(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
@@ -211,34 +211,37 @@ void ScalarCompositionDiffusionStrategy::setDiffusion(
       double* phiA = d_with3phases ? phi->getPointer(1) : phi->getPointer(0);
       const int nphiA = d_with3phases ? 1 : d_norderpA;
 
-      CONCENTRATION_PFMDIFFUSION_SCALAR_2PHASES(
-          ifirst(0), ilast(0), ifirst(1), ilast(1),
+      PFMDIFFUSION_SCALAR_2PHASES(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-          ifirst(2), ilast(2),
+                                  ifirst(2), ilast(2),
 #endif
-          phiL, phiA, nphiA, phi->getGhostCellWidth()[0],
-          pfm_diffusion->getPointer(0, 0), pfm_diffusion->getPointer(1, 0),
+                                  phiL, phiA, nphiA,
+                                  phi->getGhostCellWidth()[0],
+                                  pfm_diffusion->getPointer(0, 0),
+                                  pfm_diffusion->getPointer(1, 0),
 #if (NDIM == 3)
-          pfm_diffusion->getPointer(2, 0),
+                                  pfm_diffusion->getPointer(2, 0),
 #endif
-          pfm_diffusion->getGhostCellWidth()[0], d_D0_liquid, d_D0_solidA,
-          &interp_func_type, d_avg_func_type.c_str());
+                                  pfm_diffusion->getGhostCellWidth()[0],
+                                  d_D0_liquid, d_D0_solidA, &interp_func_type,
+                                  d_avg_func_type.c_str());
 
       setDiffusionInterfaces(patch, phi, pfm_diffusion);
 
    } else {
-      CONCENTRATION_PFMDIFFUSION_SCALAR(
-          ifirst(0), ilast(0), ifirst(1), ilast(1),
+      PFMDIFFUSION_SCALAR(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-          ifirst(2), ilast(2),
+                          ifirst(2), ilast(2),
 #endif
-          phi->getPointer(), phi->getGhostCellWidth()[0],
-          pfm_diffusion->getPointer(0, 0), pfm_diffusion->getPointer(1, 0),
+                          phi->getPointer(), phi->getGhostCellWidth()[0],
+                          pfm_diffusion->getPointer(0, 0),
+                          pfm_diffusion->getPointer(1, 0),
 #if (NDIM == 3)
-          pfm_diffusion->getPointer(2, 0),
+                          pfm_diffusion->getPointer(2, 0),
 #endif
-          pfm_diffusion->getGhostCellWidth()[0], d_D0_liquid, d_D0_solidA,
-          &interp_func_type, d_avg_func_type.c_str());
+                          pfm_diffusion->getGhostCellWidth()[0], d_D0_liquid,
+                          d_D0_solidA, &interp_func_type,
+                          d_avg_func_type.c_str());
    }
 
    // fill other diagonal value with same value for ternaries for now
