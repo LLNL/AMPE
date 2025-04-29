@@ -11,7 +11,7 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
 c
-      subroutine concentration_pfmdiffusion(
+      subroutine pfmdiffusion(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
      &   diff0, diff1, ngdiff,
@@ -96,7 +96,7 @@ c
 c
 c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
 c
-      subroutine concentration_pfmdiffusion_scalar(
+      subroutine pfmdiffusion_scalar(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
      &   diff0, diff1, ngdiff,
@@ -206,7 +206,7 @@ c
 c
 c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
 c
-      subroutine concentration_pfmdiffusion_scalar_2phases(
+      subroutine pfmdiffusion_scalar_2phases(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phiL, phiA, nphiA, ngphi,
      &   diff0, diff1, ngdiff,
@@ -281,7 +281,7 @@ c
       end
 c
 c
-      subroutine concentration_pfmdiffusion_threephases(
+      subroutine pfmdiffusion_of_temperature_folchplapp(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
      &   diff0, diff1, ngdiff,
@@ -390,7 +390,7 @@ c
 c same as function concentrationdiffusion0, without accumulating
 c component into single D
 c
-      subroutine concentration_pfmdiffusion_of_temperature(
+      subroutine pfmdiffusion_of_temperature(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
      &   diffL0, diffL1,
@@ -479,7 +479,7 @@ c
       end
 c
 c
-      subroutine concentration_pfmdiffusion_of_temperature_multiphases(
+      subroutine pfmdiffusion_of_temperature_multiorder(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, nphi, ngphi,
      &   diffL0, diffL1,
@@ -572,7 +572,7 @@ c
 
 c
 c
-      subroutine concentration_pfmdiffusion_of_temperature_threephases(
+      subroutine pfmdiffusion_of_temperature_multiorder_threephases(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phiL, nphiL, phiA, nphiA, phiB, nphiB, ngphi,
      &   diffL0, diffL1,
@@ -692,7 +692,7 @@ c
       end
 c
 c
-      subroutine concentration_pfmdiffusion_scalar_3phases(
+      subroutine pfmdiffusion_scalar_multiorder_3phases(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phiL, nphiL, phiA, nphiA, phiB, nphiB, ngphi,
      &   diff0, diff1, ngdiff,

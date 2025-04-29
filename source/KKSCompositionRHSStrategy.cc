@@ -134,19 +134,21 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
                  patch->getPatchData(conc_pfm_diffusion_id)));
          assert(pfm_diffusion->getDepth() == 1);
 
-         CONCENTRATION_PFMDIFFUSION(
-             ifirst(0), ilast(0), ifirst(1), ilast(1),
+         PFMDIFFUSION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-             ifirst(2), ilast(2),
+                      ifirst(2), ilast(2),
 #endif
-             phi->getPointer(), phi->getGhostCellWidth()[0],
-             pfm_diffusion->getPointer(0), pfm_diffusion->getPointer(1),
+                      phi->getPointer(), phi->getGhostCellWidth()[0],
+                      pfm_diffusion->getPointer(0),
+                      pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
-             pfm_diffusion->getPointer(2),
+                      pfm_diffusion->getPointer(2),
 #endif
-             0, temperature->getPointer(), temperature->getGhostCellWidth()[0],
-             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
-             gas_constant_R_JpKpmol, &interpf, d_avg_func_type.c_str());
+                      0, temperature->getPointer(),
+                      temperature->getGhostCellWidth()[0], d_D_liquid,
+                      d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
+                      gas_constant_R_JpKpmol, &interpf,
+                      d_avg_func_type.c_str());
       }
    }
 }
