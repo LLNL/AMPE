@@ -39,12 +39,13 @@ ModelParameters {  // required block
       type = "scalar"
       temperature = 1.
    }
+   avg_func_type             = "a"
 
    ConcentrationModel {
       model = "parabolic"
       rhs_form = "ebs"
       molar_volume = 1.e-8
-
+      avg_func_type             = "a"
       diffusion_type = "temperature_dependent"
       D_solid_A =  3.e-1 //um**2/s
       D_solid_B =  3.e-1 //um**2/s
