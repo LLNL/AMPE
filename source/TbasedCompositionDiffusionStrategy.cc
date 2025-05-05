@@ -299,8 +299,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
                 pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
                 d_D0_liquid, d_Q0_liquid, d_D0_solidA, d_Q0_solidA, d_D0_solidB,
-                d_Q0_solidB, gas_constant_R_JpKpmol,
-                d_avg_func_type.c_str());
+                d_Q0_solidB, gas_constant_R_JpKpmol, d_avg_func_type.c_str());
          }
       }
 
@@ -325,7 +324,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #endif
           pfm_diffusionL->getGhostCellWidth()[0], temperature->getPointer(),
           temperature->getGhostCellWidth()[0], d_D0_liquid, d_Q0_liquid,
-          d_D0_solidA, d_Q0_solidA, gas_constant_R_JpKpmol, &interp_func_type,
+          d_D0_solidA, d_Q0_solidA, gas_constant_R_JpKpmol,
           d_avg_func_type.c_str());
 
       setDiffusionInterfaces(patch, phi, temperature, pfm_diffusionL,

@@ -26,7 +26,8 @@ lines=output.split(b'\n')
 
 end_reached = False
 end_time = 2.e-3
-final_sfraction = 0.193
+
+final_sfraction = 0.199
 sfraction_checked = False
 
 first_concentration=-1.

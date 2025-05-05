@@ -494,7 +494,6 @@ c
      &   d_liquid, q0_liquid,
      &   d_solid, q0_solid,
      &   gas_constant_R,
-     &   interp_type,
      &   avg_type)
 c***********************************************************************
       implicit none
@@ -503,7 +502,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer nphi, ngphi, ngdiff, ngtemp
-      character*(*) avg_type, interp_type
+      character*(*) avg_type
       double precision d_liquid, d_solid
       double precision q0_liquid, q0_solid
       double precision gas_constant_R
@@ -528,17 +527,23 @@ c
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0+1
-            vphi = 0.d0
+            phis = 0.d0
 c assuming the first nphi-1 order parameters are solid phase
             do ip = 1, nphi-1
-               vphi = vphi + average_func(
+               vphi = average_func(
      &            phi(ic0-1,ic1,ip), phi(ic0,ic1,ip), avg_type )
+               vphi = max(0.d0, vphi)
+               phis = phis + vphi*vphi
             enddo
-            phis = interp_func( vphi, interp_type )
 
             vphi = average_func(
      &         phi(ic0-1,ic1,nphi), phi(ic0,ic1,nphi), avg_type )
-            phil = interp_func( vphi, interp_type )
+            vphi = max(0.d0, vphi)
+            phil = vphi*vphi
+
+            vphi = 1.d0/(phil+phis)
+            phis = phis * vphi
+            phil = phil * vphi
 
             invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
 
@@ -552,16 +557,22 @@ c assuming the first nphi-1 order parameters are solid phase
 c
       do ic1 = ifirst1, ilast1+1
          do ic0 = ifirst0, ilast0
-            vphi = 0.d0
+            phis = 0.d0
             do ip = 1, nphi-1
-               vphi = vphi + average_func(
+               vphi = average_func(
      &            phi(ic0,ic1-1,ip), phi(ic0,ic1,ip), avg_type )
+               vphi = max(0.d0, vphi)
+               phis = phis + vphi*vphi
             enddo
-            phis = interp_func( vphi, interp_type )
 
             vphi = average_func(
      &         phi(ic0,ic1-1,nphi), phi(ic0,ic1-1,nphi), avg_type )
-            phil = interp_func( vphi, interp_type )
+            vphi = max(0.d0, vphi)
+            phil = vphi*vphi
+
+            vphi = 1.d0/(phil+phis)
+            phis = phis * vphi
+            phil = phil * vphi
 
             invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
 

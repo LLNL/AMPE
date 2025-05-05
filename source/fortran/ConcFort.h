@@ -285,8 +285,7 @@ void PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER(
 #endif
     const int& ngdiff, const double* t, const int& ngt, const double& d_phase0,
     const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
-    const double& gas_constant_R, const char* phi_interp_type,
-    const char* avg_func_type);
+    const double& gas_constant_R, const char* avg_func_type);
 
 void PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER_THREEPHASES(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
@@ -311,8 +310,7 @@ void PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER_THREEPHASES(
     const int& ngdiff, const double* t, const int& ngt, const double& d_phase0,
     const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
     const double& d_phase2, const double& q0_phase2,
-    const double& gas_constant_R,
-    const char* avg_func_type);
+    const double& gas_constant_R, const char* avg_func_type);
 
 void PFMDIFFUSION_OF_TEMPERATURE_FOLCHPLAPP(
     const int& ifirst0, const int& ilast0, const int& ifirst1,

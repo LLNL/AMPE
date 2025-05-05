@@ -38,6 +38,7 @@ ModelParameters {  // required block
       type = "scalar"
       temperature = 1.0061 // 825./820.
    }
+   avg_func_type             = "a"
 
    ConcentrationModel {
       model = "parabolic"
