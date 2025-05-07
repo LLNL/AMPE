@@ -427,9 +427,10 @@ c
       return
       end
 c
-      subroutine pfmdiffusion_of_temperature_multiorder_threephases(
+c
+      subroutine pfmdiffusion_of_temperature_folchplapp(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-     &   phiL, nphiL, phiA, nphiA, phiB, nphiB, ngphi,
+     &   phi, ngphi,
      &   diffL0, diffL1, diffL2,
      &   diffA0, diffA1, diffA2,
      &   diffB0, diffB1, diffB2, ngdiff,
@@ -446,8 +447,159 @@ c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer nphiL, nphiA, nphiB, ngphi, ngdiff, ngtemp
+      integer ngphi, ngdiff, ngtemp
       character*(*) avg_type, interp_type
+      double precision d_liquid, d_solidA, d_solidB
+      double precision q0_liquid, q0_solidA, q0_solidB
+      double precision gas_constant_R
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi),3)
+      double precision temp(CELL3d(ifirst,ilast,ngtemp))
+      double precision diffL0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffL1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffL2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision diffA0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffA1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffA2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision diffB0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffB1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ic2
+      double precision vphi, phi1, phi2, phi3, invT
+      double precision q0_liquid_invR, q0_solidA_invR, q0_solidB_invR
+      double precision diff_liquid, diff_solidA, diff_solidB
+      double precision interp_func
+      double precision average_func
+c
+      q0_liquid_invR = q0_liquid / gas_constant_R
+      q0_solidA_invR = q0_solidA / gas_constant_R
+      q0_solidB_invR = q0_solidB / gas_constant_R
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
+
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2,1), phi(ic0,ic1,ic2,1),
+     &            avg_type )
+               phi1 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2,2), phi(ic0,ic1,ic2,2),
+     &            avg_type )
+               phi2 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2,3), phi(ic0,ic1,ic2,3),
+     &            avg_type )
+               phi3 = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 / ( temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+               diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
+
+               diffL0(ic0,ic1,ic2) = phi1 * diff_liquid
+               diffA0(ic0,ic1,ic2) = phi2 * diff_solidA
+               diffB0(ic0,ic1,ic2) = phi3 * diff_solidB
+
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+
+               vphi = average_func(
+     &            phi(ic0,ic1-1,ic2,1), phi(ic0,ic1,ic2,1),
+     &            avg_type )
+               phi1 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0,ic1-1,ic2,2), phi(ic0,ic1,ic2,2),
+     &            avg_type )
+               phi2 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0,ic1-1,ic2,3), phi(ic0,ic1,ic2,3),
+     &            avg_type )
+               phi3 = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 / ( temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+               diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
+
+               diffL1(ic0,ic1,ic2) = phi1 * diff_liquid
+               diffA1(ic0,ic1,ic2) = phi2 * diff_solidA
+               diffB1(ic0,ic1,ic2) = phi3 * diff_solidB
+
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               vphi = average_func(
+     &            phi(ic0,ic1,ic2-1,1), phi(ic0,ic1,ic2,1),
+     &            avg_type )
+               phi1 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0,ic1,ic2-1,2), phi(ic0,ic1,ic2,2),
+     &            avg_type )
+               phi2 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0,ic1,ic2-1,3), phi(ic0,ic1,ic2,3),
+     &            avg_type )
+               phi3 = interp_func( vphi, interp_type )
+
+               invT = .0d0 / ( temp(ic0,ic1,ic2-1)+temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solidA = d_solidA * exp( -q0_solidA_invR * invT )
+               diff_solidB = d_solidB * exp( -q0_solidB_invR * invT )
+
+               diffL2(ic0,ic1,ic2) = phi1 * diff_liquid
+               diffA2(ic0,ic1,ic2) = phi2 * diff_solidA
+               diffB2(ic0,ic1,ic2) = phi3 * diff_solidB
+
+            end do
+         end do
+      end do
+
+      return
+      end
+c
+c
+      subroutine pfmdiffusion_of_temperature_multiorder_threephases(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phiL, nphiL, phiA, nphiA, phiB, nphiB, ngphi,
+     &   diffL0, diffL1, diffL2,
+     &   diffA0, diffA1, diffA2,
+     &   diffB0, diffB1, diffB2, ngdiff,
+     &   temp, ngtemp,
+     &   d_liquid, q0_liquid,
+     &   d_solidA, q0_solidA,
+     &   d_solidB, q0_solidB,
+     &   gas_constant_R,
+     &   avg_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer nphiL, nphiA, nphiB, ngphi, ngdiff, ngtemp
+      character*(*) avg_type
       double precision d_liquid, d_solidA, d_solidB
       double precision q0_liquid, q0_solidA, q0_solidB
       double precision gas_constant_R
@@ -467,14 +619,10 @@ c variables in 3d cell indexed
       double precision diffB1(SIDE3d1(ifirst,ilast,ngdiff))
       double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
 c
-c***********************************************************************
-c***********************************************************************
-c
       integer ic0, ic1, ic2, ip
       double precision vphi, vphiL, vphiA, vphiB, invT
       double precision q0_liquid_invR, q0_solidA_invR, q0_solidB_invR
       double precision diff_liquid, diff_solidA, diff_solidB
-      double precision interp_func
       double precision average_func
 c
       q0_liquid_invR = q0_liquid / gas_constant_R
@@ -485,26 +633,34 @@ c
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0+1
 
-               vphi = 0.d0
+               vphiA = 0.d0
                do ip = 1, nphiA
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phiA(ic0-1,ic1,ic2,ip), phiA(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  vphiA = vphiA + vphi*vphi
                enddo
-               vphiA = interp_func( vphi, interp_type )
 
-               vphi = 0.d0
+               vphiB = 0.d0
                do ip = 1, nphiB
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phiB(ic0-1,ic1,ic2,ip), phiB(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  vphiB = vphiB + vphi*vphi
                enddo
-               vphiB = interp_func( vphi, interp_type )
 
                vphi = average_func(
      &            phiL(ic0-1,ic1,ic2,1), phiL(ic0,ic1,ic2,1),
      &            avg_type )
-               vphiL = interp_func( vphi, interp_type )
+               vphi = max(0.d0, vphi)
+               vphiL = vphi*vphi
+
+               vphi = 1.d0/(vphiL+vphiA+vphiB)
+               vphiL = vphiL*vphi
+               vphiA = vphiA*vphi
+               vphiB = vphiB*vphi
 
                invT = 2.0d0 / ( temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2) )
 
@@ -524,26 +680,34 @@ c
          do ic1 = ifirst1, ilast1+1
             do ic0 = ifirst0, ilast0
 
-               vphi = 0.d0
+               vphiA = 0.d0
                do ip = 1, nphiA
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phiA(ic0,ic1-1,ic2,ip), phiA(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  vphiA = vphiA + vphi*vphi
                enddo
-               vphiA = interp_func( vphi, interp_type )
 
-               vphi = 0.d0
+               vphiB = 0.d0
                do ip = 1, nphiB
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &                phiB(ic0,ic1-1,ic2,ip), phiB(ic0,ic1,ic2,ip),
      &                avg_type )
+                  vphi = max(0.d0, vphi)
+                  vphiB = vphiB + vphi*vphi
                enddo
-               vphiB = interp_func( vphi, interp_type )
 
                vphi = average_func(
      &            phiL(ic0,ic1-1,ic2,1), phiL(ic0,ic1,ic2,1),
      &            avg_type )
-               vphiL = interp_func( vphi, interp_type )
+               vphi = max(0.d0, vphi)
+               vphiL = vphi*vphi
+
+               vphi = 1.d0/(vphiL+vphiA+vphiB)
+               vphiL = vphiL*vphi
+               vphiA = vphiA*vphi
+               vphiB = vphiB*vphi
 
                invT = 2.0d0 / ( temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2) )
 
@@ -563,26 +727,34 @@ c
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
 
-               vphi = 0.d0
+               vphiA = 0.d0
                do ip = 1, nphiA
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phiA(ic0,ic1,ic2-1,ip), phiA(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  vphiA = vphiA + vphi*vphi
                enddo
-               vphiA = interp_func( vphi, interp_type )
 
-               vphi = 0.d0
+               vphiB = 0.d0
                do ip = 1, nphiB
                   vphi = average_func(
      &               phiB(ic0,ic1,ic2-1,ip), phiB(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  vphiB = vphiB + vphi*vphi
                enddo
-               vphiB = interp_func( vphi, interp_type )
 
                vphi = average_func(
      &            phiL(ic0,ic1,ic2-1,1), phiL(ic0,ic1,ic2,1),
      &            avg_type )
-               vphiL = interp_func( vphi, interp_type )
+               vphi = max(0.d0, vphi)
+               vphiL = vphi*vphi
+
+               vphi = 1.d0/(vphiL+vphiA+vphiB)
+               vphiL = vphiL*vphi
+               vphiA = vphiA*vphi
+               vphiB = vphiB*vphi
 
                invT = 2.0d0 / ( temp(ic0,ic1,ic2-1)+temp(ic0,ic1,ic2) )
 
@@ -926,7 +1098,6 @@ c
      &   d_liquid, q0_liquid,
      &   d_solid, q0_solid,
      &   gas_constant_R,
-     &   interp_type,
      &   avg_type)
 c***********************************************************************
       implicit none
@@ -935,7 +1106,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
       integer nphi, ngphi, ngdiff, ngtemp
-      character*(*) avg_type, interp_type
+      character*(*) avg_type
       double precision d_liquid, d_solid
       double precision q0_liquid, q0_solid
       double precision gas_constant_R
@@ -954,7 +1125,6 @@ c
       double precision vphi, phil, phis, invT
       double precision q0_liquid_invR, q0_solid_invR
       double precision diff_liquid, diff_solid
-      double precision interp_func
       double precision average_func
 
       q0_liquid_invR = q0_liquid / gas_constant_R
@@ -963,19 +1133,25 @@ c
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0+1
-               vphi = 0.d0
+               phis = 0.d0
 c assuming the first nphi-1 order parameters are solid phase
                do ip = 1, nphi-1
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phi(ic0-1,ic1,ic2,ip), phi(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  phis = phis + vphi*vphi
                enddo
-               phis = interp_func( vphi, interp_type )
 
                vphi = average_func(
      &            phi(ic0-1,ic1,ic2,nphi), phi(ic0,ic1,ic2,nphi),
      &            avg_type )
-               phil = interp_func( vphi, interp_type )
+               vphi = max(0.d0, vphi)
+               phil = vphi*vphi
+
+               vphi = 1.d0/(phil+phis)
+               phis = phis * vphi
+               phil = phil * vphi
 
                invT = 2.0d0 / ( temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2) )
 
@@ -991,18 +1167,20 @@ c
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1+1
             do ic0 = ifirst0, ilast0
-               vphi = 0.d0
+               phis = 0.d0
                do ip = 1, nphi-1
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phi(ic0,ic1-1,ic2,ip), phi(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  phis = phis + vphi*vphi
                enddo
-               phis = interp_func( vphi, interp_type )
 
                vphi = average_func(
      &            phi(ic0,ic1-1,ic2,nphi), phi(ic0,ic1-1,ic2,nphi),
      &            avg_type )
-               phil = interp_func( vphi, interp_type )
+               vphi = max(0.d0, vphi)
+               phil = vphi*vphi
 
                invT = 2.0d0 / ( temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2) )
 
@@ -1018,18 +1196,20 @@ c
       do ic2 = ifirst2, ilast2+1
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
-               vphi = 0.d0
+               phis = 0.d0
                do ip = 1, nphi-1
-                  vphi = vphi + average_func(
+                  vphi = average_func(
      &               phi(ic0,ic1,ic2-1,ip), phi(ic0,ic1,ic2,ip),
      &               avg_type )
+                  vphi = max(0.d0, vphi)
+                  phis = phis + vphi*vphi
                enddo
-               phis = interp_func( vphi, interp_type )
 
                vphi = average_func(
      &            phi(ic0,ic1,ic2-1,nphi), phi(ic0,ic1-1,ic2,nphi),
      &            avg_type )
-               phil = interp_func( vphi, interp_type )
+               vphi = max(0.d0, vphi)
+               phil = vphi*vphi
 
                invT = 2.0d0 / ( temp(ic0,ic1,ic2-1)+temp(ic0,ic1,ic2) )
 

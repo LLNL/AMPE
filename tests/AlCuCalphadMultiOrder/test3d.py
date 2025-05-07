@@ -36,7 +36,7 @@ lines=output.split(b'\n')
 
 end_reached = False
 end_time = 4.e-5
-final_sfraction = 0.115
+final_sfraction = 0.114
 sfraction_checked = False
 
 first_concentration=-1.
@@ -56,7 +56,7 @@ for line in lines:
     if time>end_time:
       end_reached = True
       dt=eval(words[10])
-      if (dt-3.e-7)<0.:
+      if (dt-2.e-7)<0.:
         print("Wrong dt: too small")
         sys.exit(1)
 

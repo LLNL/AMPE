@@ -519,7 +519,6 @@ c
       double precision vphi, phil, phis, invT
       double precision q0_liquid_invR, q0_solid_invR
       double precision diff_liquid, diff_solid
-      double precision interp_func
       double precision average_func
 
       q0_liquid_invR = q0_liquid / gas_constant_R
