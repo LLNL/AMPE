@@ -69,8 +69,9 @@ ModelParameters {  // required block
       }
    }
 
-   phi_interp_func_type ="pbg"
+   phi_interp_func_type  = "pbg"
    conc_interp_func_type = "l"
+   avg_func_type         = "a"
 
    BoundaryConditions {
       Phase{

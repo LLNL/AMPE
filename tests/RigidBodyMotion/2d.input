@@ -36,7 +36,7 @@ ModelParameters {
    temperature = 1000.
 
    Interface{
-      sigma = 0.1
+      sigma = 0.5
       delta = 0.045
    }
 

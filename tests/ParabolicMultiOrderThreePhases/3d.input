@@ -76,7 +76,8 @@ ModelParameters {  // required block
       }
    }
 
-   phi_interp_func_type ="l"
+   avg_func_type         = "a"
+   phi_interp_func_type  = "l"
    conc_interp_func_type = "l"
 
    BoundaryConditions {

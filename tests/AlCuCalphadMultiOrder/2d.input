@@ -49,7 +49,8 @@ ModelParameters {  // required block
       D_liquid  = 3.e3  //um**2/s
    }
 
-   phi_interp_func_type ="pbg"
+   avg_func_type         = "a"
+   phi_interp_func_type  ="pbg"
    conc_interp_func_type = "l"
 
    BoundaryConditions {

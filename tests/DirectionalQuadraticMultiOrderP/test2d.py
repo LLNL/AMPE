@@ -58,12 +58,12 @@ for line in lines: ## loop over lines of file
     words = line.split()
     cmax = eval(words[3])
 
-target_cmax = 0.163
+target_cmax = 0.165
 if abs(cmax-target_cmax)>0.002:
   print("Wrong cmax {}, expected {}".format(cmax,target_cmax))
   sys.exit(1)
 
-target_vol_fraction = 0.52
+target_vol_fraction = 0.51
 print("Solid fraction : {}".format(fs))
 if abs(fs-target_vol_fraction)>0.005:
   print("Wrong solid fraction {}, expected {}".format(fs,target_vol_fraction))

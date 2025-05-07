@@ -238,42 +238,69 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
       assert(phi->getDepth() == d_norderp);
 
       {
-         // tbox::plog<<"d_with_phaseB"<<std::endl;
-         // Folch-Plapp three phases model assumes order phiL, phiA, phiB
-         double* phiL = d_folchplapp_model ? phi->getPointer(0)
-                                           : phi->getPointer(d_norderp - 1);
-         double* phiA =
-             d_folchplapp_model ? phi->getPointer(1) : phi->getPointer(0);
-         double* phiB = d_folchplapp_model ? phi->getPointer(2)
-                                           : phi->getPointer(d_norderpA);
+         if (d_folchplapp_model) {
+            PFMDIFFUSION_OF_TEMPERATURE_FOLCHPLAPP(
+                ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                ifirst(2), ilast(2),
+#endif
+                phi->getPointer(0), phi->getGhostCellWidth()[0],
+                pfm_diffusionL->getPointer(0, 0),
+                pfm_diffusionL->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionL->getPointer(2, 0),
+#endif
+                pfm_diffusionA->getPointer(0, 0),
+                pfm_diffusionA->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionA->getPointer(2, 0),
+#endif
+                pfm_diffusionB->getPointer(0, 0),
+                pfm_diffusionB->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionB->getPointer(2, 0),
+#endif
+                pfm_diffusionL->getGhostCellWidth()[0],
+                temperature->getPointer(), temperature->getGhostCellWidth()[0],
+                d_D0_liquid, d_Q0_liquid, d_D0_solidA, d_Q0_solidA, d_D0_solidB,
+                d_Q0_solidB, gas_constant_R_JpKpmol, &interp_func_type,
+                d_avg_func_type.c_str());
 
-         const int nphiL = 1;
-         const int nphiA = d_norderpA;
-         const int nphiB = d_norderpB;
+         } else {
+            double* phiL = phi->getPointer(d_norderp - 1);
+            double* phiA = phi->getPointer(0);
+            double* phiB = phi->getPointer(d_norderpA);
 
-         PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER_THREEPHASES(
-             ifirst(0), ilast(0), ifirst(1), ilast(1),
+            const int nphiL = 1;
+            const int nphiA = d_norderpA;
+            const int nphiB = d_norderpB;
+
+            PFMDIFFUSION_OF_TEMPERATURE_MULTIORDER_THREEPHASES(
+                ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-             ifirst(2), ilast(2),
+                ifirst(2), ilast(2),
 #endif
-             phiL, nphiL, phiA, nphiA, phiB, nphiB, phi->getGhostCellWidth()[0],
-             pfm_diffusionL->getPointer(0, 0), pfm_diffusionL->getPointer(1, 0),
+                phiL, nphiL, phiA, nphiA, phiB, nphiB,
+                phi->getGhostCellWidth()[0], pfm_diffusionL->getPointer(0, 0),
+                pfm_diffusionL->getPointer(1, 0),
 #if (NDIM == 3)
-             pfm_diffusionL->getPointer(2, 0),
+                pfm_diffusionL->getPointer(2, 0),
 #endif
-             pfm_diffusionA->getPointer(0, 0), pfm_diffusionA->getPointer(1, 0),
+                pfm_diffusionA->getPointer(0, 0),
+                pfm_diffusionA->getPointer(1, 0),
 #if (NDIM == 3)
-             pfm_diffusionA->getPointer(2, 0),
+                pfm_diffusionA->getPointer(2, 0),
 #endif
-             pfm_diffusionB->getPointer(0, 0), pfm_diffusionB->getPointer(1, 0),
+                pfm_diffusionB->getPointer(0, 0),
+                pfm_diffusionB->getPointer(1, 0),
 #if (NDIM == 3)
-             pfm_diffusionB->getPointer(2, 0),
+                pfm_diffusionB->getPointer(2, 0),
 #endif
-             pfm_diffusionL->getGhostCellWidth()[0], temperature->getPointer(),
-             temperature->getGhostCellWidth()[0], d_D0_liquid, d_Q0_liquid,
-             d_D0_solidA, d_Q0_solidA, d_D0_solidB, d_Q0_solidB,
-             gas_constant_R_JpKpmol, &interp_func_type,
-             d_avg_func_type.c_str());
+                pfm_diffusionL->getGhostCellWidth()[0],
+                temperature->getPointer(), temperature->getGhostCellWidth()[0],
+                d_D0_liquid, d_Q0_liquid, d_D0_solidA, d_Q0_solidA, d_D0_solidB,
+                d_Q0_solidB, gas_constant_R_JpKpmol, d_avg_func_type.c_str());
+         }
       }
 
       setDiffusionInterfaces(patch, phi, temperature, pfm_diffusionL,
@@ -297,7 +324,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #endif
           pfm_diffusionL->getGhostCellWidth()[0], temperature->getPointer(),
           temperature->getGhostCellWidth()[0], d_D0_liquid, d_Q0_liquid,
-          d_D0_solidA, d_Q0_solidA, gas_constant_R_JpKpmol, &interp_func_type,
+          d_D0_solidA, d_Q0_solidA, gas_constant_R_JpKpmol,
           d_avg_func_type.c_str());
 
       setDiffusionInterfaces(patch, phi, temperature, pfm_diffusionL,
