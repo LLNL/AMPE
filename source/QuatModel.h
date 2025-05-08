@@ -298,6 +298,8 @@ class QuatModel : public PFModel
    void setDiffusionVisit(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
+   void limitClDifference(const double delta);
+
  private:
    void setAuxilliaryCompositions();
    void registerPhaseConcentrationDiffusionVariables();

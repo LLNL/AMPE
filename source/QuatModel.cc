@@ -50,6 +50,7 @@
 #include "computeQDiffs.h"
 #include "HierarchyStencilOps.h"
 #include "WangRigidBodyForces.h"
+#include "LimitDifference.h"
 
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
@@ -2323,7 +2324,8 @@ double QuatModel::Advance(void)
    bool update_solution = false;
 
    if (d_model_parameters.with_concentration() &&
-       d_model_parameters.isConcentrationModelCALPHAD())
+       (d_model_parameters.isConcentrationModelCALPHAD() ||
+        d_model_parameters.getStochioA() >= 0.))
       resetRefPhaseConcentrations();
 
    if (d_model_parameters.with_orientation()) {
@@ -5021,6 +5023,10 @@ void QuatModel::computePhaseConcentrations(
                                                      d_phase_scratch_id,
                                                      d_conc_scratch_id);
 
+   if (d_model_parameters.getStochioA() >= 0.) {
+      limitClDifference(1.e-4);
+   }
+
    t_phase_conc_timer->stop();
 }
 
@@ -5274,7 +5280,7 @@ void QuatModel::resetRefPhaseConcentrations()
    assert(d_conc_l_ref_id >= 0);
    assert(d_conc_a_ref_id >= 0);
 
-   // tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
+   tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
 
@@ -5282,6 +5288,14 @@ void QuatModel::resetRefPhaseConcentrations()
    cellops.copyData(d_conc_a_ref_id, d_conc_a_id, false);
    if (d_model_parameters.withPhaseB())
       cellops.copyData(d_conc_b_ref_id, d_conc_b_id, false);
+}
+
+//=======================================================================
+
+void QuatModel::limitClDifference(const double delta)
+{
+   LimitDifference limit(d_patch_hierarchy);
+   limit.apply(d_conc_l_id, d_conc_l_ref_id, delta);
 }
 
 //=======================================================================
