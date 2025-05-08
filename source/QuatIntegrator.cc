@@ -3206,7 +3206,7 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
 
             // compute phase concentrations again if they depend on velocity
             // tbox::pout<<"Evaluate c_L, c_S..."<<endl;
-            d_quat_model->computePhaseConcentrations(hierarchy);
+            d_quat_model->computePhaseConcentrations(time, hierarchy);
          }
 
       } while (need_iterate);

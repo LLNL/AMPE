@@ -1214,7 +1214,8 @@ void QuatModel::registerPhaseConcentrationVariables()
       assert(d_conc_b_var);
    }
 
-   if (d_model_parameters.isConcentrationModelCALPHAD()) {
+   if (d_model_parameters.isConcentrationModelCALPHAD() ||
+       d_model_parameters.getStochioA() >= 0.) {
       d_conc_l_ref_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_l_ref",
                                          d_ncompositions));
@@ -4986,6 +4987,7 @@ void QuatModel::evaluateEnergy(
 //=======================================================================
 
 void QuatModel::computePhaseConcentrations(
+const double time,
     const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(d_phase_conc_strategy != nullptr);
@@ -5024,7 +5026,9 @@ void QuatModel::computePhaseConcentrations(
                                                      d_conc_scratch_id);
 
    if (d_model_parameters.getStochioA() >= 0.) {
-      limitClDifference(1.e-4);
+      const double dt = time - d_current_time;
+
+      d_quat_model->limitClDifference(dt * 1.e5);
    }
 
    t_phase_conc_timer->stop();
@@ -5294,6 +5298,8 @@ void QuatModel::resetRefPhaseConcentrations()
 
 void QuatModel::limitClDifference(const double delta)
 {
+   assert(d_conc_l_ref_id >= 0);
+
    LimitDifference limit(d_patch_hierarchy);
    limit.apply(d_conc_l_id, d_conc_l_ref_id, delta);
 }

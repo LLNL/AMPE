@@ -27,6 +27,9 @@ void LimitDifference::apply(const int cell_data_id, const int ref_cell_data_id,
                             const double diff)
 
 {
+   assert(cell_data_id >= 0);
+   assert(ref_cell_data_id >= 0);
+
    tbox::pout << "Limit difference to " << diff << std::endl;
    const int maxln = d_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
