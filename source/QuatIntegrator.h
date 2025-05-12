@@ -234,12 +234,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    void setMobilityStrategy(std::shared_ptr<QuatMobilityStrategy>&);
    void setFreeEnergyStrategy(
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy);
-   void setPhaseConcentrationsStrategy(
-       std::shared_ptr<PhaseConcentrationsStrategy> phase_conc_strategy)
-   {
-      assert(phase_conc_strategy != nullptr);
-      d_phase_conc_strategy = phase_conc_strategy;
-   }
    void setCompositionRHSStrategy(
        std::shared_ptr<CompositionRHSStrategy> composition_rhs_strategy);
    void setCompositionDiffusionStrategy(
@@ -451,8 +445,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        const bool recompute_quat_sidegrad);
 
    void createSundialsSolver();
-   void computePhaseConcentrations(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    virtual void setupPreconditionersConcentration(
        std::shared_ptr<tbox::Database> integrator_db);
    void setupPreconditionersPhase(
@@ -608,7 +600,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
 
    QuatGradStrategy* d_quat_grad_strategy;
    std::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
-   std::shared_ptr<PhaseConcentrationsStrategy> d_phase_conc_strategy;
    PartitionCoefficientStrategy* d_partition_coeff_strategy;
 
    // use temperature strategy if temperature function of time only,
@@ -944,7 +935,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::shared_ptr<tbox::Timer> t_set_diffcoeff_conc_timer;
    std::shared_ptr<tbox::Timer> t_psolve_setup_timer;
    std::shared_ptr<tbox::Timer> t_psolve_solve_timer;
-   std::shared_ptr<tbox::Timer> t_phase_conc_timer;
    std::shared_ptr<tbox::Timer> t_phase_precond_timer;
    std::shared_ptr<tbox::Timer> t_conc_precond_timer;
    std::shared_ptr<tbox::Timer> t_quat_grad_timer;
