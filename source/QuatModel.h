@@ -224,8 +224,8 @@ class QuatModel : public PFModel
    void computeVectorWeightsDiagnostics(
        std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   void computePhaseConcentrations(const double time,
-       std::shared_ptr<hier::PatchHierarchy> hierarchy);
+   void computePhaseConcentrations(
+       const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void evaluateEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const double time, double& total_energy,

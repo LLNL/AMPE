@@ -24,14 +24,14 @@ class LimitDifference
     * by less than "diff"
     */
    void apply(const int cell_data_id, const int ref_cell_data_id,
-              const double diff);
+              const int wright_id, const int depth, const double diff);
 
  private:
    const std::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
 
    void apply(const std::shared_ptr<SAMRAI::hier::PatchLevel> level,
               const int cell_data_id, const int ref_cell_data_id,
-              const double diff);
+              const int wright_id, const int depth, const double diff);
 };
 
 #endif

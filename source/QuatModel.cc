@@ -735,6 +735,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    const double cLref = d_model_parameters.concL_ref();
    if (cLref >= 0.) {
       tbox::plog << "Set reference cL to " << cLref << std::endl;
+      assert(cLref <= 1.);
       if (d_conc_l_ref_id >= 0)
          cellops.setToScalar(d_conc_l_ref_id, cLref, false);
       cellops.setToScalar(d_conc_l_id, cLref, false);
@@ -4942,9 +4943,7 @@ void QuatModel::evaluateEnergy(
       }
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
          assert(d_phase_conc_strategy != nullptr);
-         d_phase_conc_strategy->computePhaseConcentrations(
-             hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
-             d_conc_scratch_id);
+         computePhaseConcentrations(0., hierarchy);
       }
    }
 
@@ -4987,8 +4986,7 @@ void QuatModel::evaluateEnergy(
 //=======================================================================
 
 void QuatModel::computePhaseConcentrations(
-const double time,
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const double dt, const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(d_phase_conc_strategy != nullptr);
 
@@ -5026,9 +5024,7 @@ const double time,
                                                      d_conc_scratch_id);
 
    if (d_model_parameters.getStochioA() >= 0.) {
-      const double dt = time - d_current_time;
-
-      d_quat_model->limitClDifference(dt * 1.e5);
+      limitClDifference(dt * 1.e5);
    }
 
    t_phase_conc_timer->stop();
@@ -5301,7 +5297,8 @@ void QuatModel::limitClDifference(const double delta)
    assert(d_conc_l_ref_id >= 0);
 
    LimitDifference limit(d_patch_hierarchy);
-   limit.apply(d_conc_l_id, d_conc_l_ref_id, delta);
+   limit.apply(d_conc_l_id, d_conc_l_ref_id, d_phase_id,
+               d_model_parameters.norderp() - 1, delta);
 }
 
 //=======================================================================
@@ -5356,6 +5353,8 @@ void QuatModel::setRefPhaseConcentrationsToEquilibrium(const double* const ceq)
 {
    assert(d_conc_l_ref_id >= 0);
    assert(d_conc_a_ref_id >= 0);
+   assert(ceq[0] >= 0.);
+   assert(ceq[0] <= 1.);
 
    tbox::pout << "QuatModel::setRefPhaseConcentrationsToEquilibrium(ceq)"
               << std::endl;
