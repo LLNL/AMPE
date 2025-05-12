@@ -182,6 +182,8 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    t_resetGrains_timer = tman->getTimer("AMPE::QuatModel::resetGrains()");
 
    t_phase_diffs_timer = tman->getTimer("AMPE::QuatModel::phaseDiffs");
+   t_phase_conc_timer =
+       tman->getTimer("AMPE::QuatIntegrator::computePhaseConcentrations()");
 }
 
 //=======================================================================
@@ -844,8 +846,6 @@ void QuatModel::InitializeIntegrator(void)
       d_integrator->setCompositionRHSStrategy(d_composition_rhs_strategy);
    }
    d_integrator->setFreeEnergyStrategy(d_free_energy_strategy);
-   if (d_model_parameters.concentrationModelNeedsPhaseConcentrations())
-      d_integrator->setPhaseConcentrationsStrategy(d_phase_conc_strategy);
    if (d_model_parameters.with_partition_coeff())
       d_integrator->setPartitionCoefficientStrategy(d_partition_coeff_strategy);
 
@@ -854,9 +854,6 @@ void QuatModel::InitializeIntegrator(void)
       d_integrator_quat_only->setQuatGradStrategy(d_quat_grad_strategy);
       d_integrator_quat_only->setMobilityStrategy(d_mobility_strategy);
       d_integrator_quat_only->setFreeEnergyStrategy(d_free_energy_strategy);
-      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations())
-         d_integrator_quat_only->setPhaseConcentrationsStrategy(
-             d_phase_conc_strategy);
       d_integrator_quat_only->setTemperatureStrategy(
           d_temperature_strategy_quat_only);
    }
@@ -4983,6 +4980,50 @@ void QuatModel::evaluateEnergy(
       mpi.Barrier();
    }
 }
+
+//=======================================================================
+
+void QuatModel::computePhaseConcentrations(
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
+{
+   assert(d_phase_conc_strategy != nullptr);
+
+   t_phase_conc_timer->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
+   double maxphi = cellops.max(d_phase_scratch_id);
+   assert(maxphi == maxphi);
+   double minphi = cellops.min(d_phase_scratch_id);
+   assert(maxphi >= 0.);
+   assert(maxphi < 1.1);
+   assert(minphi >= -0.1);
+   assert(minphi <= 1.);
+   double maxc = cellops.max(d_conc_scratch_id);
+   assert(maxc == maxc);
+#endif
+
+   // tbox::pout<<"Evaluate k..."<<endl;
+   if (d_model_parameters.with_partition_coeff()) {
+      d_partition_coeff_strategy->evaluate(hierarchy);
+      if (d_model_parameters.needGhosts4PartitionCoeff())
+         fillPartitionCoeffGhosts();
+   }
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   assert(cellops.max(d_phase_scratch_id) == cellops.max(d_phase_scratch_id));
+#endif
+
+   // phase concentrations are computed for ghost values too,
+   // so data with ghosts is needed for phase, conc and temperature
+   d_phase_conc_strategy->computePhaseConcentrations(hierarchy,
+                                                     d_temperature_scratch_id,
+                                                     d_phase_scratch_id,
+                                                     d_conc_scratch_id);
+
+   t_phase_conc_timer->stop();
+}
+
 
 //=======================================================================
 

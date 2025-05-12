@@ -129,7 +129,6 @@ QuatIntegrator::QuatIntegrator(
       d_current(current),
       d_scratch(scratch),
       d_quat_grad_strategy(nullptr),
-      d_phase_conc_strategy(nullptr),
       d_partition_coeff_strategy(nullptr),
       d_current_time(tbox::IEEE::getSignalingNaN()),
       d_previous_timestep(0.),
@@ -263,8 +262,6 @@ QuatIntegrator::QuatIntegrator(
        tman->getTimer("AMPE::QuatIntegrator::CVSpgmrPrecondSet()");
    t_psolve_solve_timer =
        tman->getTimer("AMPE::QuatIntegrator::CVSpgmrPrecondSolve()");
-   t_phase_conc_timer =
-       tman->getTimer("AMPE::QuatIntegrator::computePhaseConcentrations()");
    t_phase_precond_timer =
        tman->getTimer("AMPE::QuatIntegrator::PhasePrecondSolve()");
    t_conc_precond_timer =
@@ -3080,7 +3077,7 @@ void QuatIntegrator::setCoefficients(
 
    if (d_with_concentration &&
        d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-      computePhaseConcentrations(hierarchy);
+      d_quat_model->computePhaseConcentrations(hierarchy);
    }
 
    // mobilities may depend on cl and cs, thus they should be computed after
@@ -3089,48 +3086,6 @@ void QuatIntegrator::setCoefficients(
 
    t_set_coeff_timer->stop();
 }
-
-void QuatIntegrator::computePhaseConcentrations(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
-{
-   assert(d_phase_conc_strategy != nullptr);
-
-   t_phase_conc_timer->start();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-   math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
-   double maxphi = cellops.max(d_phase_scratch_id);
-   assert(maxphi == maxphi);
-   double minphi = cellops.min(d_phase_scratch_id);
-   assert(maxphi >= 0.);
-   assert(maxphi < 1.1);
-   assert(minphi >= -0.1);
-   assert(minphi <= 1.);
-   double maxc = cellops.max(d_conc_scratch_id);
-   assert(maxc == maxc);
-#endif
-
-   // tbox::pout<<"Evaluate k..."<<endl;
-   if (d_with_partition_coeff) {
-      d_partition_coeff_strategy->evaluate(hierarchy);
-      if (d_model_parameters.needGhosts4PartitionCoeff())
-         d_quat_model->fillPartitionCoeffGhosts();
-   }
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-   assert(cellops.max(d_phase_scratch_id) == cellops.max(d_phase_scratch_id));
-#endif
-
-   // phase concentrations are computed for ghost values too,
-   // so data with ghosts is needed for phase, conc and temperature
-   d_phase_conc_strategy->computePhaseConcentrations(hierarchy,
-                                                     d_temperature_scratch_id,
-                                                     d_phase_scratch_id,
-                                                     d_conc_scratch_id);
-
-   t_phase_conc_timer->stop();
-}
-
 
 //-----------------------------------------------------------------------
 // Virtual function from CVODEAbstractFunction
@@ -3251,7 +3206,7 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
 
             // compute phase concentrations again if they depend on velocity
             // tbox::pout<<"Evaluate c_L, c_S..."<<endl;
-            computePhaseConcentrations(hierarchy);
+            d_quat_model->computePhaseConcentrations(hierarchy);
          }
 
       } while (need_iterate);

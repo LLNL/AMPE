@@ -224,6 +224,9 @@ class QuatModel : public PFModel
    void computeVectorWeightsDiagnostics(
        std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
+   void computePhaseConcentrations(
+       std::shared_ptr<hier::PatchHierarchy> hierarchy);
+
    void evaluateEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const double time, double& total_energy,
                        double& total_phase_e, double& total_eta_e,
@@ -669,6 +672,7 @@ class QuatModel : public PFModel
    // Timers
    std::shared_ptr<tbox::Timer> t_resetGrains_timer;
    std::shared_ptr<tbox::Timer> t_phase_diffs_timer;
+   std::shared_ptr<tbox::Timer> t_phase_conc_timer;
 };
 
 #endif
