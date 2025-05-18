@@ -255,23 +255,8 @@ void MultiOrderBinaryThreePhasesDrivingForceStochioAB::addDrivingForce(
             for (short i = 0; i < norderp; i++)
                assert(!std::isnan(rhs_local[i]));
 
-            // damp driving force when close to 100% phase B
-            const double epsilon1 = 1.e-4;
-            const double epsilon2 = 2.e-4;
-            double factor = 1.;
-            if (hphil < epsilon1) {
-               factor = 0.;
-            } else {
-               if (hphil < epsilon2) {
-                  // map epsilon1 < hphi < epsilon2 to (0,1)
-                  double h = (hphil - epsilon1) / (epsilon2 - epsilon1);
-                  factor = Thermo4PFM::interp_func(
-                      Thermo4PFM::EnergyInterpolationType::PBG, h);
-               }
-            }
-
             for (short i = 0; i < norderp; i++)
-               ptr_rhs[i][idx_rhs] -= factor * (rhs_local[i]);
+               ptr_rhs[i][idx_rhs] -= rhs_local[i];
          }
       }
    }

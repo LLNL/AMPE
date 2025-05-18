@@ -183,6 +183,17 @@ void ADD_FLUX_4TH(const int& ifirst0, const int& ilast0, const int& ifirst1,
 #endif
                   const int& ngflux, const int* physb);
 
+void ZERO_FLUX_PHYSB(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                     const int& ilast1,
+#if (NDIM == 3)
+                     const int& ifirst2, const int& ilast2,
+#endif
+                     const double* flux0, const double* flux1,
+#if (NDIM == 3)
+                     const double* flux2,
+#endif
+                     const int& ngflux, const int* physb);
+
 void CONCENTRATION_FLUX_SPINODAL(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,

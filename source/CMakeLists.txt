@@ -26,7 +26,6 @@ set(SOURCES_WPENALTY
     )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
-            ${CMAKE_SOURCE_DIR}/source/LimitDifference.cc
             ${CMAKE_SOURCE_DIR}/source/ParabolicTools.cc
             ${CMAKE_SOURCE_DIR}/source/MultiOrderBinaryDrivingForce.cc
             ${CMAKE_SOURCE_DIR}/source/MultiOrderBinaryThreePhasesDrivingForce.cc

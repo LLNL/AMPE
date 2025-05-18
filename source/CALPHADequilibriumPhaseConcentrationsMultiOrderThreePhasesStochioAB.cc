@@ -50,36 +50,29 @@ int CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioAB ::
 {
    assert(!std::isnan(x[0]));
 
-   const double epsilon1 = 1.e-4;
-   const double epsilon2 = 2.e-4;
-
-   // initialize to NaN to trigger error if used when not set
-   double xkks = tbox::IEEE::getSignalingNaN();
-   double xeq = tbox::IEEE::getSignalingNaN();
+   const double epsilon1 = 1.e-3;
+   const double epsilon2 = 2.e-3;
 
    const double cA = d_model_parameters.getStochioA();
    const double cB = d_model_parameters.getStochioB();
 
-   if (hphi[0] >= epsilon1) {
-      // solve explicit KKS problem
-      xkks = (c[0] - hphi[1] * cA - hphi[2] * cB) / hphi[0];
+   const double xeq = d_model_parameters.ceq_liquid(temp);
+   // std::cout << "xeq = " << xeq << std::endl;
+   assert(!std::isnan(xeq));
 
+   // solve explicit KKS problem
+   const double a = std::max(epsilon1, hphi[0]);
+   double xkks = (c[0] - hphi[1] * cA - hphi[2] * cB) / a;
+   xkks = xeq + (1. - xeq) * std::tanh(xkks - xeq);
 #if 0
-      for (short i = 0; i < 3; i++)
-         std::cerr << hphi[i] << ", ";
-      std::cerr << ", c=" << c[0] << std::endl;
-      std::cerr << "x = " << x[0] << std::endl;
-      std::cerr << "xkks = " << xkks << std::endl;
-      std::cerr << "conc[0] - hphi1 * cA - hphi2 * cB = "
-                << c[0] - hphi[1] * cA - hphi[2] * cB << std::endl;
+   for (short i = 0; i < 3; i++)
+      std::cerr << hphi[i] << ", ";
+   std::cerr << ", c=" << c[0] << std::endl;
+   std::cerr << "x = " << x[0] << std::endl;
+   std::cerr << "xkks = " << xkks << std::endl;
+   std::cerr << "conc[0] - hphi1 * cA - hphi2 * cB = "
+             << c[0] - hphi[1] * cA - hphi[2] * cB << std::endl;
 #endif
-   }
-
-   if (hphi[0] < epsilon2) {
-      xeq = d_model_parameters.ceq_liquid(temp);
-      // std::cout << "xeq = " << xeq << std::endl;
-      assert(!std::isnan(xeq));
-   }
 
    if (hphi[0] >= epsilon2) {
       x[0] = xkks;
