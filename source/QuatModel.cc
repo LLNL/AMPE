@@ -347,8 +347,8 @@ void QuatModel::initializeRHSandEnergyStrategies(
    d_free_energy_strategy =
        FreeEnergyStrategyFactory::create(d_model_parameters, d_ncompositions,
                                          d_conc_l_id, d_conc_a_id, d_conc_b_id,
-                                         d_mvstrategy, d_meltingT_strategy,
-                                         Tref, d_conc_db);
+                                         d_conc_scratch_id, d_mvstrategy,
+                                         d_meltingT_strategy, Tref, d_conc_db);
 
    if (d_model_parameters.with_concentration()) {
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
@@ -4940,10 +4940,9 @@ void QuatModel::evaluateEnergy(
          if (d_model_parameters.needGhosts4PartitionCoeff())
             fillPartitionCoeffGhosts();
       }
-      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-         assert(d_phase_conc_strategy != nullptr);
-         computePhaseConcentrations(0., hierarchy);
-      }
+      // if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
+      //   computePhaseConcentrations(0., hierarchy);
+      //}
    }
 
    if (d_free_energy_strategy) {

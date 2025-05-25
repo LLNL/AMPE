@@ -31,7 +31,7 @@ CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB::
         std::shared_ptr<tbox::Database> newton_db,
         const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         MolarVolumeStrategy* mvstrategy, const int conc_l_id,
-        const int conc_a_id, const int conc_b_id)
+        const int conc_a_id, const int conc_b_id, const int conc_id)
     : CALPHADFreeEnergyBinaryMultiOrderThreePhases<
           Thermo4PFM::CALPHADFreeEnergyFunctionsBinaryThreePhase>(
           calphad_pt, newton_db, conc_interp_func_type, norderp_A, mvstrategy,
@@ -42,7 +42,8 @@ CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB::
    setup(calphad_pt, newton_db);
 
    d_multiorder_driving_force.reset(
-       new MultiOrderBinaryThreePhasesDrivingForceStochioAB(this, norderp_A));
+       new MultiOrderBinaryThreePhasesDrivingForceStochioAB(this, conc_id,
+                                                            norderp_A));
 }
 
 //=======================================================================
@@ -68,4 +69,17 @@ bool CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB::computeCeqT(
                 "computeCeqT..."
              << std::endl;
    return d_ceq_fenergy->computeCeqT(temperature, &ceq[0], 50, true);
+}
+
+void CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB::addDrivingForce(
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int conc_id, const int f_l_id, const int f_a_id,
+    const int f_b_id, const int rhs_id)
+{
+   (void)time;
+
+   d_multiorder_driving_force->addDrivingForce(patch, temperature_id, phase_id,
+                                               d_conc_l_id, d_conc_a_id,
+                                               d_conc_b_id, f_l_id, f_a_id,
+                                               f_b_id, rhs_id);
 }

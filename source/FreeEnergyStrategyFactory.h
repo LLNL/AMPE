@@ -43,7 +43,8 @@ class FreeEnergyStrategyFactory
    static std::shared_ptr<FreeEnergyStrategy> create(
        QuatModelParameters& model_parameters, const int ncompositions,
        const int conc_l_scratch_id, const int conc_a_scratch_id,
-       const int conc_b_scratch_id, MolarVolumeStrategy* mvstrategy,
+       const int conc_b_scratch_id, const int conc_scratch_id,
+       MolarVolumeStrategy* mvstrategy,
        MeltingTemperatureStrategy* meltingT_strategy, const double Tref,
        std::shared_ptr<tbox::Database> conc_db)
    {
@@ -94,7 +95,8 @@ class FreeEnergyStrategyFactory
                                 newton_db,
                                 model_parameters.conc_interp_func_type(),
                                 mvstrategy, conc_l_scratch_id,
-                                conc_a_scratch_id, conc_b_scratch_id));
+                                conc_a_scratch_id, conc_b_scratch_id,
+                                conc_scratch_id));
                      } else if (model_parameters.getStochioB() >= 0.) {
                         tbox::plog << "StochioB..." << std::endl;
                         free_energy_strategy.reset(

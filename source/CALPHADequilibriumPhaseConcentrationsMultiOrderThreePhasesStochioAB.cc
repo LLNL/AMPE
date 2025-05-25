@@ -50,8 +50,7 @@ int CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioAB ::
 {
    assert(!std::isnan(x[0]));
 
-   const double epsilon1 = 1.e-3;
-   const double epsilon2 = 2.e-3;
+   const double epsilon = 1e-1;
 
    const double cA = d_model_parameters.getStochioA();
    const double cB = d_model_parameters.getStochioB();
@@ -61,9 +60,15 @@ int CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioAB ::
    assert(!std::isnan(xeq));
 
    // solve explicit KKS problem
-   const double a = std::max(epsilon1, hphi[0]);
-   double xkks = (c[0] - hphi[1] * cA - hphi[2] * cB) / a;
-   xkks = xeq + (1. - xeq) * std::tanh(xkks - xeq);
+   const double a = hphi[0] + epsilon * std::exp(-hphi[0] / epsilon);
+   const double dkks = (c[0] - hphi[0] * xeq - hphi[1] * cA - hphi[2] * cB) / a;
+
+   const double xmin = 0.7857;
+   const double xmax = 0.999;
+   const double d = dkks > 0. ? (xmax - xeq) : xeq - xmin;
+   const double t = std::tanh(dkks / d);
+   const double xkks = xeq + d * t;
+
 #if 0
    for (short i = 0; i < 3; i++)
       std::cerr << hphi[i] << ", ";
@@ -74,18 +79,7 @@ int CALPHADequilibriumPhaseConcentrationsMultiOrderThreePhasesStochioAB ::
              << c[0] - hphi[1] * cA - hphi[2] * cB << std::endl;
 #endif
 
-   if (hphi[0] >= epsilon2) {
-      x[0] = xkks;
-   } else if (hphi[0] <= epsilon1) {
-      x[0] = xeq;
-   } else {
-      // map epsilon1 < hphi < epsilon2 to (0,1)
-      double h = (hphi[0] - epsilon1) / (epsilon2 - epsilon1);
-      // mix equilibrium compositions and KKS solution
-      double f =
-          Thermo4PFM::interp_func(Thermo4PFM::EnergyInterpolationType::PBG, h);
-      x[0] = (1. - f) * xeq + f * xkks;
-   }
+   x[0] = xkks;
    x[1] = cA;
    x[2] = cB;
 

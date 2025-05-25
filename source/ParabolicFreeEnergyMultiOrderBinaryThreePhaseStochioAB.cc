@@ -56,7 +56,8 @@ ParabolicFreeEnergyMultiOrderBinaryThreePhaseStochioAB::
            Thermo4PFM::ConcInterpolationType::LINEAR));
 
    d_multiorder_driving_force.reset(
-       new MultiOrderBinaryThreePhasesDrivingForceStochioAB(this, norderp_A));
+       new MultiOrderBinaryThreePhasesDrivingForceStochioAB(this, -1,
+                                                            norderp_A));
 
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]

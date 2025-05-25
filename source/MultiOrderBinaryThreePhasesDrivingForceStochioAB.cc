@@ -8,8 +8,11 @@ using namespace SAMRAI;
 
 MultiOrderBinaryThreePhasesDrivingForceStochioAB::
     MultiOrderBinaryThreePhasesDrivingForceStochioAB(
-        FreeEnergyStrategyBinary* fenergy_strategy, const int norderp_A)
-    : d_fenergy_strategy(fenergy_strategy), d_norderp_A(norderp_A)
+        FreeEnergyStrategyBinary* fenergy_strategy, const int conc_id,
+        const int norderp_A)
+    : d_fenergy_strategy(fenergy_strategy),
+      d_conc_id(conc_id),
+      d_norderp_A(norderp_A)
 {
 }
 
@@ -27,12 +30,18 @@ void MultiOrderBinaryThreePhasesDrivingForceStochioAB::addDrivingForce(
    assert(conc_a_id >= 0);
    assert(conc_b_id >= 0);
    assert(temperature_id >= 0);
+   assert(d_conc_id >= 0);
 
    std::shared_ptr<pdat::CellData<double> > phase(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
    assert(phase->getDepth() > 1);
+
+   std::shared_ptr<pdat::CellData<double> > conc(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_id)));
+   assert(conc);
 
    std::shared_ptr<pdat::CellData<double> > temperature(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -75,6 +84,8 @@ void MultiOrderBinaryThreePhasesDrivingForceStochioAB::addDrivingForce(
 
    assert(fl->getGhostCellWidth()[0] == fa->getGhostCellWidth()[0]);
    assert(cl->getGhostCellWidth()[0] == ca->getGhostCellWidth()[0]);
+   if (conc->getGhostCellWidth()[0] != phase->getGhostCellWidth()[0])
+      std::cerr << "Wrong number of ghosts!!!" << std::endl;
    assert(phase->getDepth() > 1);
    assert(phase->getDepth() == rhs->getDepth());
 
@@ -88,6 +99,7 @@ void MultiOrderBinaryThreePhasesDrivingForceStochioAB::addDrivingForce(
    double* ptr_c_l = cl->getPointer();
    double* ptr_c_a = ca->getPointer();
    double* ptr_c_b = cb->getPointer();
+   double* ptr_c = conc->getPointer();
 
    const hier::Box& rhs_gbox = rhs->getGhostBox();
    int imin_rhs = rhs_gbox.lower(0);
@@ -211,15 +223,15 @@ void MultiOrderBinaryThreePhasesDrivingForceStochioAB::addDrivingForce(
             // interpolation polynomials
             double hphiA = 0.;
             for (short i = 0; i < d_norderp_A; i++) {
-               const double phiA = std::max(0., ptr_phi[i][idx_pf]);
-               hphiA += phiA * phiA;
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphiA += phi * phi;
             }
             assert(!std::isnan(hphiA));
 
             double hphiB = 0.;
             for (short i = d_norderp_A; i < norderp - 1; i++) {
-               const double phiB = std::max(0., ptr_phi[i][idx_pf]);
-               hphiB += phiB * phiB;
+               const double phi = std::max(0., ptr_phi[i][idx_pf]);
+               hphiB += phi * phi;
             }
             assert(!std::isnan(hphiB));
 
@@ -237,6 +249,21 @@ void MultiOrderBinaryThreePhasesDrivingForceStochioAB::addDrivingForce(
 
             assert(!std::isnan(hphiA));
             assert(!std::isnan(hphiB));
+
+            // muL ill-defined for hphil very small leads to instabilities
+            // replace driving force by stabilization term in this case
+            // that minimizes ||hphil*cl-hphiA*cA-hphiB*cB-c||
+            // const double epsilon = 1.e-4;
+            //            if (hphil < epsilon) {
+            //const double factor = 1.e4;
+            //double c = ptr_c[idx_pf];
+            // dfl = 0.;
+            //double r = hphil * cl + hphiA * ca + hphiB * cb - c;
+            //          dfl += factor * r * cl;
+            //          dfa += factor * r * ca;
+            //          dfb += factor * r * cb;
+            // std::cout<<"dfb = "<<dfb<<std::endl;
+            //            }
 
             // solid phase A order parameters
             for (short i = 0; i < d_norderp_A; i++)

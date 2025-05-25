@@ -37,10 +37,15 @@ class CALPHADFreeEnergyBinaryMultiOrderThreePhasesStochioAB
        std::shared_ptr<tbox::Database> newton_db,
        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
-       const int conc_a_id, const int conc_b_id);
+       const int conc_a_id, const int conc_b_id, const int conc_id);
 
    bool computeCeqT(const double temperature, const Thermo4PFM::PhaseIndex pi0,
                     const Thermo4PFM::PhaseIndex pi1, double* ceq) override;
+
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int conc_id, const int f_l_id, const int f_a_id,
+                        const int f_b_id, const int rhs_id) override;
 
  private:
    void setup(boost::property_tree::ptree calphad_pt,

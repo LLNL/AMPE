@@ -15,15 +15,14 @@
 
 #include "SAMRAI/hier/Patch.h"
 
-using namespace SAMRAI;
-
 class MultiOrderBinaryThreePhasesDrivingForceStochioAB
 {
  public:
    MultiOrderBinaryThreePhasesDrivingForceStochioAB(
-       FreeEnergyStrategyBinary* fenergy_strategy, const int norderp_A);
+       FreeEnergyStrategyBinary* fenergy_strategy, const int conc_id,
+       const int norderp_A);
 
-   void addDrivingForce(hier::Patch& patch, const int temperature_id,
+   void addDrivingForce(SAMRAI::hier::Patch& patch, const int temperature_id,
                         const int phase_id, const int conc_l_id,
                         const int conc_a_id, const int conc_b_id,
                         const int f_l_id, const int f_a_id, const int f_b_id,
@@ -35,7 +34,9 @@ class MultiOrderBinaryThreePhasesDrivingForceStochioAB
     */
    FreeEnergyStrategyBinary* d_fenergy_strategy;
 
-   int d_norderp_A;
+   const int d_conc_id;
+
+   const int d_norderp_A;
 };
 
 #endif
