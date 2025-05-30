@@ -1968,15 +1968,15 @@ void QuatIntegrator::initialize(
       d_phase_rhs_strategy.reset(new FolchPlappRHSStrategy(
           d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
           d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
-          d_phase_mobility_id, d_flux_id, d_sundials_solver,
-          d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+          d_phase_mobility_id, d_flux_id, this, d_free_energy_strategy,
+          d_grid_geometry, d_phase_flux_strategy));
    else if (d_with_concentration) {
       if (d_model_parameters.isConcentrationModelWangSintering()) {
          tbox::plog << "Use SinteringUWangRHSStrategy..." << std::endl;
          d_phase_rhs_strategy.reset(new SinteringUWangRHSStrategy(
              d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-             d_temperature_scratch_id, d_phase_mobility_id, d_flux_id,
-             d_sundials_solver, d_grid_geometry, d_phase_flux_strategy));
+             d_temperature_scratch_id, d_phase_mobility_id, d_flux_id, this,
+             d_grid_geometry, d_phase_flux_strategy));
       }
    }
 
@@ -1987,16 +1987,15 @@ void QuatIntegrator::initialize(
              d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
              d_quat_scratch_id, d_temperature_scratch_id, d_f_l_id, d_f_a_id,
              d_f_b_id, d_phase_mobility_id, d_flux_id, d_phase_rhs_visit_id,
-             d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
+             this, d_free_energy_strategy, d_grid_geometry,
              d_phase_flux_strategy));
       } else {
          d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
              d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
              d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id,
              d_f_l_id, d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
-             d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
-             d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
-             d_phase_flux_strategy));
+             d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id, this,
+             d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
       }
    }
 

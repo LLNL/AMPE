@@ -230,6 +230,14 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
                            SundialsAbstractVector* r, SundialsAbstractVector* z,
                            double gamma, double delta, int lr);
 
+   /*
+    * return time of last accepted step
+    */
+   double lastAcceptedTime() const
+   {
+      return d_sundials_solver->getActualFinalValueOfIndependentVariable();
+   }
+
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
    void setMobilityStrategy(std::shared_ptr<QuatMobilityStrategy>&);
    void setFreeEnergyStrategy(
