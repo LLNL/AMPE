@@ -22,7 +22,7 @@
 SinteringUWangRHSStrategy::SinteringUWangRHSStrategy(
     const QuatModelParameters& model_parameters, const int phase_id,
     const int conc_id, const int temperature_id, const int phase_mobility_id,
-    const int flux_id, CVODESolver* sundials_solver,
+    const int flux_id, QuatIntegrator* time_integrator,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
     : d_model_parameters(model_parameters),
@@ -32,7 +32,7 @@ SinteringUWangRHSStrategy::SinteringUWangRHSStrategy(
       d_temperature_id(temperature_id),
       d_phase_mobility_id(phase_mobility_id),
       d_flux_id(flux_id),
-      d_sundials_solver(sundials_solver),
+      d_time_integrator(time_integrator),
       d_grid_geometry(grid_geom),
       d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
       d_phase_flux_strategy(phase_flux_strategy)
@@ -93,8 +93,7 @@ void SinteringUWangRHSStrategy::evaluateRHS(
 #endif
 
    // get time of last accepted step
-   double last_time =
-       d_sundials_solver->getActualFinalValueOfIndependentVariable();
+   double last_time = d_time_integrator->lastAcceptedTime();
 
    // if this is not a FD operation and the time has been updated
    // turn flag ON to recompute random noise

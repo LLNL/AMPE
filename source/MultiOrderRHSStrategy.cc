@@ -24,7 +24,7 @@ MultiOrderRHSStrategy::MultiOrderRHSStrategy(
     const int conc_scratch_id, const int quat_scratch_id,
     const int temperature_scratch_id, const int f_l_id, const int f_a_id,
     const int f_b_id, const int phase_mobility_id, const int flux_id,
-    const int phase_rhs_visit_id, CVODESolver* sundials_solver,
+    const int phase_rhs_visit_id, QuatIntegrator* time_integrator,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
@@ -40,7 +40,7 @@ MultiOrderRHSStrategy::MultiOrderRHSStrategy(
       d_phase_mobility_id(phase_mobility_id),
       d_flux_id(flux_id),
       d_phase_rhs_visit_id(phase_rhs_visit_id),
-      d_sundials_solver(sundials_solver),
+      d_time_integrator(time_integrator),
       d_free_energy_strategy(free_energy_strategy),
       d_grid_geometry(grid_geom),
       d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
@@ -105,8 +105,7 @@ void MultiOrderRHSStrategy::evaluateRHS(
 #endif
 
    // get time of last accepted step
-   double last_time =
-       d_sundials_solver->getActualFinalValueOfIndependentVariable();
+   double last_time = d_time_integrator->lastAcceptedTime();
 
    // if this is not a FD operation and the time has been updated
    // turn flag ON to recompute random noise

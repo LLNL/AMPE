@@ -14,7 +14,7 @@
 #include "PhaseFluxStrategy.h"
 #include "FreeEnergyStrategy.h"
 #include "QuatModelParameters.h"
-#include "CVODESolver.h"
+#include "QuatIntegrator.h"
 
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
@@ -30,7 +30,7 @@ class SinteringUWangRHSStrategy : public PhaseRHSStrategy
    SinteringUWangRHSStrategy(
        const QuatModelParameters& _model_parameters, const int phase_id,
        const int conc_id, const int temperature_id, const int phase_mobility_id,
-       const int flux_id, CVODESolver* sundials_solver,
+       const int flux_id, QuatIntegrator* time_integrator,
        std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
        std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy);
 
@@ -57,7 +57,7 @@ class SinteringUWangRHSStrategy : public PhaseRHSStrategy
 
    std::shared_ptr<hier::PatchHierarchy> d_patch_hierarchy;
 
-   CVODESolver* d_sundials_solver;
+   QuatIntegrator* d_time_integrator;
 
    double d_deltat;
    bool d_newtime;

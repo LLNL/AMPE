@@ -14,7 +14,7 @@
 #include "PhaseFluxStrategy.h"
 #include "FreeEnergyStrategy.h"
 #include "QuatModelParameters.h"
-#include "CVODESolver.h"
+#include "QuatIntegrator.h"
 
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
@@ -34,7 +34,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
        const int f_l_id, const int f_a_id, const int f_b_id,
        const int phase_mobility_id, const int flux_id,
        const int quat_grad_modulus_id, const int noise_id,
-       const int phase_rhs_visit_id, CVODESolver* sundials_solver,
+       const int phase_rhs_visit_id, QuatIntegrator* time_integrator,
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
        std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
        std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy);
@@ -74,7 +74,8 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
 
    const int d_phase_rhs_visit_id;
 
-   CVODESolver* d_sundials_solver;
+   QuatIntegrator* d_time_integrator;
+
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 
    double d_deltat;
