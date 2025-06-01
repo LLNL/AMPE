@@ -12,7 +12,7 @@
 #define included_CVODEAbstractFunctions
 
 #include "SAMRAI/SAMRAI_config.h"
-#include "SundialsAbstractVector.h"
+#include "SAMRAI/solv/SundialsAbstractVector.h"
 
 
 /**
@@ -58,34 +58,40 @@ class CVODEAbstractFunctions
     *
     * IMPORTANT: This function must not modify the vector y.
     */
-   virtual int evaluateRHSFunction(double t, SundialsAbstractVector* y,
-                                   SundialsAbstractVector* y_dot) = 0;
+   virtual int evaluateRHSFunction(
+       double t, SAMRAI::solv::SundialsAbstractVector* y,
+       SAMRAI::solv::SundialsAbstractVector* y_dot) = 0;
 
    /**
     * User-supplied function for setting up the preconditioner
     * to be used in the solution of the linear system that arises
     * during Newton iteration.
     */
-   virtual int CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
-                                 SundialsAbstractVector* fy, int jok,
-                                 int* jcurPtr, double gamma) = 0;
+   virtual int CVSpgmrPrecondSet(double t,
+                                 SAMRAI::solv::SundialsAbstractVector* y,
+                                 SAMRAI::solv::SundialsAbstractVector* fy,
+                                 int jok, int* jcurPtr, double gamma) = 0;
 
    /**
     * User-supplied function for setting up the preconditioner
     * to be used in the solution of the linear system that arises
     * during Newton iteration.
     */
-   virtual int CVSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
-                                   SundialsAbstractVector* fy,
-                                   SundialsAbstractVector* r,
-                                   SundialsAbstractVector* z, double gamma,
-                                   double delta, int lr) = 0;
-   virtual int applyProjection(double t, SundialsAbstractVector* y,
-                               SundialsAbstractVector* corr, double epsProj,
-                               SundialsAbstractVector* err) = 0;
+   virtual int CVSpgmrPrecondSolve(double t,
+                                   SAMRAI::solv::SundialsAbstractVector* y,
+                                   SAMRAI::solv::SundialsAbstractVector* fy,
+                                   SAMRAI::solv::SundialsAbstractVector* r,
+                                   SAMRAI::solv::SundialsAbstractVector* z,
+                                   double gamma, double delta, int lr) = 0;
+   virtual int applyProjection(double t,
+                               SAMRAI::solv::SundialsAbstractVector* y,
+                               SAMRAI::solv::SundialsAbstractVector* corr,
+                               double epsProj,
+                               SAMRAI::solv::SundialsAbstractVector* err) = 0;
 
-   virtual int evaluateJTimesRHSFunction(double t, SundialsAbstractVector* y,
-                                         SundialsAbstractVector* y_dot) = 0;
+   virtual int evaluateJTimesRHSFunction(
+       double t, SAMRAI::solv::SundialsAbstractVector* y,
+       SAMRAI::solv::SundialsAbstractVector* y_dot) = 0;
 };
 
 #endif

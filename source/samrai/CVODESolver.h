@@ -15,7 +15,7 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "CVODEAbstractFunctions.h"
-#include "SundialsAbstractVector.h"
+#include "SAMRAI/solv/SundialsAbstractVector.h"
 #include "SAMRAI/tbox/IOStream.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -49,7 +49,8 @@ extern "C" {
    } while (0)
 #endif
 
-#define SABSVEC_CAST(v) (static_cast<SundialsAbstractVector*>(v->content))
+#define AMPE_SABSVEC_CAST(v) \
+   (static_cast<solv::SundialsAbstractVector*>(v->content))
 
 using namespace SAMRAI;
 
@@ -222,7 +223,7 @@ class CVODESolver
     * @pre solution != 0
     * @pre d_solution_vector == 0
     */
-   void initialize(SundialsAbstractVector* solution)
+   void initialize(solv::SundialsAbstractVector* solution)
    {
       TBOX_ASSERT(solution != 0);
       TBOX_ASSERT(d_solution_vector == 0);
@@ -431,7 +432,7 @@ class CVODESolver
     * @pre absolute_tolerance != 0
     * @pre absolute_tolerance->vecMin() >= 0.0
     */
-   void setAbsoluteTolerance(SundialsAbstractVector* absolute_tolerance)
+   void setAbsoluteTolerance(solv::SundialsAbstractVector* absolute_tolerance)
    {
       TBOX_ASSERT(absolute_tolerance != 0);
       TBOX_ASSERT(absolute_tolerance->vecMin() >= 0.0);
@@ -492,7 +493,7 @@ class CVODESolver
     *
     * @pre ic_vector != 0
     */
-   void setInitialConditionVector(SundialsAbstractVector* ic_vector)
+   void setInitialConditionVector(solv::SundialsAbstractVector* ic_vector)
    {
       TBOX_ASSERT(ic_vector != 0);
       d_ic_vector = ic_vector;
@@ -662,7 +663,7 @@ class CVODESolver
    /**
     * Get solution vector.
     */
-   SundialsAbstractVector* getSolutionVector() const
+   solv::SundialsAbstractVector* getSolutionVector() const
    {
       return d_solution_vector;
    }
@@ -720,7 +721,7 @@ class CVODESolver
     *
     *
     */
-   int getDkyVector(double t, int k, SundialsAbstractVector* dky) const
+   int getDkyVector(double t, int k, solv::SundialsAbstractVector* dky) const
    {
       int return_code = CVodeGetDky(d_cvode_mem, t, k, dky->getNVector());
       return return_code;
@@ -1141,7 +1142,8 @@ class CVODESolver
    {
       return ((CVODESolver*)my_solver)
           ->getCVODEFunctions()
-          ->evaluateRHSFunction(t, SABSVEC_CAST(y), SABSVEC_CAST(y_dot));
+          ->evaluateRHSFunction(t, AMPE_SABSVEC_CAST(y),
+                                AMPE_SABSVEC_CAST(y_dot));
    }
 
    /*
@@ -1154,8 +1156,8 @@ class CVODESolver
       int success =
           ((CVODESolver*)my_solver)
               ->getCVODEFunctions()
-              ->CVSpgmrPrecondSet(t, SABSVEC_CAST(y), SABSVEC_CAST(fy), jok,
-                                  jcurPtr, gamma);
+              ->CVSpgmrPrecondSet(t, AMPE_SABSVEC_CAST(y),
+                                  AMPE_SABSVEC_CAST(fy), jok, jcurPtr, gamma);
       return success;
    }
 
@@ -1166,20 +1168,20 @@ class CVODESolver
       int success =
           ((CVODESolver*)my_solver)
               ->getCVODEFunctions()
-              ->CVSpgmrPrecondSolve(t, SABSVEC_CAST(y), SABSVEC_CAST(fy),
-                                    SABSVEC_CAST(r), SABSVEC_CAST(z), gamma,
-                                    delta, lr);
+              ->CVSpgmrPrecondSolve(t, AMPE_SABSVEC_CAST(y),
+                                    AMPE_SABSVEC_CAST(fy), AMPE_SABSVEC_CAST(r),
+                                    AMPE_SABSVEC_CAST(z), gamma, delta, lr);
       return success;
    }
 
    static int CVODEProjEval(realtype t, N_Vector y, N_Vector corr,
                             realtype epsProj, N_Vector err, void* my_solver)
    {
-      int success =
-          ((CVODESolver*)my_solver)
-              ->getCVODEFunctions()
-              ->applyProjection(t, SABSVEC_CAST(y), SABSVEC_CAST(corr), epsProj,
-                                SABSVEC_CAST(err));
+      int success = ((CVODESolver*)my_solver)
+                        ->getCVODEFunctions()
+                        ->applyProjection(t, AMPE_SABSVEC_CAST(y),
+                                          AMPE_SABSVEC_CAST(corr), epsProj,
+                                          AMPE_SABSVEC_CAST(err));
       return success;
    }
 
@@ -1188,8 +1190,8 @@ class CVODESolver
    {
       int success = ((CVODESolver*)my_solver)
                         ->getCVODEFunctions()
-                        ->evaluateJTimesRHSFunction(t, SABSVEC_CAST(y),
-                                                    SABSVEC_CAST(y_dot));
+                        ->evaluateJTimesRHSFunction(t, AMPE_SABSVEC_CAST(y),
+                                                    AMPE_SABSVEC_CAST(y_dot));
       return success;
    }
 
@@ -1220,7 +1222,7 @@ class CVODESolver
    /*
     * Solution vector.
     */
-   SundialsAbstractVector* d_solution_vector;
+   solv::SundialsAbstractVector* d_solution_vector;
 
    /*
     * Pointer to object which provides user-supplied functions to CVODE
@@ -1251,7 +1253,7 @@ class CVODESolver
    double d_t_0;         // initial value for independent variable
    double d_user_t_f;    // user-specified final value for independent variable
    double d_actual_t_f;  // actual final value of indep. variable after a step
-   SundialsAbstractVector* d_ic_vector;
+   solv::SundialsAbstractVector* d_ic_vector;
 
    /*
     * ODE integration parameters.
@@ -1260,7 +1262,7 @@ class CVODESolver
    double d_relative_tolerance;
    bool d_use_scalar_absolute_tolerance;
    double d_absolute_tolerance_scalar;
-   SundialsAbstractVector* d_absolute_tolerance_vector;
+   solv::SundialsAbstractVector* d_absolute_tolerance_vector;
    int d_stepping_method;
 
    /*

@@ -1,8 +1,6 @@
 set(SOURCES
     CellPoissonHypreSolver.cc
     PoissonSpecifications.cc
-    SundialsAbstractVector.cc
-    Sundials_SAMRAIVector.cc
     CVODEAbstractFunctions.cc
     CVODESolver.cc
     FACPreconditioner.cc)
