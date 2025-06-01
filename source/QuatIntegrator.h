@@ -21,8 +21,6 @@
 #include "EllipticFACSolver.h"
 #include "InterpolationType.h"
 #include "DerivDiffusionCoeffForQuat.h"
-#include "Sundials_SAMRAIVector.h"
-#include "SundialsAbstractVector.h"
 #include "PhaseRHSStrategy.h"
 #include "TemperatureRHSStrategy.h"
 #include "MovingFrameRHS.h"
@@ -43,6 +41,8 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "SAMRAI/solv/CartesianRobinBcHelper.h"
+#include "SAMRAI/solv/Sundials_SAMRAIVector.h"
+#include "SAMRAI/solv/SundialsAbstractVector.h"
 
 
 #include "CVODESolver.h"
@@ -201,34 +201,35 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
     *
     * IMPORTANT: This function must not modify the vector y.
     */
-   int evaluateRHSFunction(double time, SundialsAbstractVector* y,
-                           SundialsAbstractVector* y_dot, int fd_flag);
+   int evaluateRHSFunction(double time, solv::SundialsAbstractVector* y,
+                           solv::SundialsAbstractVector* y_dot, int fd_flag);
 
    //
    // Methods inherited from CVODEAbstractFunctions
    //
-   int applyProjection(double time, SundialsAbstractVector* y,
-                       SundialsAbstractVector* corr, double epsProj,
-                       SundialsAbstractVector* err);
-   int evaluateJTimesRHSFunction(double t, SundialsAbstractVector* y,
-                                 SundialsAbstractVector* y_dot)
+   int applyProjection(double time, solv::SundialsAbstractVector* y,
+                       solv::SundialsAbstractVector* corr, double epsProj,
+                       solv::SundialsAbstractVector* err);
+   int evaluateJTimesRHSFunction(double t, solv::SundialsAbstractVector* y,
+                                 solv::SundialsAbstractVector* y_dot)
    {
       return evaluateRHSFunction(t, y, y_dot, 1);
    }
-   int evaluateRHSFunction(double t, SundialsAbstractVector* y,
-                           SundialsAbstractVector* y_dot)
+   int evaluateRHSFunction(double t, solv::SundialsAbstractVector* y,
+                           solv::SundialsAbstractVector* y_dot)
    {
       return evaluateRHSFunction(t, y, y_dot, 0);
    }
 
-   int CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
-                         SundialsAbstractVector* fy, int jok, int* jcurPtr,
-                         double gamma);
+   int CVSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
+                         solv::SundialsAbstractVector* fy, int jok,
+                         int* jcurPtr, double gamma);
 
-   int CVSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
-                           SundialsAbstractVector* fy,
-                           SundialsAbstractVector* r, SundialsAbstractVector* z,
-                           double gamma, double delta, int lr);
+   int CVSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
+                           solv::SundialsAbstractVector* fy,
+                           solv::SundialsAbstractVector* r,
+                           solv::SundialsAbstractVector* z, double gamma,
+                           double delta, int lr);
 
    /*
     * return time of last accepted step

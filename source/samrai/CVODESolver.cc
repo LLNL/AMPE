@@ -7,8 +7,6 @@
  * Description:   Specifications for the scalar Poisson equation
  *
  ************************************************************************/
-#ifndef USE_CPODE
-
 #include "CVODESolver.h"
 
 const int CVODESolver::STAT_OUTPUT_BUFFER_SIZE = 256;
@@ -334,8 +332,8 @@ void CVODESolver::printClassData(std::ostream& os) const
    os << "Object name = " << d_object_name << std::endl;
 
    os << "this = " << (CVODESolver*)this << std::endl;
-   os << "d_solution_vector = " << (SundialsAbstractVector*)d_solution_vector
-      << std::endl;
+   os << "d_solution_vector = "
+      << (solv::SundialsAbstractVector*)d_solution_vector << std::endl;
 
    os << "d_CVODE_functions = " << (CVODEAbstractFunctions*)d_cvode_functions
       << std::endl;
@@ -347,7 +345,8 @@ void CVODESolver::printClassData(std::ostream& os) const
    os << std::endl;
    os << "CVODE parameters..." << std::endl;
    os << "d_t_0 = " << d_t_0 << std::endl;
-   os << "d_ic_vector = " << (SundialsAbstractVector*)d_ic_vector << std::endl;
+   os << "d_ic_vector = " << (solv::SundialsAbstractVector*)d_ic_vector
+      << std::endl;
 
    os << "d_linear_multistep_method = " << d_linear_multistep_method
       << std::endl;
@@ -396,5 +395,3 @@ void CVODESolver::printClassData(std::ostream& os) const
 
    os << "...end of CVODESolver object data members\n" << std::endl;
 }
-
-#endif
