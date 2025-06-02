@@ -47,6 +47,8 @@
 
 #include "CVODESolver.h"
 #include "CVODEAbstractFunctions.h"
+#include "ARKODESolver.h"
+#include "ARKODEAbstractFunctions.h"
 
 #include <set>
 #include <vector>
@@ -69,7 +71,8 @@ class PhaseFluxStrategy;
 class PhaseConcentrationsStrategy;
 
 class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
-                       public CVODEAbstractFunctions
+                       public CVODEAbstractFunctions,
+                       public ARKODEAbstractFunctions
 {
  public:
    QuatIntegrator(const std::string& name,
@@ -231,12 +234,46 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
                            solv::SundialsAbstractVector* z, double gamma,
                            double delta, int lr);
 
+   //
+   // Methods inherited from ARKODEAbstractFunctions
+   //
+   int evaluateRHSFunctionImp(double time, solv::SundialsAbstractVector* y,
+                              solv::SundialsAbstractVector* y_dot)
+   {
+      return 1;
+   }
+
+   int evaluateRHSFunctionExp(double time, solv::SundialsAbstractVector* y,
+                              solv::SundialsAbstractVector* y_dot)
+   {
+      return evaluateRHSFunction(time, y, y_dot, 0);
+   }
+
+   int ARKSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
+                          solv::SundialsAbstractVector* fy, int jok,
+                          int* jcurPtr, double gamma)
+   {
+      return CVSpgmrPrecondSet(t, y, fy, jok, jcurPtr, gamma);
+   }
+
+   int ARKSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
+                            solv::SundialsAbstractVector* fy,
+                            solv::SundialsAbstractVector* r,
+                            solv::SundialsAbstractVector* z, double gamma,
+                            double delta, int lr)
+   {
+      return CVSpgmrPrecondSolve(t, y, fy, r, z, gamma, delta, lr);
+   }
+
    /*
     * return time of last accepted step
     */
    double lastAcceptedTime() const
    {
-      return d_sundials_solver->getActualFinalValueOfIndependentVariable();
+      return (
+          d_sundials_solver
+              ? d_sundials_solver->getActualFinalValueOfIndependentVariable()
+              : d_arkode_solver->getActualFinalValueOfIndependentVariable());
    }
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
@@ -446,9 +483,27 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::shared_ptr<tbox::Timer> t_set_coeff_timer;
 
  private:
-   //
-   // Local methods
-   //
+   double currentTime()
+   {
+      return d_sundials_solver
+                 ? d_sundials_solver->getActualFinalValueOfIndependentVariable()
+                 : d_arkode_solver->getActualFinalValueOfIndependentVariable();
+   }
+
+   double currentDT()
+   {
+      return d_sundials_solver
+                 ? d_sundials_solver->getStepSizeForLastInternalStep()
+                 : d_arkode_solver->getStepSizeForLastInternalStep();
+   }
+
+   int numberRHSeval()
+   {
+      return d_sundials_solver
+                 ? d_sundials_solver->getNumberOfRHSFunctionCalls()
+                 : d_arkode_solver->getNumberOfRHSFunctionExCalls();
+   }
+
    virtual void setCoefficients(
        double time, std::shared_ptr<solv::SAMRAIVectorReal<double>> y,
        const bool recompute_quat_sidegrad);
@@ -565,6 +620,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
                           const int coarsest_level, const int finest_level);
 
    void setSundialsOptions();
+   void setARKODEOptions();
 
 #ifdef USE_CPODE
    std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double>>>*
@@ -820,7 +876,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
 
    std::string d_quat_smooth_floor_type;
 
-   CVODESolver* d_sundials_solver;
+   std::shared_ptr<CVODESolver> d_sundials_solver;
+   std::shared_ptr<ARKODESolver> d_arkode_solver;
 
    std::shared_ptr<QuatSysSolver> d_quat_sys_solver;
    std::shared_ptr<QuatFaceCoeff> d_quat_face_coeff_strategy;
@@ -856,6 +913,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    bool d_with_antitrapping;
    bool d_with_partition_coeff;
    bool d_use_warm_start;
+   bool d_use_cvode;
+
    bool d_symmetry_aware;
 
    bool d_show_integrator_stats;

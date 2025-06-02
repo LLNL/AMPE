@@ -339,6 +339,7 @@ set( PROJECT_LINK_LIBS_HYPRE libHYPRE.so )
 
 message(STATUS "Link with Sundials...")
 set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.a )
+set( PROJECT_LINK_LIBS_ARKODE libsundials_arkode.a )
 
 include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )

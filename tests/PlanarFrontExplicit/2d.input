@@ -1,0 +1,72 @@
+// Input file
+model_type = "KWCcomplex"
+
+end_time            = 50.
+max_timesteps       = 5000
+
+run_name = "test"
+
+Visit {
+   interval = 1.
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   
+   Temperature{
+      type = "scalar"
+      meltingT = 921.12
+      temperature = 920.87
+      latent_heat = 9.5e3 // [J/mol*K]
+   }
+   
+   epsilon_phi = 1.77669990185572 // sqrt(6.*delta*L*Gamma/Tm)
+
+   PhaseMobility{
+      value = 1.985 // muk*Tm/(6.*delta*L)
+   }
+   phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
+
+   phi_interp_func_type ="h"
+
+   FreeEnergyModel{   
+      type = "linear"
+   }
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   BoundaryConditions {
+       Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "value", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 1.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-4
+   use_cvode = FALSE
+}
+
+InitialConditions {
+   filename = "test.nc"
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 32, 256
+   x_lo         =  0.,    0. 
+   x_up         =  50., 400.
+}

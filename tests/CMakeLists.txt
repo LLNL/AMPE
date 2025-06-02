@@ -276,6 +276,13 @@ add_test(NAME PlanarFront
          ${CMAKE_CURRENT_SOURCE_DIR}//PlanarFront/${NDIM}d.input
          )
 
+add_test(NAME PlanarFrontExplicit
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFrontExplicit/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFrontExplicit/${NDIM}d.input
+         )
+
 add_test(NAME PlanarFrontMovingFrame
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFrontMovingFrame/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
