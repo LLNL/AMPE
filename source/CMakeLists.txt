@@ -193,7 +193,7 @@ set(M4FILESDIM concentrationdiffusion
               forces
               grad
               hyprepoisson
-              laplacian
+              stencils
               mobility
               multiorder
               phase

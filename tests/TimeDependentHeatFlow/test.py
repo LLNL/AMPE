@@ -26,7 +26,7 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 end_reached = False
-end_time = 3000.
+end_time = 100.
 
 for line in lines:
   if line.count(b'cycle'):
