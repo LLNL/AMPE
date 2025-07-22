@@ -9,10 +9,9 @@ c
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
-      subroutine laplacian(
+      subroutine stencil5pts(
      &   ifirst0, ilast0, ifirst1, ilast1,
-     &   dx,
-     &   coeff,
+     &   diag, offdiagx, offdiagy,
      &   field, ngfield,
      &   rhs, ngrhs )
 c***********************************************************************
@@ -22,8 +21,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
 
-      double precision dx(0:1)
-      double precision coeff
+      double precision diag, offdiagx, offdiagy
       integer ngfield, ngrhs
 c
 c variables in 2d cell indexed
@@ -34,22 +32,12 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1
-      double precision dxinv2, dyinv2
-      double precision diff_term_x, diff_term_y, diff_term
-
-      dxinv2 = 1.d0/(dx(0)*dx(0))
-      dyinv2 = 1.d0/(dx(1)*dx(1))
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0
-            diff_term_x =
-     &           (field(ic0-1,ic1)-2.d0*field(ic0,ic1)+field(ic0+1,ic1))
-            diff_term_y =
-     &           (field(ic0,ic1-1)-2.d0*field(ic0,ic1)+field(ic0,ic1+1))
-
-            diff_term = diff_term_x*dxinv2 + diff_term_y*dyinv2
-
-            rhs(ic0,ic1) = coeff * diff_term
+            rhs(ic0,ic1) = diag * field(ic0,ic1)
+     &               + offdiagx * (field(ic0-1,ic1)+field(ic0+1,ic1))
+     &               + offdiagy * (field(ic0,ic1-1)+field(ic0,ic1+1))
 
          enddo
       enddo

@@ -916,13 +916,21 @@ c***********************************************************************
 c
       integer ic0, ic1, ic2
       double precision gamma, dxinv2, dyinv2, dzinv2
+      double precision diag, offdiagx, offdiagy, offdiagz
 
       dxinv2 = 1.d0/(dx(0)*dx(0))
       dyinv2 = 1.d0/(dx(1)*dx(1))
       dzinv2 = 1.d0/(dx(2)*dx(2))
+
+      offdiagx = thermal_diffusivity * dxinv2
+      offdiagy = thermal_diffusivity * dyinv2
+      offdiagz = thermal_diffusivity * dzinv2
+
+      diag = -2.d0 * (offdiagx + offdiagy + offdiagz)
 c
-      call laplacian(ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
-     &               dx,thermal_diffusivity,temp, ngtemp,rhs, ngrhs )
+      call stencil7pts(ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &                 diag,offdiagx,offdiagy,offdiagz,
+     &                 temp, ngtemp,rhs, ngrhs )
 
       if( with_phase /= 0 )then
          do ic2 = ifirst2, ilast2

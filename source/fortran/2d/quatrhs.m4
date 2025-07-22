@@ -777,26 +777,31 @@ c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1
-      double precision gamma, dxinv2, dyinv2
+      double precision g, dxinv2, dyinv2
+      double precision diag, offdiagx, offdiagy
      
 c      print*,'thermal diff=',thermal_diffusivity
  
       dxinv2 = 1.d0/(dx(0)*dx(0))
       dyinv2 = 1.d0/(dx(1)*dx(1))
 c
-      call laplacian(ifirst0, ilast0, ifirst1, ilast1, dx,
-     &               thermal_diffusivity, temp, ngtemp,
-     &               rhs, ngrhs )
+      offdiagx = thermal_diffusivity * dxinv2
+      offdiagy = thermal_diffusivity * dyinv2
+      diag = -2.d0 * (offdiagx + offdiagy)
+
+      call stencil5pts(ifirst0, ilast0, ifirst1, ilast1,
+     &                 diag, offdiagx, offdiagy, temp, ngtemp,
+     &                 rhs, ngrhs )
 
       if( with_phase /= 0 )then
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
 
-               gamma = latent_heat/cp(ic0,ic1)
-c               print*,'gamma=',gamma,', diff=',thermal_diffusivity
+               g = latent_heat/cp(ic0,ic1)
+c               print*,'gamma=',g,', diff=',thermal_diffusivity
             
                rhs(ic0,ic1) = rhs(ic0,ic1) +
-     &            gamma * phi_rhs(ic0,ic1)
+     &            g * phi_rhs(ic0,ic1)
 
             enddo
          enddo

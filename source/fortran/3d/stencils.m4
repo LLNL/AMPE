@@ -9,10 +9,9 @@ c
 define(NDIM,3)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 
-      subroutine laplacian(
+      subroutine stencil7pts(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-     &   dx,
-     &   coeff,
+     &   diag, offdiagx, offdiagy, offdiagz,
      &   field, ngfield,
      &   rhs, ngrhs )
 c***********************************************************************
@@ -22,8 +21,7 @@ c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
 
-      double precision dx(0:2)
-      double precision coeff
+      double precision diag, offdiagx, offdiagy, offdiagz
       integer ngfield, ngrhs
 c
 c variables in 3d cell indexed
@@ -34,30 +32,15 @@ c***********************************************************************
 c***********************************************************************
 c
       integer ic0, ic1, ic2
-      double precision dxinv2, dyinv2, dzinv2
-      double precision diff_term_x, diff_term_y, diff_term_z, diff_term
-
-      dxinv2 = 1.d0/(dx(0)*dx(0))
-      dyinv2 = 1.d0/(dx(1)*dx(1))
-      dzinv2 = 1.d0/(dx(2)*dx(2))
 c
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
-               diff_term_x =
-     &            (field(ic0-1,ic1,ic2)-2.d0*field(ic0,ic1,ic2)
-     &            +field(ic0+1,ic1,ic2))
-               diff_term_y =
-     &            (field(ic0,ic1-1,ic2)-2.d0*field(ic0,ic1,ic2)
-     &            +field(ic0,ic1+1,ic2))
-               diff_term_z =
-     &            (field(ic0,ic1,ic2-1)-2.d0*field(ic0,ic1,ic2)
-     &            +field(ic0,ic1,ic2+1))
 
-               diff_term = diff_term_x*dxinv2 + diff_term_y*dyinv2
-     &                   + diff_term_z*dzinv2
-
-               rhs(ic0,ic1,ic2) = coeff * diff_term
+               rhs(ic0,ic1,ic2) = diag * field(ic0,ic1,ic2)
+     &            + offdiagx*(field(ic0-1,ic1,ic2)+field(ic0+1,ic1,ic2))
+     &            + offdiagy*(field(ic0,ic1-1,ic2)+field(ic0,ic1+1,ic2))
+     &            + offdiagz*(field(ic0,ic1,ic2-1)+field(ic0,ic1,ic2+1))
             enddo
          enddo
       enddo

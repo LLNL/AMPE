@@ -2,7 +2,7 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-end_time = 3000.0  // required
+end_time = 100.0  // required
 max_timesteps = 100  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
@@ -79,8 +79,6 @@ ScalarDiagnostics {
 Integrator {
    atol = 1.e-6
    max_step_size = 500.
-   Preconditioner {  // optional block
-   }
 }
 
 InitialConditions {  // required block
