@@ -240,6 +240,8 @@ QuatIntegrator::QuatIntegrator(
       d_compute_velocity = true;
 
    d_use_warm_start = use_warm_start;
+   d_use_cvode = true;
+
    d_symmetry_aware = symmetry_aware;
    d_use_gradq_for_flux = use_gradq_for_flux;
 
@@ -279,13 +281,17 @@ QuatIntegrator::QuatIntegrator(
 
    d_max_step_size = integrator_db->getDoubleWithDefault("max_step_size", 0.);
 
+   d_use_cvode = integrator_db->getBoolWithDefault("use_cvode", true);
    d_atol = integrator_db->getDoubleWithDefault("atol", 3.e-4);
    if (integrator_db->keyExists("tolerance")) {
       d_atol = integrator_db->getDouble("tolerance");
    }
    d_rtol = integrator_db->getDoubleWithDefault("rtol", d_atol * 1.e-2);
 
-   d_max_order = integrator_db->getIntegerWithDefault("max_order", 2);
+   if (d_use_cvode)
+      d_max_order = integrator_db->getIntegerWithDefault("max_order", 2);
+   else
+      d_max_order = integrator_db->getIntegerWithDefault("max_order", 4);
 
    d_uniform_diffusion_time_threshold =
        integrator_db->getDoubleWithDefault("uniform_diffusion_time_threshold",
@@ -314,10 +320,6 @@ QuatIntegrator::QuatIntegrator(
 
 QuatIntegrator::~QuatIntegrator()
 {
-   if (d_sundials_solver) {
-      delete d_sundials_solver;
-   }
-
    d_phase_sys_solver.reset();
    d_eta_sys_solver.reset();
    d_conc_sys_solver.reset();
@@ -1567,27 +1569,49 @@ void QuatIntegrator::setHeatCapacityStrategy(
 // Set solver options
 void QuatIntegrator::setSundialsOptions()
 {
-   d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
-   d_sundials_solver->setLinearMultistepMethod(BDF);
-   d_sundials_solver->setSteppingMethod(ONE_STEP);
-   d_sundials_solver->setInitialStepSize(d_previous_timestep);
-   d_sundials_solver->setRelativeTolerance(d_rtol);
-   d_sundials_solver->setAbsoluteTolerance(d_atol);
-   d_sundials_solver->setInitialValueOfIndependentVariable(d_current_time);
-   d_sundials_solver->setMaximumLinearMultistepMethodOrder(d_max_order);
+   if (d_arkode_solver)
+      setARKODEOptions();
+   else {
+      d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
+      d_sundials_solver->setLinearMultistepMethod(BDF);
+      d_sundials_solver->setSteppingMethod(ONE_STEP);
+      d_sundials_solver->setInitialStepSize(d_previous_timestep);
+      d_sundials_solver->setRelativeTolerance(d_rtol);
+      d_sundials_solver->setAbsoluteTolerance(d_atol);
+      d_sundials_solver->setInitialValueOfIndependentVariable(d_current_time);
+      d_sundials_solver->setMaximumLinearMultistepMethodOrder(d_max_order);
 
-   if (d_use_preconditioner) {
-      d_sundials_solver->setPreconditioningType(PREC_LEFT);
+      if (d_use_preconditioner) {
+         d_sundials_solver->setPreconditioningType(PREC_LEFT);
+      }
+      if (d_max_step_size > 0.) {
+         d_sundials_solver->setMaximumAbsoluteStepSize(d_max_step_size);
+      }
+
+      bool needs_initialization = true;
+      d_sundials_solver->setFinalValueOfIndependentVariable(
+          d_end_time, needs_initialization);
+      d_sundials_solver->setProjectionFunction(true);
+      d_sundials_solver->setJTimesRhsFunction(true);
    }
+}
+
+void QuatIntegrator::setARKODEOptions()
+{
+   d_arkode_solver->setSteppingMethod(ARK_ONE_STEP);
+   d_arkode_solver->setInitialStepSize(d_previous_timestep);
+   d_arkode_solver->setRelativeTolerance(d_rtol);
+   d_arkode_solver->setAbsoluteTolerance(d_atol);
+   d_arkode_solver->setInitialValueOfIndependentVariable(d_current_time);
+   d_arkode_solver->setMethodOrder(d_max_order);
+
    if (d_max_step_size > 0.) {
-      d_sundials_solver->setMaximumAbsoluteStepSize(d_max_step_size);
+      d_arkode_solver->setMaximumAbsoluteStepSize(d_max_step_size);
    }
 
    bool needs_initialization = true;
-   d_sundials_solver->setFinalValueOfIndependentVariable(d_end_time,
-                                                         needs_initialization);
-   d_sundials_solver->setProjectionFunction(true);
-   d_sundials_solver->setJTimesRhsFunction(true);
+   d_arkode_solver->setFinalValueOfIndependentVariable(d_end_time,
+                                                       needs_initialization);
 }
 
 //-----------------------------------------------------------------------
@@ -1595,12 +1619,15 @@ void QuatIntegrator::setSundialsOptions()
 void QuatIntegrator::createSundialsSolver()
 {
    // Make a new solver
-   if (d_sundials_solver) {
-      delete d_sundials_solver;
-   }
-
-   d_sundials_solver =
-       new CVODESolver(d_name + "_cvode_solver", this, d_use_preconditioner);
+   if (d_use_cvode) {
+      d_sundials_solver.reset(new CVODESolver(d_name + "_cvode_solver", this,
+                                              d_use_preconditioner));
+   } else {
+      const int im_ex = 0;  // explicit
+      const bool uses_preconditioner = false;
+      d_arkode_solver.reset(new ARKODESolver(d_name + "_arkodesolver", this,
+                                             uses_preconditioner, im_ex));
+   };
 }
 
 void QuatIntegrator::resetSolutionVector(
@@ -1697,7 +1724,10 @@ void QuatIntegrator::resetIntegrator(
    solv::Sundials_SAMRAIVector* y = (solv::Sundials_SAMRAIVector*)
        solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec);
 
-   d_sundials_solver->setInitialConditionVector(y);
+   if (d_sundials_solver)
+      d_sundials_solver->setInitialConditionVector(y);
+   else
+      d_arkode_solver->setInitialConditionVector(y);
 
    /*
      Complete the initialization of the integrator having now set the desired
@@ -1712,7 +1742,10 @@ void QuatIntegrator::resetIntegrator(
      internal std::vectors.
    */
 
-   d_sundials_solver->initialize(y);
+   if (d_sundials_solver)
+      d_sundials_solver->initialize(y);
+   else
+      d_arkode_solver->initialize(y);
 
    // Reset the cumulative counters
    d_cum_newton_iter = 0;
@@ -1959,9 +1992,16 @@ void QuatIntegrator::initialize(
 
    initializeSolvers(hierarchy);
 
-   d_sundials_solver->setInitialConditionVector(
-       (solv::Sundials_SAMRAIVector*)
-           solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec));
+   if (d_sundials_solver)
+      d_sundials_solver->setInitialConditionVector(
+          (solv::Sundials_SAMRAIVector*)
+              solv::Sundials_SAMRAIVector::createSundialsVector(
+                  d_solution_vec));
+   else
+      d_arkode_solver->setInitialConditionVector(
+          (solv::Sundials_SAMRAIVector*)
+              solv::Sundials_SAMRAIVector::createSundialsVector(
+                  d_solution_vec));
 
    if (d_model_parameters.use_FolchPlapp())
       d_phase_rhs_strategy.reset(new FolchPlappRHSStrategy(
@@ -2102,7 +2142,8 @@ double QuatIntegrator::Advance(
    t_advance_timer->start();
 
    // Take one step
-   int return_code = d_sundials_solver->solve();
+   int return_code = d_sundials_solver ? d_sundials_solver->solve()
+                                       : d_arkode_solver->solve();
 
    updateDependentVariables(hierarchy, d_scratch, d_current);
 
@@ -2157,18 +2198,34 @@ double QuatIntegrator::Advance(
    }
 
    // Collect and (if requested) print the integrator statistics
-   double time = d_sundials_solver->getActualFinalValueOfIndependentVariable();
-   double dt = d_sundials_solver->getStepSizeForLastInternalStep();
-   int newton_iter = d_sundials_solver->getNumberOfNewtonIterations();
-   int lin_iter = d_sundials_solver->getNumberOfLinearIterations();
+   double time = currentTime();
+   double dt = currentDT();
+   int newton_iter =
+       d_sundials_solver ? d_sundials_solver->getNumberOfNewtonIterations() : 0;
+   int lin_iter =
+       d_sundials_solver ? d_sundials_solver->getNumberOfLinearIterations() : 0;
    int newton_fail =
-       d_sundials_solver->getNumberOfNonlinearConvergenceFailures();
-   int lin_fail = d_sundials_solver->getNumberOfLinearConvergenceFailures();
-   int err_test_fail = d_sundials_solver->getNumberOfLocalErrorTestFailures();
-   int order = d_sundials_solver->getOrderUsedDuringLastInternalStep();
-   int f_eval = d_sundials_solver->getNumberOfRHSFunctionCalls();
-   int p_setup = d_sundials_solver->getNumberOfPreconditionerEvaluations();
-   int p_apply = d_sundials_solver->getNumberOfPrecondSolveCalls();
+       d_sundials_solver
+           ? d_sundials_solver->getNumberOfNonlinearConvergenceFailures()
+           : 0;
+   int lin_fail =
+       d_sundials_solver
+           ? d_sundials_solver->getNumberOfLinearConvergenceFailures()
+           : 0;
+   int err_test_fail =
+       d_sundials_solver
+           ? d_sundials_solver->getNumberOfLocalErrorTestFailures()
+           : 0;
+   int order = d_sundials_solver
+                   ? d_sundials_solver->getOrderUsedDuringLastInternalStep()
+                   : 4;
+   int f_eval = numberRHSeval();
+   int p_setup = d_sundials_solver
+                     ? d_sundials_solver->getNumberOfPreconditionerEvaluations()
+                     : 0;
+   int p_apply = d_sundials_solver
+                     ? d_sundials_solver->getNumberOfPrecondSolveCalls()
+                     : 0;
 
    if (d_show_integrator_stats) {
       tbox::pout << "Integrator statistics:"

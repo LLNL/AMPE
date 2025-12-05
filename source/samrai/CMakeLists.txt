@@ -3,6 +3,7 @@ set(SOURCES
     PoissonSpecifications.cc
     CVODEAbstractFunctions.cc
     CVODESolver.cc
+    ARKODESolver.cc
     FACPreconditioner.cc)
 
 add_library(ampe_samrai ${SOURCES})
