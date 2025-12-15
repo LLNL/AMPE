@@ -12,7 +12,7 @@
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 
 #define HAVE_NETCDF4
-//#define HAVE_NETCDF3
+// #define HAVE_NETCDF3
 
 #ifdef HAVE_NETCDF3
 #include "netcdfcpp.h"

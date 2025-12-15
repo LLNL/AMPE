@@ -1,5 +1,5 @@
 /*************************************************************************
-* Inspired by SAMRAI CVODEAbstractFunctions at
+ * Inspired by SAMRAI CVODEAbstractFunctions at
  * https://github.com/LLNL/SAMRAI
  * Adapted from PFiSM at https://github.com/ORNL/PFiSM
  ************************************************************************/
