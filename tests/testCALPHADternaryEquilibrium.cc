@@ -8,8 +8,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-//#include <fenv.h>
-
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 
 #include "SAMRAI/SAMRAI_config.h"

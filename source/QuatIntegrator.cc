@@ -3171,7 +3171,7 @@ int QuatIntegrator::evaluateRHSFunction(double time,
    std::shared_ptr<hier::PatchHierarchy> hierarchy =
        y_samvect->getPatchHierarchy();
 
-   //#ifdef DEBUG_CHECK_ASSERTIONS
+   // #ifdef DEBUG_CHECK_ASSERTIONS
    int n = 0;
    if (d_with_phase) n++;
    if (d_with_third_phase) n++;
@@ -3179,7 +3179,7 @@ int QuatIntegrator::evaluateRHSFunction(double time,
    if (d_with_concentration) n++;
    if (d_with_unsteady_temperature) n++;
    assert(y_dot_samvect->getNumberOfComponents() == n);
-   //#endif
+   // #endif
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    int temperature_id = d_with_unsteady_temperature
