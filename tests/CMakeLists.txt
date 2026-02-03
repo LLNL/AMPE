@@ -394,6 +394,7 @@ add_test(NAME AlCuParabolicMultiOrder
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/AlCuParabolicMultiOrder/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/AlCuParabolicMultiOrder
          )
 add_test(NAME AlCuCalphadMultiOrder
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCuCalphadMultiOrder/test${NDIM}d.py

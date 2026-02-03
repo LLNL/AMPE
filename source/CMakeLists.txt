@@ -131,6 +131,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategySimple.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyIsotropic.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyAnisotropy.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyAnisotropyMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureStrategyFactory.cc
             ${CMAKE_SOURCE_DIR}/source/QuatModel.cc
             ${CMAKE_SOURCE_DIR}/source/QuatRefinePatchStrategy.cc

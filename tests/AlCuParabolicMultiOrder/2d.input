@@ -27,6 +27,11 @@ ModelParameters {  // required block
 
    epsilon_anisotropy = 0.04 //delta
 
+   Orientations{
+      quat0 = 0,0,0,1
+      quat1 = 1,0,0,0
+   }
+
    Interface {
       sigma = 0.8  // pJ/um^2 = J/m^2
       delta = 0.064 // um

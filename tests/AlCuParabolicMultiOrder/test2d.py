@@ -5,17 +5,26 @@ import os
 
 print("Test AlCu parabolic multi-order...")
 
+mpicmd  = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
+exe     = sys.argv[4]
+inp     = sys.argv[5]
+datadir = sys.argv[6]
+
+data = "2spheres.csv"
+src = datadir+'/'+data
+try:
+  os.symlink(src, data)
+except FileExistsError:
+  os.remove(data)
+  os.symlink(src, data)
+
 #prepare initial conditions file
 initfilename="160x160.nc"
-subprocess.call(["python3", "../../utils/make_nuclei.py",
-  "--nx", "160", "--ny", "160", "--nz", "1", "-r", "15",
-  "--center0", "0, 0, 0",
-  "--concentration-in", "0.03", "--concentration-out", "0.08",
+subprocess.call(["python3", "../../utils/make_multi_spheres.py",
+  "--nx", "160", "--ny", "160", "--nz", "1",
+  "--spheres", data,
+  "--concentration-A", "0.03", "--concentration-out", "0.08",
   initfilename])
-
-mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
-exe = sys.argv[4]
-inp = sys.argv[5]
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)

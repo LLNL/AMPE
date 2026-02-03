@@ -125,7 +125,7 @@ class QuatModelParameters
       assert(isp < d_cp.size());
       return d_cp[isp];
    }
-   const std::vector<std::map<short, double> >& cp() const { return d_cp; }
+   const std::vector<std::map<short, double>>& cp() const { return d_cp; }
 
    int ncompositions() const
    {
@@ -563,6 +563,15 @@ class QuatModelParameters
              d_ceq0_solidA[2] * dT * dT;
    }
 
+   int norientations() const { return d_orientations.size(); }
+
+   std::array<double, 4> orientation(const int i) const
+   {
+      return d_orientations[i];
+   }
+
+   std::vector<std::array<double, 4>> orientations() { return d_orientations; }
+
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
@@ -605,7 +614,7 @@ class QuatModelParameters
    double d_thermal_diffusivity;
    double d_latent_heat;
    // cp for each species
-   std::vector<std::map<short, double> > d_cp;
+   std::vector<std::map<short, double>> d_cp;
    double d_meltingT;
    double d_interface_mobility;
 
@@ -816,8 +825,14 @@ class QuatModelParameters
    double d_ceq0_liquid[3];
    double d_ceq0_solidA[3];
 
+   /*!
+    * Order parameters orientations
+    */
+   std::vector<std::array<double, 4>> d_orientations;
+
    void readMolarVolumes(std::shared_ptr<tbox::Database> db);
    void readEquilibriumCompositions(std::shared_ptr<tbox::Database> conc_db);
+   void readOrientations(std::shared_ptr<tbox::Database> model_db);
 
    void readCahnHilliard(std::shared_ptr<tbox::Database> db);
    void readWangSintering(std::shared_ptr<tbox::Database> db);
