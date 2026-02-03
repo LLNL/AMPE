@@ -90,6 +90,7 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_liquidus_slope = def_val;
    d_average_concentration = def_val;
    d_stochio_cB = -1.;
+   d_stochio_cA = -1.;
 
    for (short i = 0; i < 3; i++) {
       d_ceq0_solidA[i] = def_val;
@@ -433,6 +434,7 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
        conc_db->getBoolWithDefault("init_phase_conc_eq", true);
 
    d_stochio_cB = conc_db->getDoubleWithDefault("stochio_cB", -1.);
+   d_stochio_cA = conc_db->getDoubleWithDefault("stochio_cA", -1.);
 
    readEquilibriumCompositions(conc_db);
 }

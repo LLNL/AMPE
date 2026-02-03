@@ -3132,7 +3132,8 @@ void QuatIntegrator::setCoefficients(
 
    if (d_with_concentration &&
        d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-      d_quat_model->computePhaseConcentrations(hierarchy);
+      d_quat_model->computePhaseConcentrations(time - d_current_time,
+                                               hierarchy);
    }
 
    // mobilities may depend on cl and cs, thus they should be computed after
@@ -3262,7 +3263,8 @@ int QuatIntegrator::evaluateRHSFunction(double time,
 
             // compute phase concentrations again if they depend on velocity
             // tbox::pout<<"Evaluate c_L, c_S..."<<endl;
-            d_quat_model->computePhaseConcentrations(hierarchy);
+            d_quat_model->computePhaseConcentrations(time - d_current_time,
+                                                     hierarchy);
          }
 
       } while (need_iterate);

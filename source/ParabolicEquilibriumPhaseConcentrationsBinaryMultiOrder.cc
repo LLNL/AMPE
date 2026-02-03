@@ -16,8 +16,6 @@
 ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder::
     ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder(
         const int conc_l_id, const int conc_a_id,
-        const Thermo4PFM::EnergyInterpolationType energy_interp_func_type,
-        const Thermo4PFM::ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db)
     : EquilibriumPhaseConcentrationsBinaryMultiOrder(conc_l_id, conc_a_id,
                                                      conc_db)
@@ -33,5 +31,6 @@ ParabolicEquilibriumPhaseConcentrationsBinaryMultiOrder::
    double Tref = input_db->getDouble("Tref");
 
    d_fenergy.reset(new Thermo4PFM::ParabolicFreeEnergyFunctionsBinary(
-       Tref, coeffL, coeffA, energy_interp_func_type, conc_interp_func_type));
+       Tref, coeffL, coeffA, Thermo4PFM::EnergyInterpolationType::LINEAR,
+       Thermo4PFM::ConcInterpolationType::LINEAR));
 }

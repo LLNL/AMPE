@@ -347,8 +347,8 @@ void QuatModel::initializeRHSandEnergyStrategies(
    d_free_energy_strategy =
        FreeEnergyStrategyFactory::create(d_model_parameters, d_ncompositions,
                                          d_conc_l_id, d_conc_a_id, d_conc_b_id,
-                                         d_mvstrategy, d_meltingT_strategy,
-                                         Tref, d_conc_db);
+                                         d_conc_scratch_id, d_mvstrategy,
+                                         d_meltingT_strategy, Tref, d_conc_db);
 
    if (d_model_parameters.with_concentration()) {
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
@@ -734,6 +734,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    const double cLref = d_model_parameters.concL_ref();
    if (cLref >= 0.) {
       tbox::plog << "Set reference cL to " << cLref << std::endl;
+      assert(cLref <= 1.);
       if (d_conc_l_ref_id >= 0)
          cellops.setToScalar(d_conc_l_ref_id, cLref, false);
       cellops.setToScalar(d_conc_l_id, cLref, false);
@@ -1213,7 +1214,8 @@ void QuatModel::registerPhaseConcentrationVariables()
       assert(d_conc_b_var);
    }
 
-   if (d_model_parameters.isConcentrationModelCALPHAD()) {
+   if (d_model_parameters.isConcentrationModelCALPHAD() ||
+       d_model_parameters.getStochioA() >= 0.) {
       d_conc_l_ref_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_l_ref",
                                          d_ncompositions));
@@ -2323,7 +2325,8 @@ double QuatModel::Advance(void)
    bool update_solution = false;
 
    if (d_model_parameters.with_concentration() &&
-       d_model_parameters.isConcentrationModelCALPHAD())
+       (d_model_parameters.isConcentrationModelCALPHAD() ||
+        d_model_parameters.getStochioA() >= 0.))
       resetRefPhaseConcentrations();
 
    if (d_model_parameters.with_orientation()) {
@@ -4937,12 +4940,9 @@ void QuatModel::evaluateEnergy(
          if (d_model_parameters.needGhosts4PartitionCoeff())
             fillPartitionCoeffGhosts();
       }
-      if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-         assert(d_phase_conc_strategy != nullptr);
-         d_phase_conc_strategy->computePhaseConcentrations(
-             hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
-             d_conc_scratch_id);
-      }
+      // if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
+      //   computePhaseConcentrations(0., hierarchy);
+      //}
    }
 
    if (d_free_energy_strategy) {
@@ -4984,7 +4984,7 @@ void QuatModel::evaluateEnergy(
 //=======================================================================
 
 void QuatModel::computePhaseConcentrations(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const double dt, const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(d_phase_conc_strategy != nullptr);
 
@@ -5336,6 +5336,8 @@ void QuatModel::setRefPhaseConcentrationsToEquilibrium(const double* const ceq)
 {
    assert(d_conc_l_ref_id >= 0);
    assert(d_conc_a_ref_id >= 0);
+   assert(ceq[0] >= 0.);
+   assert(ceq[0] <= 1.);
 
    tbox::pout << "QuatModel::setRefPhaseConcentrationsToEquilibrium(ceq)"
               << std::endl;

@@ -141,7 +141,10 @@ class QuatModelParameters
    {
       return d_initc_in_phase[d_ncompositions + index];
    }
+
    double getStochioB() const { return d_stochio_cB; }
+   double getStochioA() const { return d_stochio_cA; }
+
    double meltingT() const { return d_meltingT; }
    double interfaceMobility() const { return d_interface_mobility; }
    double rescale_factorT() const { return d_rescale_factorT; }
@@ -626,6 +629,7 @@ class QuatModelParameters
 
    // stochio composition of phase B (if set to value >= 0)
    double d_stochio_cB;
+   double d_stochio_cA;
 
    // free energy parameters:
    // f(phi) = d_phase_well_scale * g(phi)
